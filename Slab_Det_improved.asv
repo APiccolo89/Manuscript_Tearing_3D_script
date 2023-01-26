@@ -287,39 +287,32 @@ if strcmp(trench,'Subduction')
         Tk=B;
         ind = [];
     end
-% 
-%     theta_c = Terranes.theta_c; 
-%     r       = Terranes.r; 
-%     ph_C    = [Terranes.Cont.Phases(1);Terranes.Cont.Phases(2)];
-%     ph_C_D  = [Terranes.Cont.Depths(1);Terranes.Cont.Depths(2)];
-%     
-%     TOP     = 0.0; 
-% 
-%     for i=1:length(ph_C)
-%         BOTTOM = TOP-ph_C_D(i); 
-%         ind = Layout< TOP & Layout >= BOTTOM & arc_angleS<theta_c; 
-%         Phase(ind) = ph_C(i); 
-%         TOP = BOTTOM; 
-%         ind = []; 
-%     end
-% 
-%     P1 = [C(1);-D0];
-%     P2 = [C(1)+(r(2)-sum(ph_C_D))*sin(theta_c*pi/180);C(2)+(r(2)-sum(ph_C_D))*cos(theta_c*pi/180)];
-%     m  = (P2(2)-P1(2))/(P2(1)-P1(1));
-%     z   = m*(A.Xpart-P1(1))+P1(2); 
-%     Phase(Layout< -sum(ph_C_D) & (A.Zpart>z))= Terranes.Cont.Phases(3); 
 
     Layout = []; 
     [Layout,arc_angleS] = find_slab_(A,ind_x,ind_z,T,'Weak',D0);
     ind =(Layout<=0.0 & A.Zpart >= -D0);
     Phase(ind) = Gen.WZ;
-
 end
 if strcmp(accretion_prism,'Prism')
     % Place holder
+
+    %function Select the area of the prism
+
+   
 end
-if strcmp(passive_margin,'none') > 0
-   % Place holder 
+if strcmp(passive_margin,'none') < 0
+   % generate left/right passive margin 
+   for i=1:length(passive_margin)
+   if strcmp(passive_margin{i},'left')
+   
+   elseif strcmp(passive_margin{i},'right')
+        % function 
+   else
+        % function
+   end
+   
+   end
+   
 end
 
 end
@@ -587,5 +580,4 @@ function [string] = save_topography(topo_M,Gr)
     % grid spacing in x-dir, grid spacing in y-dir, TopoMatrix in vector form])
     PetscBinaryWrite('topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
     string = 'Isostatic balance finished, and the resulted topography has been saved in Topo.dat';
-
 end 
