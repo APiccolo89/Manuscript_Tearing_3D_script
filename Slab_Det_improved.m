@@ -1,11 +1,22 @@
 
 clear all;
 close all; 
+addpath matlab   %Here -> Folder2LaMEM/matlab => all the function that handle matlab files are there
+
+
+npart = [3,3,3];
+% See model setup in Paraview 1-YES; 0-NO
+Paraview_output        = 1;
+% Output parallel files for LaMEM, using a processor distribution file (msetup = parallel)
+LaMEM_Parallel_output  = 1;
+Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
+[A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart);
+
 
 T.R        = 40;   %curvature radius 
 T.theta_c  = 30;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 45;   % curvature slab
+T.theta    = 30;   % curvature slab
 T.tk_WZ    = 15;   % thickness of the weak zone
 T.L0       = 300;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
@@ -86,60 +97,25 @@ Gen.Ph_Air   = phases.Ph_Ar(1);
 Gen.Ph_UM    = phases.Ph_UM(1);
 Gen.WZ       = phases.Ph_WZ(1); 
 Gen.PrismPh = phases.Ph_cont_pr(1);
+TA = cputime;
+Create_Setup(Terranes,phases,Gen,A,npart,Gr,Parallel_partition);
+TB = cputime; 
+disp('====================================================================')
+disp(['The Setup is finished and took ', num2str(round((TB-TA)./60)), ' min'])
+disp('====================================================================')
+%=========================================================================%
+%%
+%==========================================================================
+% Function for constructing the initial setup [Still tuned for 2D and
+% monodirectional]
+%==========================================================================
 
-Create_Setup(Terranes,phases,Gen);
-disp('The Setup is finished')
-
-
-
-function Create_Setup(Terranes,ph,Gen)
-    addpath matlab   %Here -> Folder2LaMEM/matlab => all the function that handle matlab files are there
-    addpath(genpath('../geomio/src'));
-    %==========================================================================
-    % OUTPUT OPTIONS
-    %==========================================================================
-    % See model setup in Paraview 1-YES; 0-NO
-    Paraview_output        = 1;
-    % Output parallel files for LaMEM, using a processor distribution file (msetup = parallel)
-    LaMEM_Parallel_output  = 1;
-    Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
+function Create_Setup(Terranes,ph,Gen,A,npart,Gr,Parallel_partition)
+    
     RandomNoise             =   logical(0);
     Is64BIT                 =   logical(0);
-    %==========================================================================
-    % LOAD MESH GRID FROM LaMEM PARTITIONING FILE
-    %==========================================================================
-    npart_x =   3;
-    npart_y =   3;
-    npart_z =   3;
-
-    % Load grid from parallel partitioning file
-    [X,Y,Z,x,y,z, Xpart,Ypart,Zpart] = FDSTAGMeshGeneratorMatlab(npart_x,npart_y,npart_z,Parallel_partition, RandomNoise, Is64BIT);
-    Gr.x_g = [min(x),max(x)]; 
-    Gr.z_g =[min(z),max(z)];
-    Gr.y_g = [min(y),max(y)]; 
-    % Update variables (size of grid in [x,y,z] direction
-    nump_x  =   size(X,2);
-    nump_y  =   size(X,1);
-    nump_z  =   size(X,3);  
-    W       =   max(x)-min(x);
-    mW      =   abs(min(x));
-    L       =   max(y)-min(y);
-    mL      =   abs(min(y));
-    H       =   max(z)-min(z);
-    mH      =   abs(min(z)); 
-    Xvec    =   squeeze(X(1,:,1));
-    Yvec    =   squeeze(Y(:,1,1));
-    Zvec    =   squeeze(Z(1,1,:));
-    % Temporary save memory
-    clear Z Xpart Ypart Zpart
-    % Prepare data for visualization/output
-    A           =   struct('W',[],'L',[],'H',[],'nump_x',[],'nump_y',[],'nump_z',[],'Phase',[],'Temp',[],'x',[],'y',[],'z',[],'npart_x',[],'npart_y',[],'npart_z',[]);
-    % Linear vectors containing coords
-    [A.Xpart,A.Ypart,A.Zpart] =meshgrid(single(Xvec),single(Yvec),single(Zvec));
-    
-    
-    Phase = zeros(size(A.Xpart));
-    Temp  = zeros(size(A.Xpart));
+    Phase = 0.0.*((A.Xpart));
+    Temp  = 0.0.*((A.Xpart));
 
     % Set Mantle Phase
     Phase(:,:,:)  = Gen.Ph_Air;
@@ -156,8 +132,16 @@ function Create_Setup(Terranes,ph,Gen)
     terranes_list = fieldnames(Terranes); 
     for it =1:length(terranes_list)
             t = Terranes.(terranes_list{it});
-            disp(['Filling the ',terranes_list{it} ,' terranes '])
+            disp(['Filling the ',terranes_list{it} ,' terranes .... '])
+
+            a = cputime;
             [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,t,Gen);
+            b = cputime; 
+            time = b-a; 
+            disp(['took ', num2str(round(time)), ' s'])
+            disp('=================================')
+
+
     end
     %===========================================================================%
     % Set Air Phase
@@ -174,48 +158,37 @@ function Create_Setup(Terranes,ph,Gen)
 
 
     % We can still manually change all this & include, say, a lower mantle
-    A.nump_x = nump_x;
-    A.nump_y = nump_y;
-    A.nump_z = nump_z;
+    A.nump_x = npart(1);
+    A.nump_y = npart(2);
+    A.nump_z = npart(3);
     A.Phase  = double(Phase); clear Phase
     A.Temp   = double(Temp);  clear Temp
     A.Phase  = permute(A.Phase,[2 1 3]);
     A.Temp   = permute(A.Temp, [2 1 3]);
 
-
-    x = Xvec;
-    y = Yvec;   
-    z = Zvec;   
+    x = squeeze(A.Xpart(:,1,1));
+    y = squeeze(A.Xpart(1,:,1));   
+    z = squeeze(A.Xpart(1,1,:));   
     A.x      =  double(x(:));
     A.y      =  double(y(:));
     A.z      =  double(z(:));
     
-    [A] = displace_phase_isostasy(ph,A,Gr,Gen); 
+    [A,surf] = displace_phase_isostasy(ph,A,Gr,Gen); 
+
+    plot_initial_setup2D(A,surf); 
    
-    A.RandomNoise = RandomNoise;
+    A.RandomNoise = logical(0);
 
     clear Temp Phase
 
-    % Clearing up some memory for parallel partitioning
-    % clearvars -except A Paraview_output LaMEM_Parallel_output Parallel_partition Is64BIT
 
     % PARAVIEW VISUALIZATION
-    if (Paraview_output == 1)
-         FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option
-    end
+    FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option
 
     % SAVE PARALLEL DATA (parallel)
-    if (LaMEM_Parallel_output == 1)
-        FDSTAGSaveMarkersParallelMatlab(A,Parallel_partition, Is64BIT);
-    end
-
+    FDSTAGSaveMarkersParallelMatlab(A,Parallel_partition, Is64BIT);
+    
 end
-
-
-%==========================================================================
-% Function for constructing the initial setup [Still tuned for 2D and
-% monodirectional]
-%==========================================================================
 
 
 function [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,Terranes,Gen)
@@ -243,20 +216,37 @@ function [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,Terranes,Gen)
 trench = Terranes.Trench; 
 passive_margin = Terranes.Passive_Margin;
 accretion_prism = Terranes.Accretion_prism; 
+A_fill_layer = cputime;
 [Phase,Temp] = fill_layer(A,Terranes,Phase,Temp,Gen);
+B_fill_layer = cputime;
+t = B_fill_layer-A_fill_layer; 
+disp(['           1. Fill the layer and initialise Temperature field...', num2str(round(t)), 's']);
 if strcmp(trench,'Subduction')
+    A_fill_Sub = cputime;
     [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen);
+    B_fill_Sub = cputime;
+    t = B_fill_Sub-A_fill_Sub; 
+    disp(['        2. Fill the Subduction and initialise its Temperature field...', num2str(round(t)), 's']);
+
 end
 if strcmp(accretion_prism,'Prism')
+   A_fill_Prism = cputime;
    [Phase] = generate_accretion_prism(A,Terranes,Phase);
+   B_fill_Prism = cputime;
+   t = B_fill_Prism-A_fill_Prism; 
+   disp(['         2. Fill the Prism ...', num2str(round(t)), 's']);
 end
 if strcmp(passive_margin,'none') == 0
    % generate left/right passive margin 
+   A_fill_Passive = cputime;
+
    for i=1:length(passive_margin)
         direction = Terranes.Passive_Margin{i};
         [Phase,Temp] = generate_passive_margin(A,Phase,Temp,Terranes,direction,Gen);
-        disp('      Filling the passive margin  ')
    end
+     B_fill_Passive = cputime;
+     t = B_fill_Passive-A_fill_Passive; 
+     disp(['       3. Fill the Passive Margins...', num2str(round(t)), 's']);
    
 end
 
@@ -392,7 +382,7 @@ end
 
 
 
-function [A] = displace_phase_isostasy(ph,A,Gr,Gen) 
+function [A,surf] = displace_phase_isostasy(ph,A,Gr,Gen) 
 % =========================================================================
 % Function that compute the relative displacement of the phase if we
 % consider them in Isostatic equilibrium. 
@@ -452,6 +442,8 @@ end
 
 
 [s]=save_topography(A,topo_M,Gr); 
+surf(1,:)=x(:,1);
+surf(2,:)=topo_M; 
 disp(s); 
 
 end
@@ -628,3 +620,109 @@ function [string] = save_topography(A,topo_M,Gr)
     PetscBinaryWrite('topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
     string = 'Isostatic balance finished, and the resulted topography has been saved in Topo.dat';
 end 
+
+
+
+function plot_initial_setup2D(A,surf)
+figure(1)
+ratioX = max(A.Xpart(:,1,1))-min(A.Xpart(:,1,1));
+ratioZ = max(A.Zpart(1,1,:))- min(A.Zpart(1,1,:));
+r = [1,ratioZ./ratioX,1];
+x = squeeze(A.Xpart(:,1,:));
+z = squeeze(A.Zpart(:,1,:));
+T = squeeze(A.Temp(:,1,:)); 
+ph = squeeze(A.Phase(:,1,:)); 
+T(ph==0)=nan;
+ph(ph==0)=nan;
+hold on 
+plot(surf(1,:),surf(2,:),"Color",'r','LineStyle','--','LineWidth',1.2)
+pcolor(x,z,T);
+hold off
+shading interp; 
+pbaspect(r); 
+xlabel('x, [km]', Interpreter='latex'); 
+ylabel('z, [km]',Interpreter='latex'); 
+title('Temperature Field [$^\circ$ C]',Interpreter='latex');
+grid on; 
+colormap("summer"); 
+box on 
+xaxisproperties= get(gca, 'XAxis');
+xaxisproperties.TickLabelInterpreter = 'latex'; 
+yaxisproperties= get(gca, 'YAxis');
+yaxisproperties.TickLabelInterpreter = 'latex'; 
+c = colorbar;
+c.Label.String = 'Temperature $[^\circ C]$';
+c.Label.Interpreter = 'latex';
+c.TickLabelInterpreter='latex';
+print('Temperature','-dpng','-r0')
+
+
+figure(2)
+lv = 1:12;
+hold on 
+plot(surf(1,:),surf(2,:),"Color",'r','LineStyle','--','LineWidth',1.2)
+contourf(x,z,ph,13); 
+
+hold off
+shading interp; 
+pbaspect(r); 
+xlabel('x, [km]', Interpreter='latex'); 
+ylabel('z, [km]',Interpreter='latex'); 
+title('Temperature Field [$^\circ$ C]',Interpreter='latex');
+grid on
+caxis([1,12]); 
+box on 
+xaxisproperties= get(gca, 'XAxis');
+xaxisproperties.TickLabelInterpreter = 'latex'; 
+yaxisproperties= get(gca, 'YAxis');
+yaxisproperties.TickLabelInterpreter = 'latex'; 
+c = colorbar;%(['Upper Crust 1','Lower Crust 1', 'Lithospheric Mantle 1', ' Lithospheric Mantle 2', 'Upper Mantle','Oceanic Slab', 'Oceanic Crust', 'Weak Zone', 'Upper Crust 2', 'Lower Crust 2', 'Oceanic Sed.', 'Passive/Prism']);
+c.Label.String = 'Phase ';
+c.Label.Interpreter = 'latex';
+c.TickLabelInterpreter='latex';
+print('Phase','-dpng','-r0')
+
+
+
+end
+function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart)
+   %==========================================================================
+    % OUTPUT OPTIONS
+    %==========================================================================
+    % See model setup in Paraview 1-YES; 0-NO
+
+    Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
+    RandomNoise             =   logical(0);
+    Is64BIT                 =   logical(0);
+    %==========================================================================
+    % LOAD MESH GRID FROM LaMEM PARTITIONING FILE
+    %==========================================================================
+    npart_x =   npart(1);
+    npart_y =   npart(2);
+    npart_z =   npart(3);
+
+    % Load grid from parallel partitioning file
+    [X,Y,Z,x,y,z, Xpart,Ypart,Zpart] = FDSTAGMeshGeneratorMatlab(npart_x,npart_y,npart_z,Parallel_partition, RandomNoise, Is64BIT);
+    Gr.x_g = [min(x),max(x)]; 
+    Gr.z_g =[min(z),max(z)];
+    Gr.y_g = [min(y),max(y)]; 
+    % Update variables (size of grid in [x,y,z] direction
+    nump_x  =   size(X,2);
+    nump_y  =   size(X,1);
+    nump_z  =   size(X,3);  
+    W       =   max(x)-min(x);
+    mW      =   abs(min(x));
+    L       =   max(y)-min(y);
+    mL      =   abs(min(y));
+    H       =   max(z)-min(z);
+    mH      =   abs(min(z)); 
+    Xvec    =   squeeze(X(1,:,1));
+    Yvec    =   squeeze(Y(:,1,1));
+    Zvec    =   squeeze(Z(1,1,:));
+    % Temporary save memory
+    clear Z Xpart Ypart Zpart
+    % Prepare data for visualization/output
+    A           =   struct('W',[],'L',[],'H',[],'nump_x',[],'nump_y',[],'nump_z',[],'Phase',[],'Temp',[],'x',[],'y',[],'z',[],'npart_x',[],'npart_y',[],'npart_z',[]);
+    % Linear vectors containing coords
+    [A.Xpart,A.Ypart,A.Zpart] =meshgrid(single(Xvec),single(Yvec),single(Zvec));
+end
