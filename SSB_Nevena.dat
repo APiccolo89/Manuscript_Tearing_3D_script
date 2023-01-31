@@ -62,10 +62,10 @@
 	gravity        = 0.0 0.0 -9.81  # gravity vector
 	FSSA           = 1.0            # free surface stabilization parameter [0 - 1]
 	shear_heat_eff = 0.0            # shear heating efficiency parameter   [0 - 1]
-	act_temp_diff  = 0              # temperature diffusion activation flag
+	act_temp_diff  = 1              # temperature diffusion activation flag
 	Adiabatic_Heat  = 0.0           # Adiabatic Heating activaction flag and efficiency. [0.0 - 1.0] (e.g. 0.5 means that only 50% of the potential adiabatic heating affects the energy equation)   
-	act_steady_temp = 0              # steady-state temperature initial guess activation flag
-	nstep_steady    = 3             # number of steps for (quasi-)steady-state temperature initial guess (default = 1)
+	#act_steady_temp = 1              # steady-state temperature initial guess activation flag
+	#nstep_steady    = 3             # number of steps for (quasi-)steady-state temperature initial guess (default = 1)
 	act_p_shift    = 0              # pressure shift activation flag (zero pressure in the top cell layer)
 	init_guess     = 1              # initial guess flag
 	p_litho_visc   = 1              # use lithostatic pressure for creep laws
@@ -101,6 +101,20 @@ msetup         = files              # setup type
 # Output
 #===============================================================================
 
+    <VelBoxStart>
+    	cenX     =   -1400  # X-coordinate of center of box
+    	cenY     =   0.0  # Y-coordinate of center of box
+    	cenZ     =   -35.0  # Z-coordinate of center of box
+   		widthX   =   100.0  # Width of box in x-direction
+    	widthY   =   2.0  # Width of box in y-direction
+    	widthZ   =   85.0  # Width of box in z-direction
+    	vx       =   6.0  # Vx velocity of box (default is unconstrained)
+    	vy       =   0.0  # Vy velocity of box (default is unconstrained)
+    	vz       =   0.0  # Vz velocity of box (default is unconstrained) 
+    	advect   =   0    # box advection flag
+        number_time_interval = 1
+	time_intervals = 0.1 8.0
+    <VelBoxEnd> 
 	<PhaseAggStart>
 		name     = _Continental_Lit_1  # phase aggregate output vector name
 		numPhase = 1     	# number of phases to aggregate
@@ -224,13 +238,15 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
 		# Diffusion--------------------------------------------------------------# 
-		eta        = 1e24    		
+		#eta        = 1e24    		
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
     	# _Vd         = 5e-6   # activation volume
@@ -264,13 +280,15 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
 		# Diffusion--------------------------------------------------------------# 
-		eta        = 1e24    		
+		#eta        = 1e24    		
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
     	# _Vd         = 5e-6   # activation volume
@@ -304,19 +322,21 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
 		# Diffusion--------------------------------------------------------------# 
-		eta        = 1e24    		
+		#eta        = 1e24    		
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
     	# _Vd         = 5e-6   # activation volume
 		# Dislocation------------------------------------------------------------#
-		eta0          = 1e24   # initial visocisty
-		tau0          = 400    # reference Tau 
+		#eta0          = 1e24   # initial visocisty
+		#tau0          = 400    # reference Tau 
 		# _En         = 532e3  # activation energy
 		# _Vn         = 17e-6  # activation volume
 		n           = 3.5    # power law exponent
@@ -344,22 +364,24 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+	disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
 		# Diffusion--------------------------------------------------------------# 
-		eta        = 1e24    		
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
     	# _Vd         = 5e-6   # activation volume
 		# Dislocation------------------------------------------------------------#
-		eta0          = 1e24   # initial visocisty
-		tau0          = 400    # reference Tau 
+		
+		#eta0          = 1e24   # initial visocisty
+		#tau0          = 400    # reference Tau 
 		# _En         = 532e3  # activation energy
 		# _Vn         = 17e-6  # activation volume
-		n           = 3.5    # power law exponent
+		#n           = 3.5    # power law exponent
 		# Elastic----------------------------------------------------------------#
 		G        = 5e10
 		# _K        = x 
@@ -384,20 +406,23 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
 		# Diffusion--------------------------------------------------------------# 
-		eta  =  1e22 # Modified using the script
+		#eta  =  1e22 # Modified using the script
 		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
-    	#Vd         = 5e-6   # activation volume
+    	Vd         = 5e-6   # activation volume
+		Vn         = 15e-6
 		# Dislocation------------------------------------------------------------#
-		eta0 = 1e19 # Modified using the scrip
-		tau0 = 100.000000 # Modified using the scrip
-		n           = 3.5    # power law exponent
+		#eta0 = 1e19 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
 		# Elastic----------------------------------------------------------------#
 		G        = 5e10
 		# _K        = x 
@@ -422,20 +447,23 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
 		# Diffusion--------------------------------------------------------------# 		
-		eta  =  1e23 # Modified using the script
+		#eta  =  1e23 # Modified using the script
 		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
-    	#Vd         = 5e-6   # activation volume
+    	Vd         = 5e-6   # activation volume
+		Vn         = 15e-6
 		# Dislocation------------------------------------------------------------#
-		eta0 = 1e22 # Modified using the scrip
-		tau0 = 100.000000 # Modified using the scrip
-		n           = 3.5    # power law exponent
+		#eta0 = 1e22 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
 		# Elastic----------------------------------------------------------------#
 		G        = 5e10
 		# _K        = x 
@@ -458,20 +486,23 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
 		# Diffusion--------------------------------------------------------------# 		
-		eta  =  1e23 # Modified using the script
+		#eta  =  1e23 # Modified using the script
 		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
     	#Vd         = 5e-6   # activation volume
 		# Dislocation------------------------------------------------------------#
-		eta0 = 1e22 # Modified using the scrip
-		tau0 = 100.000000 # Modified using the scrip
-		n           = 3.5    # power law exponent
+		#eta0 = 1e22 # Modified using the scrip
+		
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
 		# Elastic----------------------------------------------------------------#
 		G        = 5e10
 		# _K        = x 
@@ -494,20 +525,21 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
 		# Diffusion--------------------------------------------------------------# 		
-		eta  =  1e23 # Modified using the script
-		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+				#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
     	#Vd         = 5e-6   # activation volume
 		# Dislocation------------------------------------------------------------#
-		eta0 = 1e22 # Modified using the scrip
-		tau0 = 100.000000 # Modified using the scrip
-		n           = 3.5    # power law exponent
+		#eta0 = 1e22 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
 		# Elastic----------------------------------------------------------------#
 		G        = 5e10
 		# _K        = x 
@@ -530,13 +562,15 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
 		# Diffusion--------------------------------------------------------------# 
-		eta        = 1e24    		
+#		eta        = 1e24    		
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
     	# _Vd         = 5e-6   # activation volume
@@ -567,13 +601,93 @@ msetup         = files              # setup type
 		# _beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
-		# _k = 3              # conductivity
-		# _Cp = 1050       # heat capacity
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
 		#------------------------------------------------------------------------#
 		## _Rheology_
 		#------------------------------------------------------------------------#
 		# Diffusion--------------------------------------------------------------# 
-		eta        = 1e24    		
+		#eta        = 1e24 
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000   		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		# _fr       = 30
+		# _ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		# _chSoftID = 0  # cohesion softening law ID
+		# _frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	<MaterialStart>
+		ID = 11 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2680 # density [kg/m3]
+		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		# _beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		# Diffusion--------------------------------------------------------------# 
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		# _fr       = 30
+		# _ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		# _chSoftID = 0  # cohesion softening law ID
+		# _frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	<MaterialStart>
+		ID = 12 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2680 # density [kg/m3]
+		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		# _beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
     	# _Vd         = 5e-6   # activation volume

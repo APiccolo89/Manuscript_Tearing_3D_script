@@ -5,13 +5,14 @@ close all;
 T.R        = 40;   %curvature radius 
 T.theta_c  = 30;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 90;   % curvature slab
-T.tk_WZ    = 10;   % thickness of the weak zone
-T.L0       = 100;  % length of the slab from the bottom of the lithosphere
+T.theta    = 45;   % curvature slab
+T.tk_WZ    = 15;   % thickness of the weak zone
+T.L0       = 300;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
 T.C  = [0.0 -T.D0-T.R]; 
 T.r  = [T.R T.R+T.D0]; 
 T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ];
+T.D_WZ = -100;
 
 
 phases.Ph_Ar  = [0,10]  ;% Air 
@@ -51,11 +52,11 @@ Buffer.Age          = 5.0;
 %Terranes.Continent1
 Continent1.order = 2; 
 Continent1.Type  = 'Continent';
-Continent1.x_lim = [-1300.0,-600.0];
+Continent1.x_lim = [-1300.0,-400.0];
 Continent1.Phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
 Continent1.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
 Continent1.Age          = 100.0; 
-Continent1.Passive_Margin = {'left','right'};
+Continent1.Passive_Margin = {[],'right'};
 Continent1.Passive_Margin_phase = phases.Ph_cont_pr;
 %% Continent Terranes 2 
 Continent2.order = 3; 
@@ -70,7 +71,7 @@ Continent2.prism_phase      = phases.Ph_cont_pr;
 %% Oceanic plate 
 Oceanic_Plate.order = 4; 
 Oceanic_Plate.Type  = 'Ocean';
-Oceanic_Plate.x_lim = [-600.0,0.0]; 
+Oceanic_Plate.x_lim = [-400.0,0.0]; 
 Oceanic_Plate.Phases = [phases.Ph_sed_oc(1),phases.Ph_OC(1),phases.Ph_OLt(1)];
 Oceanic_Plate.Stratigraphy = [0.0,-2.0,-7.0,-80.0];
 Oceanic_Plate.Age          = 80.0; 
@@ -84,6 +85,7 @@ Gen.T_S = 20;
 Gen.Ph_Air   = phases.Ph_Ar(1);
 Gen.Ph_UM    = phases.Ph_UM(1);
 Gen.WZ       = phases.Ph_WZ(1); 
+Gen.PrismPh = phases.Ph_cont_pr(1);
 
 Create_Setup(Terranes,phases,Gen);
 disp('The Setup is finished')
@@ -134,16 +136,10 @@ function Create_Setup(Terranes,ph,Gen)
     A           =   struct('W',[],'L',[],'H',[],'nump_x',[],'nump_y',[],'nump_z',[],'Phase',[],'Temp',[],'x',[],'y',[],'z',[],'npart_x',[],'npart_y',[],'npart_z',[]);
     % Linear vectors containing coords
     [A.Xpart,A.Ypart,A.Zpart] =meshgrid(single(Xvec),single(Yvec),single(Zvec));
+    
+    
     Phase = zeros(size(A.Xpart));
     Temp  = zeros(size(A.Xpart));
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %                    Initial Input                                        %
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-
-    % Create useful structure to avoid function input argument long and
-    % tedius: 
-     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % Set Mantle Phase
     Phase(:,:,:)  = Gen.Ph_Air;
@@ -161,7 +157,7 @@ function Create_Setup(Terranes,ph,Gen)
     for it =1:length(terranes_list)
             t = Terranes.(terranes_list{it});
             disp(['Filling the ',terranes_list{it} ,' terranes '])
-            [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,t,Xvec,Zvec,Gen);
+            [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,t,Gen);
     end
     %===========================================================================%
     % Set Air Phase
@@ -222,95 +218,43 @@ end
 %==========================================================================
 
 
-function [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,Terranes,Xvec,Zvec,Gen)
-type = Terranes.Type; 
+function [Phase,Temp] =  Set_Phase_Temperature(A,Phase,Temp,Terranes,Gen)
+%=========================================================================%
+% Function that fills the phases. 
+%=========================================================================%
+% Input Parameter: 
+%=========================================================================%
+% A = Data Structure with the grid/particles data. 
+% Phase, Temp Layer of phase or initial temperature field. 
+% Terranes: object containing information of the terranes. 
+% Gen     : generic data structure containing the information that are
+% general (i.e. temperature of air, potential temperature, phase of prism,
+% or passive margin or weak zone). 
+%=========================================================================%
+% Output parameter: 
+%=========================================================================%
+% Phase,Temp update. 
+%=========================================================================%
+% Structure of the function: 
+% Fill layer between fixed bounds. Add subduction zone, add accretionary
+% prism or passive margin and transitional terranes. Each of the generation
+% of terranes is handled with specific functions. 
+%=========================================================================%
 trench = Terranes.Trench; 
 passive_margin = Terranes.Passive_Margin;
 accretion_prism = Terranes.Accretion_prism; 
-T_Tk = [0.0, Terranes.Stratigraphy(end)];
-
-% Select the layer and portion of the model:
-indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
-% Compute the thermal profile
-[Temp] = compute_temperature_profile(A,Temp,1,T_Tk,Gen,Terranes,indx);
-% Set the background phase
-T = T_Tk(1);
-
-for i=1:length(Terranes.Phases)
-    if (i == length(Terranes.Phases))
-        B=T_Tk(2);
-    else
-        B = Terranes.Stratigraphy(i+1);
-    end
-    ind = A.Zpart < T & A.Zpart>=B & indx>0 & Phase == 0;
-    Phase(ind) = Terranes.Phases(i);
-    T=B;
-    ind = [];
-end
-
+[Phase,Temp] = fill_layer(A,Terranes,Phase,Temp,Gen);
 if strcmp(trench,'Subduction')
-    Xvec = A.Xpart(1,:,1);
-    Zvec = A.Zpart(1,1,:);
-    T = Terranes.Trench_properties;
-    C     = T.C; 
-    D0    = abs(T.D0);
-    ind_z = find(Zvec >= C(2)-T.L0 & Zvec<=0.0);
-    ind_x = find(Xvec>=C(1) & Xvec <= C(1)+D0*4); 
-    [Layout,arc_angleS] = find_slab_(A,ind_x,ind_z,T,'Slab',D0);
-    % Set the temperature
-    [Temp] = compute_temperature_profile(Layout,Temp,-1,T_Tk,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
-    % Correct Temperaure 
-    %ind = isnan(Layout);
-    %Temp(ind) = Gen.T_P; 
-    id1 = min(A.Xpart(~isnan(Layout)));
-    id2 = max(A.Xpart(~isnan(Layout)));
-    id3 = min(A.Zpart(~isnan(Layout)));
-    ind_x1 = find(Xvec>=id1,1);
-    ind_x2 = find(Xvec>=id2,1);
-    ind_z1 = find(Zvec>=id3,1);
-    for i= ind_x1:ind_x2
-        ind_L = find((Layout(1,i,:)==min(Layout(1,i,:))),1);
-        Phase(:,i,ind_z1:ind_L) = Gen.Ph_Air;
-        Temp(:,i,ind_z1:ind_L) = Gen.T_P;
-    end
-
-
-    Tk = T_Tk(1);
-    for i=1:length(Terranes.Phases)
-        if (i == length(Terranes.Phases))
-            B=T_Tk(2);
-        else
-            B = Terranes.Stratigraphy(i+1);
-        end
-        ind = Layout < Tk & Layout>=B;
-        Phase(ind) = Terranes.Phases(i);
-        Tk=B;
-        ind = [];
-    end
-
-    Layout = []; 
-    [Layout,arc_angleS] = find_slab_(A,ind_x,ind_z,T,'Weak',D0);
-    ind =(Layout<=0.0 & A.Zpart >= -D0);
-    Phase(ind) = Gen.WZ;
+    [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen);
 end
 if strcmp(accretion_prism,'Prism')
-    % Place holder
-
-    %function Select the area of the prism
-
-   
+   [Phase] = generate_accretion_prism(A,Terranes,Phase);
 end
-if strcmp(passive_margin,'none') < 0
+if strcmp(passive_margin,'none') == 0
    % generate left/right passive margin 
    for i=1:length(passive_margin)
-   if strcmp(passive_margin{i},'left')
-   
-   elseif strcmp(passive_margin{i},'right')
-        % function 
-   else
-        % function
-   end
-   
+        direction = Terranes.Passive_Margin{i};
+        [Phase] = generate_passive_margin(Phase,Terranes,direction,Gen);
    end
    
 end
@@ -319,7 +263,8 @@ end
 
 
 
-function [Temp]= compute_temperature_profile(A,Temp,Type,T_tk,Gen,Terranes,indx)
+function [Temp]= compute_temperature_profile(A,Temp,Type,Gen,Terranes,indx)
+T_tk = [0.0, Terranes.Stratigraphy(end)];
 k = Terranes.K./(Terranes.Cp.*3300); 
 T_Age = Terranes.Age.*Terranes.secMyrsyear;
 T_P   = Gen.T_P;
@@ -343,7 +288,7 @@ end
 
 
 
-function [Layout,arc_angleS] = find_slab_(A,ind_x,ind_z,Slab,type,D0)
+function [Layout,arc_angleS] = find_slab_(A,Slab,type)
 % 
 %
 % Really convoluted, but it works: 
@@ -353,6 +298,12 @@ function [Layout,arc_angleS] = find_slab_(A,ind_x,ind_z,Slab,type,D0)
 %
 %
 % find the area belonging to the curvature slab: 
+Xvec = A.Xpart(1,:,1);
+Zvec = A.Zpart(1,1,:);
+C     = Slab.C;
+D0    = abs(Slab.D0);
+ind_z = find(Zvec >= C(2)-Slab.L0 & Zvec<=0.0);
+ind_x = find(Xvec>=C(1) & Xvec <= C(1)+D0*4);
 x     = A.Xpart;
 z     = A.Zpart; 
 theta = Slab.theta;
@@ -409,8 +360,8 @@ for i=1:ls(1)
             d(i,lx,lz) = sqrt((u(1)-C(1))^2+(u(2)- C(2))^2); 
             arc_angleS(i,lx,lz) = acos((z(i,lx,lz)-C(2))/d(i,lx,lz)).*180/pi;
 
-            if (d(i,lx,lz)>=r(1) & d(i,lx,lz)<=r(2)) 
-                if(arc_angleS(i,lx,lz)>=0.0 & arc_angleS(i,lx,lz)<=theta)
+            if (d(i,lx,lz)>=r(1) && d(i,lx,lz)<=r(2)) 
+                if(arc_angleS(i,lx,lz)>=0.0 && arc_angleS(i,lx,lz)<=theta)
                   
                     Layout(i,lx,lz) = d(i,lx,lz)-r(2); 
                 end
@@ -469,14 +420,14 @@ function [A] = displace_phase_isostasy(ph,A,Gr,Gen)
 % A = update structure of particles 
 %==========================================================================
 
-[topo,rho] = compute_topography_(A,ph);
+[topo,~] = compute_topography_(A,ph);
 
 Ph = squeeze(A.Phase(:,1,:));
 T  = squeeze(A.Temp(:,1,:));
 Z  = squeeze(A.Zpart(:,1,:));
 x  = squeeze(A.Xpart(:,1,:));
 ilx = length(x(:,1));
-ily = length(squeeze(A.Ypart(1,:,1)))
+ily = length(squeeze(A.Ypart(1,:,1)));
 Ph2 = 0.*Ph;
 T2  = 0.*Ph; 
 topo_M = movmean(topo,500); 
@@ -490,8 +441,8 @@ end
  
 Ph2(isnan(Ph2)& Z >0.0)=ph.Ph_Ar(1);
 Ph2(isnan(Ph2)& Z <0.0)=ph.Ph_UM(1);
-T2(isnan(Ph2)& Z >0.0)=Gen.T_S; 
-T2(isnan(Ph2)& Z <0.0)=Gen.T_P; 
+T2(isnan(T2) & Z >0.0)=Gen.T_S; 
+T2(isnan(T2)& Z <0.0)=Gen.T_P; 
 
 for iy = 1:ily 
     A.Phase(:,iy,:) = Ph2; 
@@ -499,7 +450,7 @@ for iy = 1:ily
 end
 
 
-[s]=save_topography(topo_M,Gr); 
+[s]=save_topography(A,topo_M,Gr); 
 disp(s); 
 
 end
@@ -546,27 +497,119 @@ for is = 1:numel(field)
 end
 end
 
+function [Phase,Temp] = fill_layer(A,Terranes,Phase,Temp,Gen)
+% Select the layer and portion of the model:
+indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
+% Compute the thermal profile
+[Temp] = compute_temperature_profile(A,Temp,1,Gen,Terranes,indx);
+% Fill the phase stratigraphy: 
+[Phase] = fill_stratigraphy(A.Zpart,Phase,Terranes,indx);
+end
+
+function [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen)
+    ind_x=[];
+    
+    [Layout,~] = find_slab_(A,Terranes.Trench_properties,'Slab');
+    % Set the temperature
+    [Temp] = compute_temperature_profile(Layout,Temp,-1,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
+    % Correct Temperaure and Phase
+    id1 = min(A.Xpart(~isnan(Layout)));
+    id2 = max(A.Xpart(~isnan(Layout)));
+    id3 = min(A.Zpart(~isnan(Layout)));
+    ind_x1 = find(squeeze(A.Xpart(1,:,1))>=id1,1);
+    ind_x2 = find(squeeze(A.Xpart(1,:,1))>=id2,1);
+    ind_z1 = find(squeeze(A.Zpart(1,1,:))>=id3,1);
+    for i= ind_x1:ind_x2
+        ind_L = find((Layout(1,i,:)==min(Layout(1,i,:))),1);
+        Phase(:,i,ind_z1:ind_L) = Gen.Ph_Air;
+        Temp(:,i,ind_z1:ind_L) = Gen.T_P;
+    end
+    [Phase] = fill_stratigraphy(Layout,Phase,Terranes,ind_x);
+    [Layout,~] = find_slab_(A,Terranes.Trench_properties,'Weak');
+    ind =(Layout<=0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh);
+    Phase(ind) = Gen.WZ;
+end
 
 
-function [string] = save_topography(topo_M,Gr)
+function [Phase] = fill_stratigraphy(Z,Phase,Terranes,indx)
+T_Tk = [0.0, Terranes.Stratigraphy(end)];
+T = T_Tk(1); 
+for i=1:length(Terranes.Phases)
+    if (i == length(Terranes.Phases))
+        B=T_Tk(2);
+    else
+        B = Terranes.Stratigraphy(i+1);
+    end
+    if ~isempty(indx)
+        ind = Z < T & Z>=B & indx>0 & Phase == 0;
+    else
+        ind = Z < T & Z>=B;
+    end
+    Phase(ind) = Terranes.Phases(i);
+    T=B;
+    ind = [];
+end
+
+end
+
+
+function  [Phase] = generate_accretion_prism(A,Terranes,Phase)
+
+C = Terranes.Trench_properties.C;
+d_p = [C(1)+Terranes.position_end_prism 0.0];
+s   = (d_p(2)-C(2))./(d_p(1)-C(1)); 
+Phases = Terranes.Phases; 
+for i = 1:length(Phases)
+ind2 = A.Zpart>s.*(A.Xpart-C(1))+C(2)  & Phase == Phases(i);
+Phase(ind2) = Terranes.prism_phase(1);
+end
+
+end
+
+function [Phase] = generate_passive_margin(A,Phase,Terranes,direction,Gen)
+
+bla =0; 
+
+if ~isempty(direction)
+    depo_X = Terranes.Passive_Margin_depo_center_pos;
+    depo_Z = Terranes.Passive_Margin_depo_center;
+    Length = Terranes.Passive_Margin_length; 
+    if strcmp(direction,'left')
+    
+    else
+    
+    lim_depo = [Terranes.x_lim(2)-Length, Terranes.x_lim(2)]; 
+    Depo_x   = lim_depo(1)+depo_X.*Length; 
+    Depo_z   = - depo_Z; 
+    x        = [lim_depo(1),Depo_x,lim_depo(2)];
+    z        = [0.0, Depo_z,0.0];
+    Lithos   = Terranes.Stratigraphy(end);
+    x_l      = [lim_depo(1),lim_depo(2),lim_depo(2)];
+    z_l      = [Lithos,Lithos,Litho]
+
+    end
+    [in,~] = inpolygon(A.Xpart,A.Zpart,x,z);
+    Phase(in) = Terranes.Passive_Margin_phase(1); 
+    
+
+end
+end
+
+
+
+function [string] = save_topography(A,topo_M,Gr)
     
     
     dX = (max(Gr.x_g)-min(Gr.x_g))/1500;
     x_t = min(Gr.x_g):dX:max(Gr.x_g);
-    topo_t=interp1(A.x,topo_M,x_t,'nearest','extrap');
+    topo_t=interp1(squeeze(A.Xpart(:,1,1)),topo_M,x_t,'nearest','extrap');
     
-    Topo = zeros(length(x_t),length(y_g));
+    Topo = zeros(length(x_t),length(Gr.y_g));
     Topo(:,1)        = topo_t;
     Topo(:,2)        = topo_t;
     Easting     = x_t;
-    Northing    = y_g;
-    
-    % For orientation
-    % Topo(1,1):     SW
-    % Topo(1,end):   SE
-    % Topo(end,1):   NW
-    % Topo(end,end): NE
-    
+    Northing    = Gr.y_g;
+  
     % compute grid spacing
     dx = (max(Easting) - min(Easting))/(length(Easting)-1);
     dy = (max(Northing) - min(Northing))/(length(Northing)-1);
