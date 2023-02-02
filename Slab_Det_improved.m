@@ -14,16 +14,17 @@ Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 
 
 T.R        = 40;   %curvature radius 
-T.theta_c  = 30;   %curvature radius ingested continental crust
+T.theta_c  = 50;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 30;   % curvature slab
-T.tk_WZ    = 15;   % thickness of the weak zone
+T.theta    = 40;   % curvature slab
+T.tk_WZ    = 20;   % thickness of the weak zone
 T.L0       = 300;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
 T.C  = [0.0 -T.D0-T.R]; 
 T.r  = [T.R T.R+T.D0]; 
 T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ];
 T.D_WZ = -100;
+T.Type = 'Ribe_Mode'; % 'Ribe_Mode'
 
 
 phases.Ph_Ar  = [0,10]  ;% Air 
@@ -63,7 +64,7 @@ Buffer.Age          = 5.0;
 %Terranes.Continent1
 Continent1.order = 2; 
 Continent1.Type  = 'Continent';
-Continent1.x_lim = [-1300.0,-400.0];
+Continent1.x_lim = [-1300.0,-200.0];
 Continent1.Phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
 Continent1.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
 Continent1.Age          = 100.0; 
@@ -82,10 +83,10 @@ Continent2.prism_phase      = phases.Ph_cont_pr;
 %% Oceanic plate 
 Oceanic_Plate.order = 4; 
 Oceanic_Plate.Type  = 'Ocean';
-Oceanic_Plate.x_lim = [-400.0,0.0]; 
+Oceanic_Plate.x_lim = [-200.0,0.0]; 
 Oceanic_Plate.Phases = [phases.Ph_sed_oc(1),phases.Ph_OC(1),phases.Ph_OLt(1)];
 Oceanic_Plate.Stratigraphy = [0.0,-2.0,-7.0,-80.0];
-Oceanic_Plate.Age          = 80.0; 
+Oceanic_Plate.Age          = 50.0; 
 Oceanic_Plate.Trench        = 'Subduction'; 
 Oceanic_Plate.Trench_properties = T;  
 
@@ -167,8 +168,8 @@ function Create_Setup(Terranes,ph,Gen,A,npart,Gr,Parallel_partition)
     A.Temp   = permute(A.Temp, [2 1 3]);
 
     x = squeeze(A.Xpart(:,1,1));
-    y = squeeze(A.Xpart(1,:,1));   
-    z = squeeze(A.Xpart(1,1,:));   
+    y = squeeze(A.Ypart(1,:,1));   
+    z = squeeze(A.Zpart(1,1,:));   
     A.x      =  double(x(:));
     A.y      =  double(y(:));
     A.z      =  double(z(:));
@@ -296,80 +297,154 @@ D0    = abs(Slab.D0);
 ind_z = find(Zvec >= C(2)-Slab.L0 & Zvec<=0.0);
 ind_x = find(Xvec>=C(1) & Xvec <= C(1)+D0*4);
 x     = A.Xpart;
-z     = A.Zpart; 
+z     = A.Zpart;
 theta = Slab.theta;
-ang_  = (theta)*pi/180; 
+ang_  = (theta)*pi/180;
 ang_2 = (theta+90)*pi/180;
-C     = Slab.C; 
-r     = Slab.r; 
+C     = Slab.C;
+r     = Slab.r;
 L0    = Slab.L0 - Slab.R;
 sl    = 1               ;
-if strcmp(type,'Weak')
-    r(1) = r(2); 
-    r(2) = r(2)+Slab.tk_WZ;
-     if Slab.theta == 90
-        sl = 0;
+arc_angleS = []; 
+
+
+
+if strcmp(Slab.Type,'Mode1')
+
+
+    if strcmp(type,'Weak')
+        r(1) = r(2);
+        r(2) = r(2)+Slab.tk_WZ;
+        if Slab.theta == 90
+            sl = 0;
+        end
+        %=============
+
     end
-%=============
-   
-end
-   
- 
- p1    = [C(1)+r(1)*sin(ang_),C(2)+r(1)*cos(ang_)];
- p2    = [C(1)+r(2)*sin(ang_),C(2)+r(2)*cos(ang_)];
- p3    = [p1(1)+L0*sin(ang_2),p1(2)+L0*cos(ang_2)];
- p4    = [p2(1)+L0*sin(ang_2),p2(2)+L0*cos(ang_2)];
 
 
-Px = [p1(1) p2(1) p4(1) p3(1)];
-Pz = [p1(2) p2(2) p4(2) p3(2)];
+    p1    = [C(1)+r(1)*sin(ang_),C(2)+r(1)*cos(ang_)];
+    p2    = [C(1)+r(2)*sin(ang_),C(2)+r(2)*cos(ang_)];
+    p3    = [p1(1)+L0*sin(ang_2),p1(2)+L0*cos(ang_2)];
+    p4    = [p2(1)+L0*sin(ang_2),p2(2)+L0*cos(ang_2)];
 
-[in,out] = inpolygon(x,z,Px,Pz);
-% =========================
-%  P2X           P4X
-%   r2            r2
-%   |             |
-%  P1X           P3X
-%   r1            r1
-%========================
-ls = size(x);
-arc_angleS = ones(size(x))*nan;
-d = ones(size(x))*-1000;
-Layout = ones(size(x))*nan;
 
-for i=1:ls(1)
-    for j=1:length(ind_x)
-        for k=1:length(ind_z)
-           
-            lx = ind_x(j);
-            lz = ind_z(k);
-            u = [x(i,lx,lz);z(i,lx,lz)];
-            v = [C(1);z(i,lx,lz)];
-            a = sqrt(u(1).^2+u(2).^2);
-            b = sqrt(v(1).^2+v(2).^2);
-            %arc_angleS(i,lx,lz) = asin(dot(v,u)./(a.*b)).*180/pi;
-            d(i,lx,lz) = sqrt((u(1)-C(1))^2+(u(2)- C(2))^2); 
-            arc_angleS(i,lx,lz) = acos((z(i,lx,lz)-C(2))/d(i,lx,lz)).*180/pi;
+    Px = [p1(1) p2(1) p4(1) p3(1)];
+    Pz = [p1(2) p2(2) p4(2) p3(2)];
 
-            if (d(i,lx,lz)>=r(1) && d(i,lx,lz)<=r(2)) 
-                if(arc_angleS(i,lx,lz)>=0.0 && arc_angleS(i,lx,lz)<=theta)
-                  
-                    Layout(i,lx,lz) = d(i,lx,lz)-r(2); 
+    [in,out] = inpolygon(x,z,Px,Pz);
+    % =========================
+    %  P2X           P4X
+    %   r2            r2
+    %   |             |
+    %  P1X           P3X
+    %   r1            r1
+    %========================
+    ls = size(x);
+    arc_angleS = ones(size(x))*nan;
+    d = ones(size(x))*-1000;
+    Layout = ones(size(x))*nan;
+
+    for i=1:ls(1)
+        for j=1:length(ind_x)
+            for k=1:length(ind_z)
+
+                lx = ind_x(j);
+                lz = ind_z(k);
+                u = [x(i,lx,lz);z(i,lx,lz)];
+                v = [C(1);z(i,lx,lz)];
+                a = sqrt(u(1).^2+u(2).^2);
+                b = sqrt(v(1).^2+v(2).^2);
+                %arc_angleS(i,lx,lz) = asin(dot(v,u)./(a.*b)).*180/pi;
+                d(i,lx,lz) = sqrt((u(1)-C(1))^2+(u(2)- C(2))^2);
+                arc_angleS(i,lx,lz) = acos((z(i,lx,lz)-C(2))/d(i,lx,lz)).*180/pi;
+
+                if (d(i,lx,lz)>=r(1) && d(i,lx,lz)<=r(2))
+                    if(arc_angleS(i,lx,lz)>=0.0 && arc_angleS(i,lx,lz)<=theta)
+
+                        Layout(i,lx,lz) = d(i,lx,lz)-r(2);
+                    end
                 end
-            end
-            if sl == 1 
-                if(in(i,lx,lz)>0)
-                    P = [x(i,lx,lz);z(i,lx,lz)]; 
-                    Layout(i,lx,lz) = -(find_distance_linear(P,p2,p4));
+                if sl == 1
+                    if(in(i,lx,lz)>0)
+                        P = [x(i,lx,lz);z(i,lx,lz)];
+                        Layout(i,lx,lz) = -(find_distance_linear(P,p2,p4));
+                    end
                 end
             end
         end
     end
-end
-
 
 end
 
+
+if strcmp(Slab.Type,'Ribe_Mode')
+    Layout = ones(size(x))*nan;
+    ind_z = find(Zvec >= C(2)-Slab.L0 & Zvec<=0.0);
+    ind_x = find(Xvec>=C(1) & Xvec <= C(1)+L0+0.1*L0);
+    weak_flag = 0; 
+    
+    if strcmp(type,'Weak')
+        weak_flag = 1; 
+    end
+
+    for ix = 1:length(ind_x)
+        for iz = 1:length(ind_z)
+            lx = ind_x(ix);
+            lz = ind_z(iz);
+            [z_mid,dz,z_top,z_bottom] = compute_ribe_angles(A.Xpart(:,lx,lz),C,theta,Slab.L0,D0,weak_flag,Slab.tk_WZ);
+            if weak_flag == 0 
+                z1 =  z_bottom-0.6*D0;
+                z2 =  z_top   + 0.6*D0;
+            else
+                z1 = z_bottom-D0; 
+                z2 = z_top+ D0; 
+            end
+            if A.Zpart(:,lx,lz)>= z1 & A.Zpart(:,lx,lz)<=z2
+                x_t = (z_mid-A.Zpart(:,lx,lz))./sqrt(1+dz.^2);
+                Layout(:,lx,lz)        =x_t;
+                Layout(:,lx,lz)        = -(x_t+D0/2);
+               
+                if (Layout(:,lx,lz)>0 | Layout(:,lx,lz)<-D0) & weak_flag==0  
+                    Layout(:,lx,lz)        = nan;
+                elseif (Layout(:,lx,lz)<0 |Layout(:,lx,lz)>Slab.tk_WZ) & weak_flag==1
+                    Layout(:,lx,lz)        = nan;
+                end
+     
+
+            end
+        end
+    end
+
+end
+
+end
+function [z,dz,ztop,zbot] = compute_ribe_angles(xp,C,teta_0,L,D0,weak_flag,Tk)
+%=========================================================================%
+% TO DO A complete explanation 
+%=========================================================================%
+teta_0 = teta_0*pi/180;
+
+x = xp-C(1);
+if xp<C(1) | xp>C(1)+L+0.1*L
+    teta_s = nan;
+    z      = nan;
+    dz     = nan;
+    z_bot  = nan;
+    z_top  = nan;
+else
+    teta_s               = teta_0.*x.^2.*((3.*L-2.*x))./(L^3);
+    z                    = -D0/2-tan(teta_s).*x;
+    dz                   = (6.*teta_0.*x.^2.*(x-L).*sec(teta_s).^2)./(L^3)-tan(teta_s);
+    zbot                 = z-D0/2.*cos(teta_s);
+    ztop                 = z+D0/2.*cos(teta_s);
+    if weak_flag == 1
+        zbot                 = z+D0/2.*cos(teta_s);
+        ztop                 = z+(D0/2+Tk).*cos(teta_s);
+    end
+
+end
+end
 
 function [d] = find_distance_linear(P,p1,p2)
 
@@ -500,27 +575,32 @@ indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
 end
 
 function [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen)
-    ind_x=[];
-    
-    [Layout,~] = find_slab_(A,Terranes.Trench_properties,'Slab');
-    % Set the temperature
-    [Temp] = compute_temperature_profile(Layout,Temp,-1,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
-    % Correct Temperaure and Phase
-    id1 = min(A.Xpart(~isnan(Layout)));
-    id2 = max(A.Xpart(~isnan(Layout)));
-    id3 = min(A.Zpart(~isnan(Layout)));
-    ind_x1 = find(squeeze(A.Xpart(1,:,1))>=id1,1);
-    ind_x2 = find(squeeze(A.Xpart(1,:,1))>=id2,1);
-    ind_z1 = find(squeeze(A.Zpart(1,1,:))>=id3,1);
-    for i= ind_x1:ind_x2
-        ind_L = find((Layout(1,i,:)==min(Layout(1,i,:))),1);
-        Phase(:,i,ind_z1:ind_L) = Gen.Ph_Air;
-        Temp(:,i,ind_z1:ind_L) = Gen.T_P;
-    end
-    [Phase] = fill_stratigraphy(Layout,Phase,Terranes,ind_x);
-    [Layout,~] = find_slab_(A,Terranes.Trench_properties,'Weak');
+ind_x=[];
+
+[Layout,~] = find_slab_(A,Terranes.Trench_properties,'Slab');
+% Set the temperature
+[Temp] = compute_temperature_profile(Layout,Temp,-1,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
+% Correct Temperaure and Phase
+id1 = min(A.Xpart(~isnan(Layout)));
+id2 = max(A.Xpart(~isnan(Layout)));
+id3 = min(A.Zpart(~isnan(Layout)));
+ind_x1 = find(squeeze(A.Xpart(1,:,1))>=id1,1);
+ind_x2 = find(squeeze(A.Xpart(1,:,1))>=id2,1);
+ind_z1 = find(squeeze(A.Zpart(1,1,:))>=id3,1);
+for i= ind_x1:ind_x2
+    ind_L = find((Layout(1,i,:)==min(Layout(1,i,:))),1);
+    Phase(:,i,ind_z1:ind_L) = Gen.Ph_Air;
+    Temp(:,i,ind_z1:ind_L) = Gen.T_P;
+end
+[Phase] = fill_stratigraphy(Layout,Phase,Terranes,ind_x);
+[Layout,~] = find_slab_(A,Terranes.Trench_properties,'Weak');
+if strcmp( Terranes.Trench_properties,'Mode_1')
     ind =(Layout<=0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh);
     Phase(ind) = Gen.WZ;
+else
+    ind =(Layout>0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh & A.Zpart<0.0);
+    Phase(ind) = Gen.WZ;
+end
 end
 
 
