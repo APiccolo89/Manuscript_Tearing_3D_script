@@ -39,7 +39,9 @@ phases.Ph_OC  = [7,3367.957866]   ;%place holder
 phases.Ph_LC2  = [9,2700]  ;
 phases.Ph_UC2  = [10,2800] ; 
 phases.Ph_sed_oc = [11,2680];
-phases.Ph_cont_pr = [12,2700];
+phases.Ph_cont_pr = [12,2680];
+phases.Ph_pas_m = [13,2680];
+
 
 Buffer         = Terrane;
 Continent1     = Terrane;
@@ -69,7 +71,7 @@ Continent1.Phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
 Continent1.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
 Continent1.Age          = 100.0; 
 Continent1.Passive_Margin = {[],'right'};
-Continent1.Passive_Margin_phase = phases.Ph_cont_pr;
+Continent1.Passive_Margin_phase = phases.Ph_pas_m;
 %% Continent Terranes 2 
 Continent2.order = 3; 
 Continent2.Type  = 'Continent';
@@ -86,13 +88,13 @@ Oceanic_Plate.Type  = 'Ocean';
 Oceanic_Plate.x_lim = [-200.0,0.0]; 
 Oceanic_Plate.Phases = [phases.Ph_sed_oc(1),phases.Ph_OC(1),phases.Ph_OLt(1)];
 Oceanic_Plate.Stratigraphy = [0.0,-2.0,-7.0,-80.0];
-Oceanic_Plate.Age          = 50.0; 
+Oceanic_Plate.Age          = 30.0; 
 Oceanic_Plate.Trench        = 'Subduction'; 
 Oceanic_Plate.Trench_properties = T;  
 
 Terranes = struct('Buffer',Buffer,'Continent1',Continent1,'Continent2',Continent2,'Oceanic_Plate',Oceanic_Plate); 
 %% Generic information numerical domain: 
-Gen.T_P = 1300; 
+Gen.T_P = 1375; 
 Gen.T_S = 20; 
 Gen.Ph_Air   = phases.Ph_Ar(1);
 Gen.Ph_UM    = phases.Ph_UM(1);
@@ -146,9 +148,12 @@ function Create_Setup(Terranes,ph,Gen,A,npart,Gr,Parallel_partition)
     end
     %===========================================================================%
     % Set Air Phase
+    % Adiabatic gradient 
+    
     ind = Phase == 0 & A.Zpart<0.0;
     Phase(ind)  = Gen.Ph_UM;
     Temp(ind)   = Gen.T_P;
+    Temp = Temp+abs(A.Zpart).*0.3;
     ind = Phase == 0 & A.Zpart>0.0;
     Temp(ind)   = Gen.T_S;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -381,12 +386,24 @@ end
 if strcmp(Slab.Type,'Ribe_Mode')
     Layout = ones(size(x))*nan;
     ind_z = find(Zvec >= C(2)-Slab.L0 & Zvec<=0.0);
-    ind_x = find(Xvec>=C(1) & Xvec <= C(1)+L0+0.1*L0);
+    ind_x = find(Xvec>=C(1) & Xvec <= C(1)+L0+L0*0.3);
     weak_flag = 0; 
     
     if strcmp(type,'Weak')
         weak_flag = 1; 
     end
+    % Ribe equation can create artifacts if certain market that does not
+    % belong to the slab are taken into account. Since most of the
+    % algorithm lies on the distance estimation from a point and a generic
+    % curve, it is not possible to predict before hand which marker is not
+    % belonging to the slab. A quick hack is to select the markers that
+    % feature a z position passing through the mid surface perpendicolarly.
+    % 
+    z_mid_f =-D0/2+tan(theta*pi/180).*L0 ;
+    P_B  = [L0-sin(theta*pi/180), z_mid_f-cos(theta*pi/180)*D0/2];
+    P_T  = [L0+sin(theta*pi/180), z_mid_f+cos(theta*pi/180)*D0/2];
+    line_m = (P_T(2)-P_B(2))./(P_T(1)-P_B(1)); %
+
 
     for ix = 1:length(ind_x)
         for iz = 1:length(ind_z)
@@ -400,7 +417,8 @@ if strcmp(Slab.Type,'Ribe_Mode')
                 z1 = z_bottom-D0; 
                 z2 = z_top+ D0; 
             end
-            if A.Zpart(:,lx,lz)>= z1 & A.Zpart(:,lx,lz)<=z2
+            if A.Zpart(:,lx,lz)>= z1 & A.Zpart(1,lx,lz)<=z2 & A.Zpart(1,lx,lz) >= line_m.*(A.Xpart(1,lx,lz)-P_B(1))+P_B(2)
+            
                 x_t = (z_mid-A.Zpart(:,lx,lz))./sqrt(1+dz.^2);
                 Layout(:,lx,lz)        =x_t;
                 Layout(:,lx,lz)        = -(x_t+D0/2);
@@ -426,7 +444,7 @@ function [z,dz,ztop,zbot] = compute_ribe_angles(xp,C,teta_0,L,D0,weak_flag,Tk)
 teta_0 = teta_0*pi/180;
 
 x = xp-C(1);
-if xp<C(1) | xp>C(1)+L+0.1*L
+if xp<C(1) | xp>C(1)+L+L*0.3
     teta_s = nan;
     z      = nan;
     dz     = nan;

@@ -5,9 +5,9 @@
 # Grid & discretization parameters
 #===============================================================================
 #Refined grid in x-direction
-	nel_x   = 2048
+	nel_x   = 1024
 	nseg_x  = 1
-	bias    =  1.0
+	bias    = 1.0
 	coord_x = -1500.0 1500.0
 # constant grid in y
 	nel_y = 1
@@ -26,13 +26,13 @@
 #===============================================================================
 # Time stepping parameters
 #===============================================================================
-        time_end  = 57.61    # simulation end time 
+        time_end  = 100.61    # simulation end time 
 	dt        = 0.000001    # time step
 	dt_min    = 0.00000001  # minimum time step (declare divergence if lower value is attempted)
 	dt_max    = 0.05  	# maximum time step
 	CFL       = 0.5   	# CFL (Courant-Friedrichs-Lewy) criterion
 	#dt_out    = 0.5   # output step (output at least at fixed time intervals)
-	nstep_out = 10     	# save output every n steps
+	nstep_out = 20     	# save output every n steps
 	nstep_rdb = 40     # save restart database every n steps
 #===============================================================================
 # Boundary conditions
@@ -56,16 +56,17 @@
 	surf_level      = 0.0              # initial level
 	surf_air_phase  = 0                # phase ID of sticky air layer
 	surf_max_angle  = 45.0             # maximum angle with horizon (smoothed if larger)
+    surf_topo_file     = Topo.dat # initial topography file (redundant)
 #===============================================================================
 # Solution parameters & controls
 #===============================================================================
 	gravity        = 0.0 0.0 -9.81  # gravity vector
 	FSSA           = 1.0            # free surface stabilization parameter [0 - 1]
-	shear_heat_eff = 0.0            # shear heating efficiency parameter   [0 - 1]
+	shear_heat_eff = 1.0            # shear heating efficiency parameter   [0 - 1]
 	act_temp_diff  = 1              # temperature diffusion activation flag
-	Adiabatic_Heat  = 0.0           # Adiabatic Heating activaction flag and efficiency. [0.0 - 1.0] (e.g. 0.5 means that only 50% of the potential adiabatic heating affects the energy equation)   
-	#act_steady_temp = 1              # steady-state temperature initial guess activation flag
-	#nstep_steady    = 3             # number of steps for (quasi-)steady-state temperature initial guess (default = 1)
+	Adiabatic_Heat  = 1.0           # Adiabatic Heating activaction flag and efficiency. [0.0 - 1.0] (e.g. 0.5 means that only 50% of the potential adiabatic heating affects the energy equation)   
+	act_steady_temp = 0              # steady-state temperature initial guess activation flag
+	nstep_steady    = 0             # number of steps for (quasi-)steady-state temperature initial guess (default = 1)
 	act_p_shift    = 0              # pressure shift activation flag (zero pressure in the top cell layer)
 	init_guess     = 1              # initial guess flag
 	p_litho_visc   = 1              # use lithostatic pressure for creep laws
@@ -73,7 +74,7 @@
 	p_lim_plast    = 1              # limit pressure at first iteration for plasticity
 	jac_mat_free   = 0              # matrix-free closed-form jacobian
 	init_lith_pres  = 1              # initial pressure with lithostatic pressure (stabilizes compressible setups in the first steps)
-	eta_min        = 1e17           # viscosity upper bound
+	eta_min        = 1e18           # viscosity upper bound
 	eta_max        = 1e24           # viscosity lower limit
 	eta_ref        = 1e21           # reference viscosity (initial guess)
 	DII_ref        = 1e-15          # background (reference) strain-rate
@@ -102,16 +103,16 @@ msetup         = files              # setup type
 #===============================================================================
 
     <VelBoxStart>
-    	cenX     =   -1400  # X-coordinate of center of box
+    	cenX     =   -1300  # X-coordinate of center of box
     	cenY     =   0.0  # Y-coordinate of center of box
-    	cenZ     =   -35.0  # Z-coordinate of center of box
-   		widthX   =   100.0  # Width of box in x-direction
+    	cenZ     =   -50.0  # Z-coordinate of center of box
+   	widthX   =   100.0  # Width of box in x-direction
     	widthY   =   2.0  # Width of box in y-direction
-    	widthZ   =   85.0  # Width of box in z-direction
-    	vx       =   6.0  # Vx velocity of box (default is unconstrained)
+    	widthZ   =   200.0  # Width of box in z-direction
+    	vx       =   5.0  # Vx velocity of box (default is unconstrained)
     	vy       =   0.0  # Vy velocity of box (default is unconstrained)
     	vz       =   0.0  # Vz velocity of box (default is unconstrained) 
-    	advect   =   0    # box advection flag
+    	advect   =   1    # box advection flag
         number_time_interval = 1
 	time_intervals = 0.1 8.0
     <VelBoxEnd> 
@@ -200,12 +201,12 @@ msetup         = files              # setup type
 # Material phase parameters
 #===============================================================================
 
-	#<SofteningStart>
-	#	ID   = 0   # softening law ID
-	#	APS1 = 0.000001 # begin of softening APS
-	#	APS2 = 0.7 # end of softening APS
-	#	A    = 0.9 # reduction ratio
-	#<SofteningEnd>
+	<SofteningStart>
+		ID   = 0   # softening law ID
+		APS1 = 0.000001 # begin of softening APS
+		APS2 = 0.7 # end of softening APS
+		A    = 0.9 # reduction ratio
+	<SofteningEnd>
 	############################################################################################################################################################
 	# AIR
 	#########################################################################################################################################################
@@ -218,8 +219,8 @@ msetup         = files              # setup type
 		k = 100 # conductivity
 		Cp = 1e6 # heat capacity - should be artificially large for sticky air
 		G = 5e10
-		#	ch = 1000e6 # cohesion [MPa]
-		#	fr = 30 # friction angle
+			ch = 1000e6 # cohesion [MPa]
+			fr = 30 # friction angle
 	<MaterialEnd>
 	
 	#########################################Continental_lithosphere_1########################################################
@@ -234,8 +235,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2700 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -260,11 +261,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 
@@ -276,8 +277,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2750 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -302,11 +303,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -318,8 +319,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 3300 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -344,11 +345,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -360,8 +361,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 3300 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -370,7 +371,7 @@ msetup         = files              # setup type
 		## _Rheology_
 		#------------------------------------------------------------------------#
 		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
-	disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+	        disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
 		# Diffusion--------------------------------------------------------------# 
 		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	# _Ed         = 375e3  # activation energy
@@ -386,11 +387,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -402,8 +403,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 3300 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -418,7 +419,7 @@ msetup         = files              # setup type
 		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
     	Vd         = 5e-6   # activation volume
-		Vn         = 15e-6
+		Vn         = 8e-6
 		# Dislocation------------------------------------------------------------#
 		#eta0 = 1e19 # Modified using the scrip
 		#tau0 = 100.000000 # Modified using the scrip
@@ -427,11 +428,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -443,8 +444,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 3351 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -459,7 +460,7 @@ msetup         = files              # setup type
 		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
     	Vd         = 5e-6   # activation volume
-		Vn         = 15e-6
+		Vn         = 8e-6
 		# Dislocation------------------------------------------------------------#
 		#eta0 = 1e22 # Modified using the scrip
 		#tau0 = 100.000000 # Modified using the scrip
@@ -468,11 +469,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -482,8 +483,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2900 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -507,11 +508,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 10
+		ch       = 1e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -521,8 +522,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 3250 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -531,8 +532,8 @@ msetup         = files              # setup type
 		## _Rheology_
 		#------------------------------------------------------------------------#
 		# Diffusion--------------------------------------------------------------# 		
-		disl_prof = Wet_Plagioclase_RybackiDresen_2000
-		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Wet_Olivine_disl_creep-Hirth_Kohlstedt_2003   
 				#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
     	#Ed         = 375e3  # activation energy
     	#Vd         = 5e-6   # activation volume
@@ -544,11 +545,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 1
+		ch       = 1e5
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	
@@ -558,8 +559,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2700 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -584,11 +585,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	<MaterialStart>
@@ -597,8 +598,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2700 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -623,11 +624,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 30
+		ch       = 10e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	<MaterialStart>
@@ -636,8 +637,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2680 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -662,11 +663,11 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 5
+		ch       = 1e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 	<MaterialStart>
@@ -675,8 +676,8 @@ msetup         = files              # setup type
 		#------------------------------------------------------------------------#
 		# Density 
 		rho = 2680 # density [kg/m3]
-		# _alpha = 3e-5 # coeff. of thermal expansion [1/K]
-		# _beta      = 1e-11  # pressure-dependent density model parameter
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
 		#------------------------------------------------------------------------#
 		# Thermal properties
 		k = 3              # conductivity
@@ -701,14 +702,53 @@ msetup         = files              # setup type
 		G        = 5e10
 		# _K        = x 
 		# Plastic----------------------------------------------------------------# 
-		# _fr       = 30
-		# _ch       = 10e6
+		fr       = 5
+		ch       = 1e6
 		# Plastic Weakening------------------------------------------------------#
-		# _chSoftID = 0  # cohesion softening law ID
-		# _frSoftID = 0  # friction softening law ID
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
 		# Viscous Damage Weakening [Place Holder]--------------------------------#
 	<MaterialEnd>
 
+	<MaterialStart>
+		ID = 13 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2680 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 5
+		ch       = 1e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
 
 ##########################################################################################################################
 
@@ -720,13 +760,13 @@ msetup         = files              # setup type
 	-snes_ksp_ew 	
 	-snes_ksp_ew_rtol0   1e-2
 #-snes_ksp_ew_rtolmax 1e-1
- 	-snes_max_it 		30
+ 	-snes_max_it 		18
    		
 	# Newton/picard options
 	-snes_PicardSwitchToNewton_rtol 1e-4 # relative tolerance to switch to Newton (1e-2)
 
 	# Linesearch options
-	-snes_linesearch_maxstep 	1.0				# very important to prevent the code from "blowing up"
+	#-snes_linesearch_maxstep 	1.0				# very important to prevent the code from "blowing up"
 	
 	
 	# Jacobian solver
@@ -739,7 +779,7 @@ msetup         = files              # setup type
 #	-snes_atol 1e-3
 #	-snes_rtol 1e-4
 #	-snes_max_it 30
-    -da_refine_y 1
+        -da_refine_y 1
 	-gmg_pc_mg_levels 5
 	-gmg_pc_mg_galerkin
 	-gmg_pc_mg_type multiplicative
@@ -747,10 +787,10 @@ msetup         = files              # setup type
 #
 	-gmg_mg_levels_ksp_type richardson
 	-gmg_mg_levels_ksp_richardson_scale 0.5
-	-gmg_mg_levels_ksp_max_it 5
+	-gmg_mg_levels_ksp_max_it 2
 	-gmg_mg_levels_pc_type jacobi
 	-crs_pc_type redundant
-	-crs_pc_redundant_number 3	
+	-crs_pc_redundant_number 1	
 #	-crs_redundant_pc_factor_mat_solver_package pastix
 
 #	-objects_dump
