@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<VTKFile type="PRectilinearGrid" version="0.1" byte_order="LittleEndian">
+	<PRectilinearGrid GhostLevel="0" WholeExtent="1 1025 1 2 1 513">
+		<PCellData>
+		</PCellData>
+		<PCoordinates>
+			<PDataArray type="Float32" Name="Coordinates_X" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="Coordinates_Y" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="Coordinates_Z" NumberOfComponents="1" format="appended"/>
+		</PCoordinates>
+		<PPointData>
+			<PDataArray type="Float32" Name="phase [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="density [kg/m^3]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="visc_total [Pa*s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="visc_creep [Pa*s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="velocity [cm/yr]" NumberOfComponents="3" format="appended"/>
+			<PDataArray type="Float32" Name="pressure [MPa]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="temperature [C]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="dev_stress [MPa]" NumberOfComponents="9" format="appended"/>
+			<PDataArray type="Float32" Name="strain_rate [1/s]" NumberOfComponents="9" format="appended"/>
+			<PDataArray type="Float32" Name="j2_dev_stress [MPa]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="j2_strain_rate [1/s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="plast_strain [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="plast_dissip [W/m^3]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="tot_displ [km]" NumberOfComponents="3" format="appended"/>
+			<PDataArray type="Float32" Name="rel_dif_rate [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="rel_dis_rate [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="rel_prl_rate [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="moment_res [N/m^3]" NumberOfComponents="3" format="appended"/>
+			<PDataArray type="Float32" Name="cont_res [1/s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="energ_res [W/m^3]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Continental_Lit_1 [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Continental_Lit_2 [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Oceanic_Lit_ [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Continental_Crust_ [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Continental_Crust_2 [ ]" NumberOfComponents="1" format="appended"/>
+		</PPointData>
+		<Piece Extent="1 257 1 2 1 257" Source="SDet_p00000000.vtr"/>
+		<Piece Extent="257 513 1 2 1 257" Source="SDet_p00000001.vtr"/>
+		<Piece Extent="513 769 1 2 1 257" Source="SDet_p00000002.vtr"/>
+		<Piece Extent="769 1025 1 2 1 257" Source="SDet_p00000003.vtr"/>
+		<Piece Extent="1 257 1 2 257 513" Source="SDet_p00000004.vtr"/>
+		<Piece Extent="257 513 1 2 257 513" Source="SDet_p00000005.vtr"/>
+		<Piece Extent="513 769 1 2 257 513" Source="SDet_p00000006.vtr"/>
+		<Piece Extent="769 1025 1 2 257 513" Source="SDet_p00000007.vtr"/>
+	</PRectilinearGrid>
+</VTKFile>

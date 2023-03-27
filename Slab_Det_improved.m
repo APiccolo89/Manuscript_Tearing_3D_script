@@ -16,7 +16,7 @@ Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 T.R        = 40;   %curvature radius 
 T.theta_c  = 50;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 40;   % curvature slab
+T.theta    = 20;   % curvature slab
 T.tk_WZ    = 20;   % thickness of the weak zone
 T.L0       = 300;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
@@ -24,7 +24,7 @@ T.C  = [0.0 -T.D0-T.R];
 T.r  = [T.R T.R+T.D0]; 
 T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ];
 T.D_WZ = -100;
-T.Type = 'Ribe_Mode'; % 'Ribe_Mode'
+T.Type = 'Mode1'; % 'Ribe_Mode'
 
 
 phases.Ph_Ar  = [0,10]  ;% Air 

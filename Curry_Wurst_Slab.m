@@ -12,20 +12,22 @@ LaMEM_Parallel_output  = 1;
 Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart);
 
-
+% Structure concerning slab 
 T.R        = 40;   %curvature radius 
 T.theta_c  = 50;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 89;   % curvature slab
+T.theta    = 90;   % curvature slab
 T.tk_WZ    = 20;   % thickness of the weak zone
 T.L0       = 300;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
-T.C  = [0.0 -T.D0-T.R]; 
-T.r  = [T.R T.R+T.D0]; 
-T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ];
-T.D_WZ = -100;
-T.Type = 'Mode1'; % 'Ribe_Mode'
+T.C  = [0.0 -T.D0-T.R];  %center of curvature 
+T.r  = [T.R T.R+T.D0]; %radius of curvature
+T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ]; %weak zone data
+T.D_WZ = -100; %ultimate weakzone depth 
+T.Type = 'Mode1'; % 'Ribe_Mode' "Mode1" create the slab following radius of curvature and tagent to the curvature, Ribe_Mode uses equation of Ribe et al 2010
 
+%phase database, first element phase.ph_Air(1) = phase number, 2nd element
+%density (useful and necessary for the isostasy)
 
 phases.Ph_Ar  = [0,10]  ;% Air 
 phases.Ph_UC  = [1,2700]  ;% Upper Crust 
@@ -42,11 +44,11 @@ phases.Ph_sed_oc = [11,2680];
 phases.Ph_cont_pr = [12,2680];
 phases.Ph_pas_m = [13,2680];
 
-
-Buffer         = Terrane;
-Continent1     = Terrane;
-Oceanic_Plate  = Terrane;
-Continent2     = Terrane;
+% List of terranes 
+Buffer         = Terrane; %Terranes placed in the leftmost portion of the model: in case you use pushing block, you need to deform the area
+Continent1     = Terrane; %continent 1 
+Oceanic_Plate  = Terrane; %oceanic plate 
+Continent2     = Terrane; %continent 2
 
 
 % Organize 
@@ -286,12 +288,78 @@ end
 
 
 function [Layout,arc_angleS] = find_slab_(A,Slab,type)
-% 
-%
+%=========================================================================
+% Short explanation, i need to yet find the best solution that works in any
+% case provided. In general Ribe mode require a bit of work as such angle
+% that are close to 90 are considered. However, the formulation requires
+% the massive usage of tan function, that is not continuous for angle close
+% to 90. So, if someone want to have a vertical slab, is always convinient
+% to use the mode1. The Ribe mode is more suitable for model featuring an
+% initial convergence, as it should represents the geometry of a bended
+% plate under its own weight, and should give more reliable flexural stress
+%=========================================================================
 % Really convoluted, but it works: 
 % 1) create a polygon for the slab 
 % 2) find the curvature 
 % 3) save the relative distannce w.t.r the top
+% How it works? 
+% 1) Extract the information of the slab
+% 2) Select a rectangular area in the surrounding of the center of
+% curvature: 
+% Mode_1: 
+% select 2 circumference arc that represents the top of the slab and the
+% bottom of the slab. 
+% The distance from the top surface represents the depth of the slab and is
+% computed along the radius of the circumference (i.e., we have a point
+% within the area in which the slab existing). Associated to this point we
+% have its angular distance w.r.t. the center of the curvature. If the
+% point belongs to the set of angular distance that we are interested to,
+% we computed the distance .w.r.t. to the center (which is, surprise
+% surprise is the radius) then we substract the coordinate of the top
+% surface. distance information is then used to fill up the stratigraphy
+% and to compute the half-space cooling model. 
+% Point (x,z) => compute the distance with C (center of curvature)  
+%             => compute the angle between the vertical vector stemming
+%             from the center and the actual position vector of the point 
+% 
+%               u = [x(i,lx,lz);z(i,lx,lz)]; position VECTOR current point
+%               v = [C(1);z(i,lx,lz)];       vertical vector stemming from
+%               the center 
+%               a = sqrt(u(1).^2+u(2).^2);   %vector magnitude position
+%               b = sqrt(v(1).^2+v(2).^2);   % vector magnitude vertical
+%               vector
+%               d(i,lx,lz) = sqrt((u(1)-C(1))^2+(u(2)- C(2))^2); %distance
+%               betwee point and center
+%               arc_angleS(i,lx,lz) =
+%               acos((z(i,lx,lz)-C(2))/d(i,lx,lz)).*180/pi; % angle between
+%               vertical vector and actual position vector 
+%               => if arc_angleS belongs to 0-theta and has a distance
+%               consitent within top and bottom of the slab 
+%                if (d(i,lx,lz)>=r(1) && d(i,lx,lz)<=r(2))
+%                    if(arc_angleS(i,lx,lz)>=0.0 && arc_angleS(i,lx,lz)<=theta)
+%
+%                        Layout(i,lx,lz) = d(i,lx,lz)-r(2);
+%                    end
+%                end
+%   I'm sure that exists a more efficient way to handle the index, but i'm
+%   really dump to vectorise matlab. If you find a decent way, please, feel
+%   free to violate my script and give me the solutions :) 
+% Ribe mode. I did not find a better name for this way to find a slab. The
+% ribe mode is relying on the initial flexure of slab provided by Prof.Dr.
+% Ribe in his paper 2010. Long story short, the derivation relises on the
+% fiber stress. What is the fiber midplane ? The theoretical background is
+% the thin sheet layer theory or boundary layer theory. Within an
+% elastic/viscous sheet exist a surface in which the stresses are equal to
+% 0.0 the mid plane. If you bend a plate, you have extensional stresses at
+% the top, and compressive stress at the bottom of the bulked plate. 
+% The algoritm is to find the distance from this mid surface using his
+% equation, the main issue is related to the resolution and to the
+% definition of the area where to look. One way is to allow the user to
+% tune until he find the best solution, the other is provided a more robust
+% search algorithm by default. This mode allow to not generate unrealistic
+% stress during the first timestep, and to prevents odds curvature. The
+% best way to have a subduction is the spontaneous, however, it is a tedius
+% task and time to time we need to save computational time. 
 %
 %
 % find the area belonging to the curvature slab: 
