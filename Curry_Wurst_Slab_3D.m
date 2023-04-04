@@ -10,7 +10,7 @@ Paraview_output        = 1;
 % Output parallel files for LaMEM, using a processor distribution file (msetup = parallel)
 LaMEM_Parallel_output  = 1;
 Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
-[A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart);
+[A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart,1);
 
 % Structure concerning slab 
 T.R        = 40;   %curvature radius 
@@ -851,7 +851,7 @@ print('Phase','-dpng','-r0')
 
 
 end
-function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart)
+function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart,Testing_3D)
    %==========================================================================
     % OUTPUT OPTIONS
     %==========================================================================
@@ -869,6 +869,7 @@ function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Paral
 
     % Load grid from parallel partitioning file
     [X,Y,Z,x,y,z, Xpart,Ypart,Zpart] = FDSTAGMeshGeneratorMatlab(npart_x,npart_y,npart_z,Parallel_partition, RandomNoise, Is64BIT);
+
     Gr.x_g = [min(x),max(x)]; 
     Gr.z_g =[min(z),max(z)];
     Gr.y_g = [min(y),max(y)]; 
