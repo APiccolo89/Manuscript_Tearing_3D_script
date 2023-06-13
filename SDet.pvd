@@ -2,6 +2,5 @@
 <VTKFile type="Collection" version="0.1" byte_order="LittleEndian">
 <Collection>
 	<DataSet timestep="0.000000e+00" file="Timestep_00000000_0.00000000e+00/SDet.pvtr"/>
-	<DataSet timestep="1.000000e-06" file="Timestep_00000001_1.00000000e-06/SDet.pvtr"/>
 </Collection>
 </VTKFile>
