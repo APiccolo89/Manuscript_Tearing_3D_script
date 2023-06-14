@@ -16,7 +16,7 @@ Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 T.R        = 40;   %curvature radius
 T.theta_c  = 30;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 70;   % curvature slab
+T.theta    = 45;   % curvature slab
 T.tk_WZ    = 0;   % thickness of the weak zone
 T.L0       = 500;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
@@ -451,14 +451,17 @@ if strcmp(Slab.Type,'Ribe_Mode')
     x_t(ip==1) = (z_top-z_pb)./sqrt(1+dz.^2);
     Layout     = -x_t;
     %Compute the length associated with each marker
-   
+    Length = Layout.*nan;
+    [Length] = compute_the_arc_integral(theta,x_p,ip,L0N,C(1));
     if weak_flag == 0
         Layout(Layout>0|Layout<-D0)=nan;
+        Length(Layout>0|Layout<-D0)=nan; 
     else
         Layout(Layout>0|Layout<-Slab.tk_WZ)=nan;
     end
     continent(z_p>=D_c)  = 1.0;
 
+    Length = reshape(Length,size(A.Xpart));
     Layout = reshape(Layout,size(A.Xpart));
     continent = reshape(continent,size(A.Xpart));
 
@@ -889,10 +892,7 @@ function [Length] = compute_the_arc_integral(theta,x_p,ip,L,C)
     X = unique(x_pb);
     for i = 1:length(X)
        
-        Buf(i) = integral(f_handle,C,X(i));
+        Buf = integral(f_handle,C,x_p(i));
         
     end
-
-
-    bla = 0;
 end
