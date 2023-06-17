@@ -16,7 +16,7 @@ Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 T.R        = 40;   %curvature radius
 T.theta_c  = 30;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 45;   % curvature slab
+T.theta    = 90;   % curvature slab
 T.tk_WZ    = 0;   % thickness of the weak zone
 T.L0       = 500;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
@@ -325,7 +325,7 @@ r     = Slab.r;
 L0    = Slab.L0 - Slab.R;
 sl    = 1               ;
 arc_angleS = [];
-if ~strcmp(type,'Ribe_Mode')
+if ~strcmp(type,'Mode_1')
     ind = (A.Xpart(:)>=Slab.C(1) & A.Xpart(:)<=Slab.C(1)+2.*L0) & A.Zpart(:)>=-1.5*L0 & A.Zpart(:)<=1.0;
     A_time = cputime;
     x     = A.Xpart(:);
@@ -412,63 +412,52 @@ if strcmp(Slab.Type,'Ribe_Mode')
     if strcmp(type,'Weak')
         weak_flag = 1;
     end
-    % Ribe equation can create artifacts if certain market that does not
-    % belong to the slab are taken into account. Since most of the
-    % algorithm lies on the distance estimation from a point and a generic
-    % curve, it is not possible to predict before hand which marker is not
-    % belonging to the slab. A quick hack is to select the markers that
-    % feature a z position passing through the mid surface
-    % perpendicolarly
-    %compute arc_leght of the slab numerically
-    f_min_ = @(x) find_the_length_slab(theta,x,Slab.Length,C(1));
-    L0N =fzero(f_min_,Slab.L0);
-    % Ribe equations, as can be appreciated involves tangent. Tangent of
-    % angle close to 90 are going to infinite. Trying to solve this issue,
-    % but I need to find a cut off criteria for this method.
-    if L0N < D0
-        L0N = D0;
-    end
-    %Compute the top surface of the slab
-    z_top_f =-tan(theta*pi/180).*L0N ;
-    % Compute  the lowest point of the surface
-    P_B  = [(L0N-5)-sin(theta*pi/180)*D0, z_top_f-cos(theta*pi/180)*D0];
-    % Compute the slope of the thickness  (i.e. from the last point of the
-    line_m = (z_top_f-P_B(2))./(C(1)+L0N-5-P_B(1)); %
-    %Choose the marker that are loved by god.
-    % => Use the length of the slab for selecting the marker that are
-    % reasonably within the slab. (ArcLength)
-    % => Do not use the full L0N (i.e., the C(1)-> C(1)+L0N is the most
-    % approiate. But the angle function provided by Ribe has a minimum
-    % exactly at x=L0, and this create a bending at the end of the slab.
-    ip = z_p >= C(2)-Slab.Length & z_p<=0.0 & x_p>=C(1) & x_p < C(1)+(L0N-5) & z_p>line_m.*(x_p-P_B(1))+P_B(2);
+    % New method: 
+    % I was not the brightest candle in the chandelor, and I believed to
+    % getting rid of rotation matrix by using a convoluted method. However
+    % this methods miserably fail in certain condition
+
+    % [A] : coordinate slab tip of the slab 
+    SA = [C(1)+L0;0];
+    SB = [C(1)+L0;-D0]; 
+    % [B]: Find the coordinate of the bended slab 
+    theta_r = theta*pi/180; 
+    rotation_matrix_0 = [cos(theta_r) sin(theta_r); -sin(theta_r) cos(theta_r)];
+    SAB = rotation_matrix_0*SA;
+    SBB = rotation_matrix_0*SB; 
+    %[C]: Find the limit of the points that are worth to check
+    z_lim = min(SBB(2),SAB(2));
+    x_lim = max(SAB(1),SBB(1));
+    % [D]: create index array of the choosen point
+    ip = z_p >= -L0 & z_p<=0.0 & x_p>=C(1) & x_p < C(1)+L0;
+    % [E] Find the angle of these points 
     x_pb = x_p(ip==1);
     z_pb = z_p(ip==1);
-    % Find the per each marker the x,z coordinate of their projection onto
-    % the top surface, and the derivative of the function.
-    [z_top,dz,~,~] = compute_ribe_angles(x_pb,C,theta,L0N,D0,weak_flag,Slab.tk_WZ,C(1)+L0N);
-    % Compute the distance of the point from the its projection onto the
-    % curve defined by ribe
-    x_t(ip==1) = (z_top-z_pb)./sqrt(1+dz.^2);
-    Layout     = -x_t;
-    %Compute the length associated with each marker
-    Length = Layout.*nan;
-    [Length] = compute_the_arc_integral(theta,x_p,ip,L0N,C(1));
-    if weak_flag == 0
-        Layout(Layout>0|Layout<-D0)=nan;
-        Length(Layout>0|Layout<-D0)=nan; 
-    else
-        Layout(Layout>0|Layout<-Slab.tk_WZ)=nan;
-    end
+    % [F] Compute the bending angle. 
+    [~,~,~,~,teta_s] = compute_ribe_angles(x_pb,C,theta,L0,D0,weak_flag,Slab.tk_WZ,C(1)+L0);
+ %   P                = [x_pb;z_pb]; 
+    x_rot = x_pb.*cos(teta_s)-z_pb.*sin(teta_s);
+    z_rot = x_pb.*sin(teta_s)+z_pb.*cos(teta_s); 
+    % Select the point that are worth of the god love
+    ichosen =  x_rot < C(1)+L0 & z_rot>=-80 & z_rot<=0;
+    % Since i rotate the plate accordingly i save the depth of the plate 
+    z_pb(ichosen)=z_rot(ichosen);
+    z_pb(ichosen==0)=nan; 
+    x_pb(ichosen)=x_rot(ichosen);
+    x_pb(ichosen==0)=nan;
+    LLL = Layout; 
+    LLL(ip==1)=x_pb;
+    Layout(ip==1) = z_pb; 
     continent(z_p>=D_c)  = 1.0;
 
-    Length = reshape(Length,size(A.Xpart));
+
     Layout = reshape(Layout,size(A.Xpart));
     continent = reshape(continent,size(A.Xpart));
 
 end
 
 end
-function [z,dz,ztop,zbot] = compute_ribe_angles(xp,C,teta_0,L,D0,weak_flag,Tk,Lim)
+function [z,dz,ztop,zbot,teta_s] = compute_ribe_angles(xp,C,teta_0,L,D0,weak_flag,Tk,Lim)
 %=========================================================================%
 % TO DO A complete explanation
 %=========================================================================%
@@ -892,7 +881,10 @@ function [Length] = compute_the_arc_integral(theta,x_p,ip,L,C)
     X = unique(x_pb);
     for i = 1:length(X)
        
-        Buf = integral(f_handle,C,x_p(i));
+        Buf(i) = integral(f_handle,C,X(i));
         
     end
+
+
+    bla = 0;
 end
