@@ -15,6 +15,7 @@ classdef Terrane
         Passive_Margin_depo_center_pos = 0.2; 
         Passive_Margin_length          = 200; 
         Passive_Margin_d_lithos        = 20; 
+        Passive_Margin_Age             = []; 
         Trench                         ='none';
         Trench_properties              = [];
         Accretion_prism                = 'none';

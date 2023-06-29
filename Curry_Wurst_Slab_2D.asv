@@ -32,6 +32,7 @@ T.CCS.phases = [13,1,2];
 T.CCS.Stratigraphy=[0,-12,-15,-30];
 T.Temperature = 'McKenzie';
 T.vl          = 1.0; 
+T.Decoupling = -100; 
 
 
 
@@ -79,6 +80,7 @@ Continent1.Phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
 Continent1.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
 Continent1.Age          = 100.0;
 Continent1.Passive_Margin = {[],'right'};
+Continent1.Passive_Margin_Age = [100.0,40.0]; 
 Continent1.Passive_Margin_phase = phases.Ph_pas_m;
 %% Continent Terranes 2
 Continent2.order = 3;
@@ -286,7 +288,7 @@ if Type == 1
 else
     ind_z = A < T_tk(1) & A>=T_tk(2);
     ind = A < T_tk(2);
-    ZPart =
+    Zpart = A; 
     
 
 end
@@ -294,7 +296,7 @@ if isnan(T_Age)
     Temp(ind_z)=Tsl;
 else
 
-    erf_function = erf(A.Zpart(ind_z).*1000/2/(k*T_Age)^0.5);
+    erf_function = erf(Zpart(ind_z).*1000/2/(k*T_Age)^0.5);
     Temp(ind_z) = T_S - (T_P-T_S).*erf_function;
     Temp(ind) = T_P;
 
@@ -380,9 +382,12 @@ for i=1:n
 end
     t_prov(slab==1) = (T_P)+2.*(T_P-T_S).*Sigma(slab==1); 
     t_prov(slab==1 & t_prov<0) = T_S; 
-    weight = abs(z./Terranes.Trench_properties.D0);
-    weight(weight>1) = 1.0; 
-    Temp(slab==1)=(Temp(slab==1).*(1-weight(slab==1))+t_prov(slab==1)).*weight(slab==1); 
+    % Decoupling depth-length
+    i = find(zprojection>=-Terranes.Trench_properties.Decoupling,1);  
+    weight(slab==1) = 0+(0.9-0.0)./(l(i)-0).*l(slab==1);
+    weight(weight>1) =0.9; 
+    weight = weight'; 
+    Temp(slab==1)=(weight(slab==1)).*t_prov(slab==1)+(1-weight(slab==1)).*Temp(slab==1);
     Temp = reshape(Temp,size(A.Xpart)); 
 end
 
@@ -692,10 +697,12 @@ end
 function [Phase,Temp] = fill_layer(A,Terranes,Phase,Temp,Gen,cont)
 % Select the layer and portion of the model:
 indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
+if ~isempty(indx(indx==1))
 % Compute the thermal profile
-[Temp] = compute_temperature_profile(A,Temp,1,Gen,Terranes,indx);
+    [Temp] = compute_temperature_profile(A,Temp,1,Gen,Terranes,indx);
 % Fill the phase stratigraphy:
-[Phase] = fill_stratigraphy(A.Zpart,Phase,Terranes,indx,cont);
+    [Phase] = fill_stratigraphy(A.Zpart,Phase,Terranes,indx,cont);
+end
 end
 
 function [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen)
@@ -816,7 +823,19 @@ if ~isempty(direction)
     [in2,~]  = inpolygon(A.Xpart,A.Zpart,x_l,z_l);
     Phase(in2) = Gen.Ph_UM;
     Temp(in2) = Gen.T_P;
+    k = Terranes.K./(Terranes.Cp.*3300);
+    dT_Age = (Terranes.Passive_Margin_Age(2)-Terranes.Passive_Margin_Age(1))./(x_l(2)-x(1));
+    ind = A.Xpart>=x_l(1) & A.Xpart(2)<x_l(2);
+    Age = A.Xpart(ind).*0.0;
+    Age = (A.Xpart(ind == 1 & in==1)-x_l(1))*dT_Age+Terranes.Passive_Margin_Age(1); 
+    Age = Age.*(365.25.*60.*60.*24.*1e6); 
+    T_P   = Gen.T_P;
+    T_S   = Gen.T_S;
+    erf_function = erf(A.Zpart(ind == 1 & in ==1).*1000./2./(k.*Age).^0.5);
+    Temp(ind == 1 & in == 1) = T_S - (T_P-T_S).*erf_function;
+    Temp(in2) = T_P;
 
+    
 
 end
 end

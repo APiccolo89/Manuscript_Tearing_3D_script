@@ -16,9 +16,11 @@ Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 T.R        = 40;   %curvature radius
 T.theta_c  = 30;   %curvature radius ingested continental crust
 T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 30;   % curvature slab
+T.theta    = 70;   % curvature slab
 T.tk_WZ    = 0;   % thickness of the weak zone
-T.L0       = 500;  % length of the slab from the bottom of the lithosphere
+Area       = 300.*80; 
+L          = (300.*2)./(1+sin(T.theta*pi/180).^2);
+T.L0       = L;  % length of the slab from the bottom of the lithosphere
 T.D0       = 80;   % Thickness of the slab
 T.Cont     = 30;   % Thickness continental crust
 T.C  = [0.0 -T.D0-T.R];
@@ -31,7 +33,8 @@ T.Type = 'Mode_1'; % 'Ribe_Mode'
 T.CCS.phases = [13,1,2];
 T.CCS.Stratigraphy=[0,-12,-15,-30];
 T.Temperature = 'McKenzie';
-T.vl          = 1.0; 
+T.vl          = 10.0; 
+T.Decoupling = -100; 
 
 
 
@@ -79,6 +82,7 @@ Continent1.Phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
 Continent1.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
 Continent1.Age          = 100.0;
 Continent1.Passive_Margin = {[],'right'};
+Continent1.Passive_Margin_Age = [100.0,40.0]; 
 Continent1.Passive_Margin_phase = phases.Ph_pas_m;
 %% Continent Terranes 2
 Continent2.order = 3;
@@ -380,9 +384,14 @@ for i=1:n
 end
     t_prov(slab==1) = (T_P)+2.*(T_P-T_S).*Sigma(slab==1); 
     t_prov(slab==1 & t_prov<0) = T_S; 
-    weight = abs(z./Terranes.Trench_properties.D0);
-    weight(weight>1) = 0.9; 
-    Temp(slab==1)=(Temp(slab==1).*(1-weight(slab==1))+t_prov(slab==1)).*weight(slab==1); 
+    % Decoupling depth-length
+    i = find(zprojection>=Terranes.Trench_properties.Decoupling,1);  
+    weight(slab==1) = 0+(0.6-0.1)./(l(i)-0.1).*(l(slab==1)-0.1);
+    weight(weight>1) =0.9; 
+    weight(weight<0) =0.01; 
+
+    weight = weight'; 
+    Temp(slab==1)=(weight(slab==1)).*t_prov(slab==1)+(1-weight(slab==1)).*Temp(slab==1);
     Temp = reshape(Temp,size(A.Xpart)); 
 end
 
@@ -692,10 +701,12 @@ end
 function [Phase,Temp] = fill_layer(A,Terranes,Phase,Temp,Gen,cont)
 % Select the layer and portion of the model:
 indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
+if ~isempty(indx(indx==1))
 % Compute the thermal profile
-[Temp] = compute_temperature_profile(A,Temp,1,Gen,Terranes,indx);
+    [Temp] = compute_temperature_profile(A,Temp,1,Gen,Terranes,indx);
 % Fill the phase stratigraphy:
-[Phase] = fill_stratigraphy(A.Zpart,Phase,Terranes,indx,cont);
+    [Phase] = fill_stratigraphy(A.Zpart,Phase,Terranes,indx,cont);
+end
 end
 
 function [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen)
@@ -816,7 +827,19 @@ if ~isempty(direction)
     [in2,~]  = inpolygon(A.Xpart,A.Zpart,x_l,z_l);
     Phase(in2) = Gen.Ph_UM;
     Temp(in2) = Gen.T_P;
+    k = Terranes.K./(Terranes.Cp.*3300);
+    dT_Age = (Terranes.Passive_Margin_Age(2)-Terranes.Passive_Margin_Age(1))./(x_l(2)-x(1));
+    ind = A.Xpart>=x_l(1) & A.Xpart(2)<x_l(2);
+    Age = A.Xpart(ind).*0.0;
+    Age = (A.Xpart(ind == 1 & in==1)-x_l(1))*dT_Age+Terranes.Passive_Margin_Age(1); 
+    Age = Age.*(365.25.*60.*60.*24.*1e6); 
+    T_P   = Gen.T_P;
+    T_S   = Gen.T_S;
+    erf_function = erf(A.Zpart(ind == 1 & in ==1).*1000./2./(k.*Age).^0.5);
+    Temp(ind == 1 & in == 1) = T_S - (T_P-T_S).*erf_function;
+    Temp(in2) = T_P;
 
+    
 
 end
 end
@@ -885,6 +908,9 @@ caxis([0 1350])
 c.Label.String = 'Temperature $[^\circ C]$';
 c.Label.Interpreter = 'latex';
 c.TickLabelInterpreter='latex';
+xlim([-100 400])
+ylim([-500,20])
+axis equal
 print('Temperature','-dpng','-r0')
 
 
