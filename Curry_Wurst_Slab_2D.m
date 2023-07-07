@@ -33,7 +33,7 @@ T.Type = 'Mode_1'; % 'Ribe_Mode'
 T.CCS.phases = [13,1,2];
 T.CCS.Stratigraphy=[0,-12,-15,-30];
 T.Temperature = 'McKenzie';
-T.vl          = 10.0; 
+T.vl          = 1.0; 
 T.Decoupling = -100; 
 
 
@@ -317,7 +317,7 @@ T_Age = Terranes.Age.*Terranes.secMyrsyear;
 T_P   = Gen.T_P;
 T_S   = Gen.T_S;
 Tsl   = Gen.AvTS;
-vl    = 10; 
+vl    = Terranes.Trench_properties.vl; 
 vl    = vl./1e2./365.25./24./60./60; 
 Re    = (3300*Terranes.Cp.*vl*Terranes.Trench_properties.D0.*1000)./2./k;
 % Compute the lenght of the slab starting from the trench
@@ -386,8 +386,8 @@ end
     t_prov(slab==1 & t_prov<0) = T_S; 
     % Decoupling depth-length
     i = find(zprojection>=Terranes.Trench_properties.Decoupling,1);  
-    weight(slab==1) = 0+(0.6-0.1)./(l(i)-0.1).*(l(slab==1)-0.1);
-    weight(weight>1) =0.9; 
+    weight(slab==1) = 0+(0.9-0.1)./(l(i)-0.1).*(l(slab==1)-0.1);
+    weight(weight>1) =1.0; 
     weight(weight<0) =0.01; 
 
     weight = weight'; 
