@@ -23,10 +23,7 @@ import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from numpy.ma import masked_array
 import matplotlib.cbook as cbook
-from Initial_Input import * 
-from Initial_Input import _parse_input_file
-from Initial_Input import _parse_geometry_slab
-
+from Parser_File import * 
 
 
 ######################vtk utilities###########################################
@@ -383,11 +380,12 @@ class Phase():
         self.Phase = ph 
         
         return self 
-    def _plot_phase_field(self,C,Val,ptsave,ipic,t_cur,FS):
+    def _plot_phase_field(self,C,Val,ptsave,ipic,t_cur,FS,tdimen):
                 
         ptsave_b=os.path.join(ptsave,'phase')
         time_sim = "{:.3f}".format(t_cur)
-        tick='Time = %s Myrs' %time_sim
+        time_dimen = "{:.3f}".format(tdimen)
+        tick=r'$Time$ = %s $Myrs$, $t^{\dagger}$ = %s' %(time_sim,time_dimen)
         
         ph = self.Phase 
         

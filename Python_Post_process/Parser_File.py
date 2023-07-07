@@ -118,7 +118,7 @@ class Phase_S():
        
         
         Df = Diffusion()
-        self._parse_properties(Phase_data,key,rx_dict,Df)        
+        Df=self._parse_properties(Phase_data,key,rx_dict,Df)        
         if(Df.eta != -10e23): 
             Df.B = 1/(2*Df.eta)
         return Df 
@@ -134,12 +134,12 @@ class Phase_S():
             'tau0': re.compile(r'tau0 '),
             'disl_prof': re.compile(r'disl_prof ')
             }
-        key = ['eta0','B','E','V','tau0','n']
+        key = ['disl_prof','eta0','B','E','V','tau0','n']
        
         
         Df = Dislocation()
         
-        self._parse_properties(Phase_data,key,rx_dict,Df)
+        Df=self._parse_properties(Phase_data,key,rx_dict,Df)
         
         if(Df.eta0 != -10e23): 
             Df.Bn = (Df.tau0*1e6)**(1-Df.n)/(2*Df.eta0)
@@ -160,7 +160,7 @@ class Phase_S():
         
         Df = Plastic()
         
-        self._parse_properties(Phase_data,key,rx_dict,Df)
+        Df=self._parse_properties(Phase_data,key,rx_dict,Df)
         
         # Make a separate function of it
 
@@ -177,7 +177,7 @@ class Phase_S():
          
          Df = Thermal()
          
-         self._parse_properties(Phase_data,key,rx_dict,Df)
+         Df= self._parse_properties(Phase_data,key,rx_dict,Df)
          
          # Make a separate function of it
 
@@ -186,14 +186,14 @@ class Phase_S():
     def _parse_Elasticity(self,Phase_data):
              
          rx_dict = {
-             'G': re.compile(r'Cp '),
+             'G': re.compile(r'G '),
              }
          key = ['G']
             
              
          Df = Elastic()
              
-         self._parse_properties(Phase_data,key,rx_dict,Df)
+         Df = self._parse_properties(Phase_data,key,rx_dict,Df)
              
         # Make a separate function of it
 
@@ -255,6 +255,7 @@ class Phase_S():
                 x = -10e23  # If the field does not exist, place hold with nan inf
                 exp = "Df.%s = %6f" %(k,x) # Execute the string
                 exec(exp)
+        return Df 
                 
     def _find_number(self, line,k):
         import re
@@ -316,18 +317,15 @@ class Phase_S():
         KEYS_DB = list(Df.__dict__.keys())
         
         for ik in KEYS_DB:
-            
+            if ik == k: # If this attribute is the profile, set the name
+                exp = "Df.%s = '%s'" %(ik,rheo_name)
+                exec(exp) 
             if hasattr(RB, ik): # Does this attribute exist 
                 
-                if ik == k: # If this attribute is the profile, set the name
-                    exp = "Df.%s = '%s'" %(ik,rheo_name)
-                    exec(exp) 
-                
-                else: 
+                if eval(ik,globals(),Df.__dict__) == -10e23: # If does not exist the value already (i.e. modify in the input script)
+                    exp = "Df.%s = RB.%s" %(ik,ik) 
+                    exec(exp)  
                     
-                    if eval(ik,globals(),Df.__dict__) == -1e23: # If does not exist the value already (i.e. modify in the input script)
-                        exp = "Df.%s = RB.%s" %(ik,ik) 
-                        exec(exp)      
         return Df 
         
 
@@ -512,13 +510,13 @@ class Rheological_flow_law():
     """
     Class that contains the rheological flow law parameters. 
     """
-    def __init__(self,E,V,n,m,d,B,F,MPa,r,water,q,gamma,taup):
+    def __init__(self,E,V,n,m,d0,B,F,MPa,r,water,q,gamma,taup):
         self.E = E
         self.V = V
         self.n = n
         self.m = m
-        self.d = d
-        self.B = self._correction(B,F,n,m,MPa,d,r,water)
+        self.d = d0
+        self.B = self._correction(B,F,n,m,MPa,d0,r,water)
         self.R = 8.314
         self.q  = q
         self.gamma = gamma
@@ -553,12 +551,12 @@ class Rheological_data_Base():
         m = 0.0
         B = 1.1e5
         r = 1.0
-        d = 1
+        d0 = 1
         water = 1.0
         q   = -1e23
         taup = -1e23
         gamma = -1e23 
-        self.Dislocation_DryOlivine = Rheological_flow_law(E,V,n,m,d,B,1,1,r,water,q,gamma,taup)
+        self.Dislocation_DryOlivine = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
         # Wet Olivine
         E = 520.0e3
         V = 22e-6
@@ -566,9 +564,9 @@ class Rheological_data_Base():
         m = 0.0
         B = 1600
         r = 1.2
-        d = 1
+        d0 = 1
         water = 1000.0
-        self.Dislocation_WetOlivine = Rheological_flow_law(E,V,n,m,d,B,1,1,r,water,q,gamma,taup)
+        self.Dislocation_WetOlivine = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
         # Wet Plagio
         E = 345.0e3
         V = 38e-6
@@ -576,37 +574,37 @@ class Rheological_data_Base():
         m = 0.0
         B = 1.5849
         r = 1.0
-        d = 1
+        d0 = 1
         water = 158.4893
-        self.Dislocation_WetPlagio  = Rheological_flow_law(E,V,n,m,d,B,2,1,r,water,q,gamma,taup)
+        self.Dislocation_WetPlagio  = Rheological_flow_law(E,V,n,m,d0,B,2,1,r,water,q,gamma,taup)
         # Diffusion creep 
         E = 375.0e3
         V = 5e-6
         n = 1.0 
         m = 3.0
         B = 1.5e9
-        r = 0.0
-        d = 10^3
+        r = 1.0
+        d0 = 10e3
         water = 1.0
-        self.Diffusion_DryOlivine   = Rheological_flow_law(E,V,n,m,d,B,1,1,r,water,q,gamma,taup)
+        self.Diffusion_DryOlivine   = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
         E = 375.0e3
         V = 10e-6
         n = 1.0 
         m = 3.0
         B = 2.5e7
         r = 0.8
-        d = 10^3
+        d0 = 10e3
         water = 1000
-        self.Diffusion_WetOlivine   = Rheological_flow_law(E,V,n,m,d,B,1,1,r,water,q,gamma,taup)
+        self.Diffusion_WetOlivine   = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
         E = 159.0e3
         V = 38e-6
         n = 1.0 
         m = 3.0
         B = 0.1995
         r = 1.0
-        d = 100
+        d0 = 100
         water = 158.4893
-        self.Diffusion_WetPlagio    = Rheological_flow_law(E,V,n,m,d,B,2,1,r,water,q,gamma,taup)
+        self.Diffusion_WetPlagio    = Rheological_flow_law(E,V,n,m,d0,B,2,1,r,water,q,gamma,taup)
 
 class Phase_Data_Base:
         

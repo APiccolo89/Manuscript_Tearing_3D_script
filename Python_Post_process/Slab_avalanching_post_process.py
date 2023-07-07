@@ -22,7 +22,7 @@ Import useful function
 # Read the function to read the output of LaMEM
 from Read_VTK_files_LAMEM import * #Read_VTK_files_LAMEM
 from Read_VTK_files_LAMEM import  _file_list
-from Initial_Input import *
+from Parser_File import *
 # Read the main file for processing the simulation
 from Running_script_main_function import _run_script_visualization
 
@@ -38,6 +38,7 @@ Test_Name =['Lukas_S2D_S1_1']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)
+vIC = [80e3,300e3,90,800,1350]
 # Loop of test
 for L in Test_Name:
     # Which test is going to be post process
@@ -52,7 +53,7 @@ for L in Test_Name:
         if not os.path.isdir(ptsave):
             os.mkdir(ptsave)
         #try:
-        _run_script_visualization(ptsave,Folder,L,l_)
+        _run_script_visualization(ptsave,Folder,L,l_,vIC)
         #except:
         #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
     else: 
