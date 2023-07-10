@@ -29,6 +29,8 @@ class SLAB():
         self.nu    = np.zeros((tz,nstep),dtype=float)
         self.eps   = np.zeros((tz,nstep),dtype=float)
         self.tau   = np.zeros((tz,nstep),dtype=float)
+        self.tau_min =np.zeros((tz,nstep),dtype=float)
+        self.tau_max =np.zeros((tz,nstep),dtype=float)
         self.vz    = np.zeros((tz,nstep),dtype=float)
         self.vx    = np.zeros((tz,nstep),dtype=float)
         self.vis   = np.zeros((tz,nstep),dtype=float)
@@ -38,7 +40,9 @@ class SLAB():
         self.vis_A    = np.zeros((tz,nstep),dtype=float)
         self.nu_A    = np.zeros((tz,nstep),dtype=float)
         self.det_vec =np.zeros(nstep)
-        self.tau_det =np.zeros(nstep)
+        self.tau_vec =np.zeros(nstep)
+        self.tau_d_min = np.zeros(nstep)
+        self.tau_d_max = np.zeros(nstep)
         self.D_det   = np.zeros(nstep)
         self.vz_S    = np.zeros(nstep)
         self.x1    = np.zeros(tz)
@@ -74,7 +78,7 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","nu","vis","eps","tau","vz","vx"]        
+        self.CV = ["T","nu","vis","eps","tau","vz","vx","tau_max","tau_min"]        
 
 
     def _update_C(self,C,Values,ipic,time):         
@@ -139,7 +143,7 @@ class SLAB():
                     """
                     Compute the mean and standard deviation of certain value
                     """                    
-                    CV = ["T","nu","vis","eps","epsxx","epszz","epsxz","tau","tauxx","tauzz","tauxz","vz","vx"]
+                    CV = ["T","nu","vis","eps","epsxx","epszz","epsxz","tau","vz","vx","tau_max","tau_min"]
                     for iv in self.CV:
                         eval(iv,globals(),self.__dict__)[i,ipic] = np.nan 
                         
@@ -175,7 +179,13 @@ class SLAB():
                         self.D[i,ipic] = np.nan
                     else:
                         for iv in self.CV:
-                            eval(iv,globals(),self.__dict__)[i,ipic] = np.mean(eval(iv,globals(),Values.__dict__)[i,ind])
+                            if iv == "tau_max":
+                                eval(iv,globals(),self.__dict__)[i,ipic] = np.max(Values.tau[i,ind])
+                            elif iv == "tau_min":
+                                eval(iv,globals(),self.__dict__)[i,ipic] = np.min(Values.tau[i,ind])
+                            else:    
+                                eval(iv,globals(),self.__dict__)[i,ipic] = np.mean(eval(iv,globals(),Values.__dict__)[i,ind])
+                            
                         ind_AA = (x>=self.x1[i]-60) & (x<self.x1[i])
                         ind_BB = ((x>self.x2[i]) & (x<=self.x2[i]+60))
                         ind_A   = np.where((ind_AA == True)| ind_BB == True)
@@ -261,6 +271,8 @@ class SLAB():
         self.det_vec, ind_z,TT,ZZ = self._find_detachment_age(time,z)
         self.tau_vec = self.tau[ind_z,:]
         self.D_det   = self.D[ind_z,:]
+        self.tau_d_min = self.tau_min[ind_z,:]
+        self.tau_d_max = self.tau_max[ind_z,:]
         if len(self.det_vec) >0:
             self._save_txt_DATABASE(self.det_vec,TestName,Data_BASE_F)
         
@@ -437,6 +449,7 @@ class SLAB():
 
         # close the file
         f.close()
+        
 class Initial_condition(): 
     def __init__(self,Phase_Slab,Phase_Mantle,vIC): 
         """
@@ -454,16 +467,15 @@ class Initial_condition():
         ?) reading geometry as well? 
         ?) reading the python file to generate the initial setup (later on)
         """
-        
+        # Data that are input of the script 
         self.D0,self.L0 = vIC[0],vIC[1]
         self.T_av       = vIC[3]+273.15
         self.TP         = vIC[4]+273.15
         rho_slab         = Phase_Slab.Density.rho*(1-Phase_Slab.Density.alpha*(self.T_av-273.15))
         rho_mantle      = Phase_Mantle.Density.rho*(1-Phase_Slab.Density.alpha*(self.TP-273.15))
-        
+        # Reference Buoyancy force 
         self.F_B0       = 9.81*(rho_slab-rho_mantle)*self.L0*self.D0
         print("Initial Bouancy force F_B is %e"%(self.F_B0))
-        
         ###############################################
         # Compute the characteristic time following Thielmann 
         ###############################################
@@ -484,26 +496,26 @@ class Initial_condition():
         eta0D = 0.5*(1/Bd)*tau0**(1-1)*1/expD
         eta0N = 0.5*(1/Bn)*tau0**(1-n)*1/expN
         # Compute the average viscosity of the upper mantle along the slab using the analytical formula that I derived
-	# 
-        expDM0 = np.exp(-(Ed+Pr*Vd)/(R*self.TP))
-        expNM0 = np.exp(-(En+Pr*Vn)/(R*self.TP))
-        eta0DM0 = 0.5*(1/Bd)*1/expDM0
-        eta0NM0 = 0.5*(1/Bn)*tau0**(1-n)*1/expNM0
-        Cd = (Vd)/(R*self.TP)
+        # The analytical solution is not accounting for the adiabatic heating. 	
+        expDM0 = np.exp(-(Ed+Pr*Vd)/(R*self.TP)) # Exponential term for the um with reference condition
+        expNM0 = np.exp(-(En+Pr*Vn)/(R*self.TP)) # 
+        eta0DM0 = 0.5*(1/Bd)*1/expDM0 # Reference viscosity diffusion
+        eta0NM0 = 0.5*(1/Bn)*tau0**(1-n)*1/expNM0 # Reference viscosity dislocation
+        Cd = (Vd)/(R*self.TP) # Exponential correction 
         Cn = (Vn)/(R*self.TP)
-        w_m = rho_mantle*9.81
-        expNM = np.exp(Cn*w_m*self.L0)
+        w_m = rho_mantle*9.81 # weight force
+        expNM = np.exp(Cn*w_m*self.L0) # exponential term @ bottom of the slab
         expDM = np.exp(Cd*w_m*self.L0)
-        eta0DM = (eta0DM0/(Cd*w_m*self.L0))*(expDM-1)
+        eta0DM = (eta0DM0/(Cd*w_m*self.L0))*(expDM-1) # Average dislocation/diffusion creep viscosity
         eta0NM = (eta0NM0/(Cn*w_m*self.L0))*(expNM-1)
-        eta_ref_UM = (1/eta0DM+1/eta0NM)**(-1)
+        eta_ref_UM = (1/eta0DM+1/eta0NM)**(-1) #Reference effective visocosity of the um 
         print("The average effective viscosity of the mantle at reference condition is %3f"%(np.log10((1/eta0DM+1/eta0NM)**(-1))))
         eta_S_ref = (1/eta0D+1/eta0N)**(-1)
         eta_S_co  = (1/eta0D+1/eta0N+1/1e24)**(-1)
         print("The effective viscosity at the reference condition of the slab is %3f and with cut off is %3f"%(np.log10(eta_S_ref), np.log10(eta_S_co)))
         print("The initial phi without cut off is %2f and with cutoff is %2f and if the viscosity of the mantle is low than cutoff %2f" %(np.log10(eta_ref_UM/eta_S_ref), np.log10(eta_ref_UM/eta_S_co), np.log10(1e18/eta_S_co)))
-        Bd_cuoff = 1/(2*1e24)
-        tc    = (Bn*(tau0)**n*expN + Bd*tau0*expD+Bd_cuoff*tau0)
+        Bd_cuoff = 1/(2*1e24) # Bd upper cut off
+        tc    = (Bn*(tau0)**n*expN + Bd*tau0*expD+Bd_cuoff*tau0) # epsc of the slab
         print("Strain rate dislocation creep is %3f"%(np.log10(Bn*tau0**n*expN)))
         print("Strain rate diffusion creep is %3f"%(np.log10(Bd*expD)))
         print("Strain rate upper cut off creep is %3f"%(np.log10(Bd_cuoff*tau0)))
@@ -515,17 +527,17 @@ class Initial_condition():
         print("The analytical time  of detachment is %1f" %(tc/n))
         self.tc = tc        #Characteristic deformation time 
         self.td = tc/n      #Detachment time
-        self.tau0 = tau0
-        self.eta0DS = eta0D 
-        self.eta0DN = eta0N 
-        self.xiUS   = eta0D/eta0N
-        self.xiUM   = eta0DM/eta0NM
-        self.Psi_R  = eta_ref_UM/eta_S_ref
-        self.Psi_R_Sco = eta_ref_UM/eta_S_co
-        self.Psi_co = 1e18/eta_S_co
-        self.eta_ref_UM = eta_ref_UM
-        self.Tc     = self.TP-self.T_av
-        self.T_av   = self.T_av+273.15
+        self.tau0 = tau0    #tau0 
+        self.eta0DS = eta0D #Diffusion creep viscosity slab @ reference
+        self.eta0DN = eta0N #Dislocation creep viscosity slab @ reference
+        self.xiUS   = eta0D/eta0N # Characteristic viscosity contrast @ reference condition
+        self.xiUM   = eta0DM/eta0NM # Characteristic viscosity contrast @ reference condition UM
+        self.Psi_R  = eta_ref_UM/eta_S_ref # Real Psi (i.e., the Psi computed with the real data)
+        self.Psi_R_Sco = eta_ref_UM/eta_S_co #  Psi accounting for the upper cut off
+        self.Psi_co = 1e18/eta_S_co # Psi in case the effective viscosity of the um is below the cut off viscosity
+        self.eta_ref_UM = eta_ref_UM # the effective viscosity of the upper mantle 
+        self.Tc     = self.TP-self.T_av # Characteristic temperature
+        self.T_av   = self.T_av-273.15
         print("Reference viscosity diffusion creep of the slab is %f"%(np.log10(eta0D)))
         print("Reference viscosity dislocation creep of the slab is %f"%(np.log10(eta0N)))
         print("XiS %f"%(np.log10(self.xiUS)))
@@ -550,19 +562,29 @@ def _plot_D_D0(Slab,IC,ptsave,time,Test_Name,t_lim):
     ax0 = fg.gca()
 
     ax0.plot(time/IC.td,Slab.D_det/(IC.D0/1e3), lw=1.2,c='k',ls='--', label = r"Simulations")
-    ax0.plot(tt/(1/3.5),analytical_solution, lw=1.5,c='r',ls='--', label = r"Analytical Solution")
+    ax0.plot(tt/(1/3.5),analytical_solution, lw=1.5,c='k',ls='dashdot', label = r"Analytical Solution")
     ax0.scatter(time/IC.td,Slab.D_det/(IC.D0/1e3),c='r',s=10)
-    
-    leg = plt.legend()
     plt.xlim(0, t_lim)
-    plt.ylim(0, 1.1)
-    plt.grid(True)
+    plt.ylim(0.1, 1.0)
+    ax2 = ax0.twinx()  
+    ax2.set_ylim(0.5,5.0)
+    ax2.plot(time/IC.td,Slab.tau_vec,lw=1.2,c='b',label=r"$\tau^{\dagger}_{SIM}$")
+    ax2.plot(time/IC.td,Slab.tau_d_min,lw=0.8,c='b',label=r"$\tau^{\dagger}_{SIM}$")
+    ax2.plot(time/IC.td,Slab.tau_d_max,lw=0.8,c='b',label=r"$\tau^{\dagger}_{SIM}$")
+    ax2.fill_between(time/IC.td, Slab.tau_d_min, Slab.tau_d_max,alpha=0.2)
+    ax2.plot(tt/(1/3.5),1/analytical_solution,lw=0.8,c='b',ls='dashdot')
+    ax2.yaxis.set_ticks(np.arange(0.5,5.0,0.5))
+
+    ax0.grid(True)
     #plt.yscale('log')
     ax0.set_title(tick)
-    plt.xlabel(r'$\frac{t}{t_d}, [n.d.]$')
-    plt.ylabel(r'$\frac{D}{D_0}, [n.d.]$')
+    plt.xlabel(r'$t^{\dagger}, [n.d.]$')
+    plt.ylabel(r'$D^{\dagger}, [n.d.]$')
     ax0.tick_params(axis='both', which='major', labelsize=5)
     ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax2.tick_params(axis='both', which='major', labelsize=5)
+    ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+   
     plt.draw()    # necessary to render figure before saving
     fg.savefig(fn,dpi=300,transparent=False)
     ax0.plot()

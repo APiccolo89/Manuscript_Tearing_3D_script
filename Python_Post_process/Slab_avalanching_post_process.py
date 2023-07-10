@@ -31,17 +31,17 @@ Folder = r'C:\Users\Andrea Piccolo\Desktop\Test_python'
 # Folder where the output must be saved
 ptsave1 = r'C:\Users\Andrea Piccolo\Desktop\Test_python\Output'
 
-Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 
-ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/Output'
+#Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 
+#ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/Output'
 # Check if ptsave1 exists, in case create
 if not os.path.isdir(ptsave1):
     os.mkdir(ptsave1)
 # List of tests {Could be as well a list automatically created}
-Test_Name =['Lukas_S2D_S1_2_90_1000']
+Test_Name =['Lukas_S2D_S1_1']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)
-vIC = [80e3,300e3,90,1000,1350]
+vIC = [80e3,300e3,90,800,1350]
 # Loop of test
 for L in Test_Name:
     # Which test is going to be post process
