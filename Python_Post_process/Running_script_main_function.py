@@ -109,7 +109,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         
         ###### Retrieve the field that is needed ##################################
         t1 = perf_counter()
-        DYN._update_Val(Filename_dyn,C)
+        DYN._update_Val(Filename_dyn,C,Initial_Condition)
         t2 = perf_counter()
         Values_time = t2-t1
         print("Dynamic value took","{:02}".format(Values_time))
@@ -134,7 +134,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################
         t1 = perf_counter()   
-        if (ipic % 10000 == 0):
+        if (ipic % 10 == 0):
             # Plot the field of interest of dynamic 
             DYN._plot_maps_V(t_cur,C.z,C.x,ptsave,ipic)
             # Plot the phase plot 
@@ -166,7 +166,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         
         print("===========================================")
     
-    ind_z_t = Slab._plot_slab_time(time/Initial_Condition.td,C.z,ptsave,Test_Name,ptsave,60)
-    _plot_D_D0(Slab_,Initial_Condition,ptsave,time,Test_Name,10)
+    ind_z_t = Slab._plot_slab_time(time/Initial_Condition.td,C.z,ptsave,Test_Name,ptsave,30,Initial_Condition)
+    _plot_D_D0(Slab,Initial_Condition,ptsave,time,Test_Name,10)
 
 

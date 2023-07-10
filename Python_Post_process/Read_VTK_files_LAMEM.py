@@ -494,7 +494,7 @@ class VAL():
         
         
         self.LGV         = ["tau","nu",'vz','vm',"gamma","eps","T"]
-        self.Label       = [ r"$\tau_{II} [MPa]$", r"$log_{10}(\eta) [Pas]$",r'$v_z [cm/yr]$',r'$v_m [cm/yr]$',"$\gamma [n.d.]$","$log_{10}(\dot{\epsilon}_{II})$ $[{s}^{-1}]$","$T [^{\circ}C]$"
+        self.Label       = [ r"$\tau^{\dagger}_{II} []$", r"$log_{10}(\eta) [Pas]$",r'$v_z [cm/yr]$',r'$v_m [cm/yr]$',"$\gamma [n.d.]$","$log_{10}(\dot{\epsilon}_{II})$ $[{s}^{-1}]$","$T^{\dagger} []$"
                     
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.devon","cmc.broc","cmc.bilbao","cmc.nuuk","cmc.lapaz","cmc.lapaz","cmc.turku","cmc.cork","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
@@ -504,13 +504,13 @@ class VAL():
                             ("min","max"),
                             (10**(-3),10**1),
                             (10**(-17),10**(-12)),
-                            (20,1700),
+                            (0,1),
                            ("min","max"),
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
        
-    def _update_Val(self,Filename_dyn,C):
+    def _update_Val(self,Filename_dyn,C,IC):
         
         VTK_SET_d(Filename_dyn)
         VTK_UPDATE_d()
@@ -518,10 +518,13 @@ class VAL():
         
         for k in diction:
             key = str(k)
-            print(key)
             f   = str(self.dict[k])
             buf=reader.GetOutput().GetPointData().GetArray(f)
             buf=vtk_to_numpy(buf)
+            if(key == "tau"):
+                buf = buf/(IC.tau0/1e6)
+            if(key == "T"):
+                buf = (buf)/(IC.TP-273.15)
             if((key == "velocity") | (key == "disp")):
                 if key == "velocity":
                     self.vx,self.vz,self.vm = self.taylor_grid(C,key,buf)
