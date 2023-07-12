@@ -29,6 +29,7 @@ from Read_VTK_files_LAMEM import  _file_list
 from Parser_File import * 
 from Slab_detachment import * 
 from Slab_detachment import _plot_D_D0
+from Slab_detachment import _plot_time_map_surface
 
 def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     t_INIZIO = perf_counter()
@@ -105,7 +106,6 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         Filename_dyn=os.path.join(Folder,Test_Name,fn,dyn)
         Filename_ph=os.path.join(Folder,Test_Name,fn,phase)
         Filename_s=os.path.join(Folder,Test_Name,fn,surf)
-    #    Filename_ptr=os.path.join(Folder,Test_Name,fn,passive_tracers)
         
         ###### Retrieve the field that is needed ##################################
         t1 = perf_counter()
@@ -134,7 +134,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################
         t1 = perf_counter()   
-        if (ipic % 1000 == 0):
+        if (ipic % 10 == 0):
             # Plot the field of interest of dynamic 
             DYN._plot_maps_V(t_cur,C.z,C.x,ptsave,ipic)
             # Plot the phase plot 
@@ -168,5 +168,21 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     
     ind_z_t = Slab._plot_slab_time(time/Initial_Condition.td,C.z,ptsave,Test_Name,ptsave,30,Initial_Condition)
     _plot_D_D0(Slab,Initial_Condition,ptsave,time,Test_Name,np.round(Slab.det_vec[0]+1)-0.5)
+   
+    cmap = 'cmc.oleron'
+    clim = [-2,2]
+    _plot_time_map_surface(C.x,time,FSurf.Amplitude,'Amplitude',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
+
+    cmap = 'cmc.bam'
+    clim = [-1.5,1.5]
+    _plot_time_map_surface(C.x,time,FSurf.vx*10,'vx',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
+
+    cmap = 'cmc.bam'
+    clim = [-1.5,1.5]
+    _plot_time_map_surface(C.x,time,FSurf.vz*10,'vz',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
+    
+    cmap = 'cmc.hawaii'
+    clim = [0,3.0]
+    _plot_time_map_surface(C.x,time,FSurf.vm*10,'vm',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
 
 

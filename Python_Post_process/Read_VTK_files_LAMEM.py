@@ -494,16 +494,14 @@ class VAL():
         
         
         self.LGV         = ["tau","nu",'vz','vm',"gamma","eps","T"]
-        self.Label       = [ r"$\tau^{\dagger}_{II} []$", r"$log_{10}(\eta) [Pas]$",r'$v_z [cm/yr]$',r'$v_m [cm/yr]$',"$\gamma [n.d.]$","$log_{10}(\dot{\epsilon}_{II})$ $[{s}^{-1}]$","$T^{\dagger} []$"
-                    
-                            ]
+        self.Label       = [ r"$\tau^{\dagger}_{II} []$", r"$\Psi []$",r'$v_z [cm/yr]$',r'$v_m [cm/yr]$',"$\gamma [n.d.]$","$log_{10}(\dot{\epsilon^{\dagger}}_{II})$ $[]$","$T^{\dagger} []$"]
         self.Colormap    = ["cmc.bilbao","cmc.devon","cmc.broc","cmc.bilbao","cmc.nuuk","cmc.lapaz","cmc.lapaz","cmc.turku","cmc.cork","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
-        self.Val         = [("min","max"),
+        self.Val         = [(0.5,6.0),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
                             (10**(-3),10**1),
-                            (10**(-17),10**(-12)),
+                            (1e-4,1e2),
                             (0,1),
                            ("min","max"),
                             ("min","max"),
@@ -524,7 +522,9 @@ class VAL():
             if(key == "tau"):
                 buf = buf/(IC.tau0/1e6)
             if(key == "T"):
-                buf = (buf)/(IC.TP-273.15)
+                buf = (buf-IC.T_av)/(IC.Tc)
+            if(key == 'eps'):
+                buf = buf/IC.epsc
             if((key == "velocity") | (key == "disp")):
                 if key == "velocity":
                     self.vx,self.vz,self.vm = self.taylor_grid(C,key,buf)

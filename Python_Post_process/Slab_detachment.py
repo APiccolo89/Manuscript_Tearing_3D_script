@@ -538,13 +538,16 @@ class Initial_condition():
         self.eta_ref_UM = eta_ref_UM # the effective viscosity of the upper mantle 
         self.Tc     = self.TP-self.T_av # Characteristic temperature
         self.T_av   = self.T_av-273.15
+        self.TP         = vIC[4]
+        self.eta_ref_S = eta_S_co 
+
         print("Reference viscosity diffusion creep of the slab is %f"%(np.log10(eta0D)))
         print("Reference viscosity dislocation creep of the slab is %f"%(np.log10(eta0N)))
         print("XiS %f"%(np.log10(self.xiUS)))
 
 
 def _plot_D_D0(Slab,IC,ptsave,time,Test_Name,t_lim): 
-    
+    # 
     fg = figure()
 
     tick='%s' %(Test_Name)
@@ -680,16 +683,42 @@ def _plot_vz(Slab,IC,ptsave,time,Test_Name,t_lim,ind_z):
     plt.close()
     
 
+def _plot_time_map_surface(x,time,buf,Field,Test_Name,cmap,ptsave,clim,t_lim):
+    import cmcrameri.cm as cmc
+    cmap2 =eval(cmap)
+    ptsave_b=os.path.join(ptsave,'Maps')
+    if not os.path.isdir(ptsave_b):
+        os.mkdir(ptsave_b)
     
+    fg = figure()
+    ax0 = fg.gca()
     
-    
+    fna=('%s_%s.png' %(Test_Name,Field))
+    cbar_title = ('%s, mm/yrs' %(Field))
+    fn = os.path.join(ptsave_b,fna)
+    cf=ax0.pcolormesh(x, time, np.transpose(buf),cmap = cmap2, shading='gouraud', vmin=clim[0], vmax=clim[1])
+    cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal')
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_ylim(np.min(time),t_lim)
+    ax0.set_xlim(np.min(x),np.max(x))
+    plt.xlabel('$x, [km]$')
+    plt.ylabel('$Time, [Myrs]$')
+    cbar.set_label(cbar_title)
+ 
+    plt.draw()    # necessary to render figure before saving
+    fg.savefig(fn,dpi=300)
+    fg.clear()
+    plt.close()
 
 
 
 
 
-    
-    
+
+
+
+
 
 
 
