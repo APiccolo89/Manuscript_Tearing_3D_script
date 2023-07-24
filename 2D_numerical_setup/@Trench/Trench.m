@@ -1,7 +1,7 @@
-classdef Trench < Terrane
+classdef Trench
 
     properties
-        Boundary % x-y coordinate trench 
+        Boundary = [0,0]% x-y coordinate trench 
         R       % Curvature radius
         C       % Center of radius curvature
         theta   % Bending angle
@@ -11,11 +11,11 @@ classdef Trench < Terrane
         D0      % Thickness of the slab
         Decoupling_depth % Decoupling depth
         tk_Cont % Continental thickness
-        Stratigraphy_Continental %
+        Stratigraphy_Continental % 
         Stratigraphy_Oceanic     %
         Type_Subduction
-        Thermal_type % typology thermal structure
-        Thermal_data % Data required thermal structure
+        Thermal_type        % typology thermal structure
+        Thermal_information % Data required thermal structure
         Layout
         arc_angleS
         continent

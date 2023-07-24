@@ -3,8 +3,7 @@ classdef Terrane
         Boundary                    = [0,0,0,0];  %x1 x2 y1 y2 
         Phases 
         Stratigraphy
-        Thermal_information 
-        Thermal_type  
+        Therm
     end
     methods
         function [Phase,Temp] = fill_terranes(obj,Phase,Temp)

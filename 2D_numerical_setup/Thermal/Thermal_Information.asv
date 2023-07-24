@@ -1,0 +1,21 @@
+classdef Thermal_Information 
+    properties
+        TP      % Mantle potential temperature in C
+        TS      % Surface temperature in C
+        k = 3  ;    % Conductivity
+        Cp = 1050  ;   % Heat Capacity
+        rho  =3000   % average density
+        Hr   =0   % radiogenic heat production 
+        kappa   = kappa_calculation(rho,Cp,k) 
+    end
+    
+    methods
+        function obj = kappa_calculation(rho,Cp,k)
+            %THERMAL_INFORMATION Construct an instance of this class
+            %   Detailed explanation goes here
+            obj.kappa = k/(rho*Cp);
+        end
+        
+    end
+end
+

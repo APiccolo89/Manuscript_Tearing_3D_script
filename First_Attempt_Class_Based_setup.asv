@@ -60,12 +60,6 @@ Continent1.Boundary = [-1000,min(Gr.y_g),0,max(Gr.y_g)];
 Continent1.Stratigraphy=continental_stratigraphy; 
 Continent1.Thermal_type = Thermal_TypeContinent; 
 Continent1.Thermal_information = Thermal_information; 
-% Fill the properties of the terrane template 
-Continent2.Boundary = [0,min(Gr.y_g),1000,max(Gr.y_g)];
-Continent2.Stratigraphy=continental_stratigraphy2; 
-Continent2.Thermal_type = Thermal_TypeContinent; 
-Continent2.Thermal_information = Thermal_information; 
-%
 
 
 bla = 0; 
