@@ -31,7 +31,7 @@ elseif strcmp(Type,'McKenzie')
     [Temp] = HalfSpaceCooling(obj,D,ind,Temp);
     [Temp] = compute_temperature_profile_McKenzie(obj,D,ind,Temp);
 elseif strcmp(Type,'Average_T')
-    [Temp] = Average_T(obj,D,ind,Temp);
+    [Temp] = 
 else
     error('You do not provide a temperature type:{Continental},{HalfSpace},{McKenzie},{Average_T}, please correct your ways and repent yourself.')
 end
