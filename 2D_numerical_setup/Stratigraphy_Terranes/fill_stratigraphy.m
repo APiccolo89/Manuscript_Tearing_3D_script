@@ -1,37 +1,54 @@
 
-function [Phase] = fill_stratigraphy(obj,Phase,ind)
+function [Phase] = fill_stratigraphy(obj,A,Phase,ind)
+%==========================================================================
 % function that allows to fill up the phases 
 % Check if the type of terranes (i.e., Trench or normal Terranes?)
+% This function loop over the layer of a certain formation, and just fill
+% up the designed geographical area with the desidered phase. More in
+% general, it also allow to fill w.r.t. to the distance of a given surface.
+% ========================================================================
+% Input: 
+% obj   -> terrane/boundary object
+% D     -> distance from the surface (i.e. Z, or d of the slab) 
+% Phase -> Phase structure
+% ind   -> index of the chosen one (particles that belong a certain
+% geological object). 
+% =========================================================================
+% Output: 
+% Phase -> Updated array of phase. 
+%==========================================================================
 if isa(obj,'Trench')
     ph = obj.Stratigraphy_Oceanic.phases;  % phases of the terranes
     t_Tk = obj.Stratigraphy_Oceanic.Tk;    % Thickness stratigraphy
+    D    = obj.Layout; 
 else
-    ph = obj.Stratigraphy.phases;         
-    t_Tk = obj.Stratigraphy.Tk; 
+    ph = obj.Stratigraphy.phases;    % phase vector: i.e., the phases that are required to fill up     
+    t_Tk = obj.Stratigraphy.Tk;      % depth of interface 
+    D    = A.Zpart; 
 end
 % Extract relevant information 
-T_Tk = [0.0, t_Tk(end)]; 
+T_Tk = [0.0, t_Tk(end)]; % Thickness of the terrain
 % Extract relevant information
 T = T_Tk(1);
 
 % Loop for filling the layered structured
-for i=1:length(Terranes.Phases)
-    if (i == length(Terranes.Phases))
+for i=1:length(ph)
+    if (i == length(ph))
         B=T_Tk(2);
     else
         B = t_Tk(i+1);
     end
-    if ~isempty(indx)
-        ind = Z < T & Z>=B & indx>0 & ind==1;
+    if ~isempty(ind)
+        ind_ph = D(:) < T & D(:)>=B & ind==1;
     else
-        ind = Z < T & Z>=B & ind == 1 ;
+        ind_ph = D(:) < T & D(:)>=B & ind == 1 ;
     end
-    Phase(ind) = ph(i);
+    Phase(ind_ph) = ph(i);
     T=B;
-    ind = [];
+    ind_ph = [];
 end
 if isa(obj,'Trench')
-    TT = Terranes.Stratigraphy.Continental_stratigraphy;
+    TT = obj.Stratigraphy.Continental_stratigraphy;
     T = TT.Tk(1);
     for i=1:length(TT.phases)
         if (i == length(TT.phases))
@@ -40,11 +57,11 @@ if isa(obj,'Trench')
             B = TT.Tk(i+1);
         end
 
-        ind = Z < T & Z>=B & cont>0;
+        ind_c = D(:) < T & D(:)>=B & cont>0;
 
-        Phase(ind) = TT.phases(i);
+        Phase(ind_c) = TT.phases(i);
         T=B;
-        ind = [];
+        ind_c = [];
     end
 end
 

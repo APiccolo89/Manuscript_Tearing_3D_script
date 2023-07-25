@@ -5,7 +5,7 @@ if ~isempty(ind(ind==1))
 % Compute the thermal profile
     [Temp] = compute_temperature_profile(obj,A,ind,Temp);
 % Fill the phase stratigraphy:
-    [Phase] = fill_stratigraphy(obj,Phase,ind);
+    [Phase] = fill_stratigraphy(obj,A,Phase,ind);
 end
 end
 
