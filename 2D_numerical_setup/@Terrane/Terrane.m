@@ -7,8 +7,8 @@ classdef Terrane
         Thermal_type  
     end
     methods
-        function [Phase,Temp] = fill_terranes(obj,Phase,Temp)
-            [Phase,Temp] = fill_layer(obj,A,Phase,Temp,Gen,cont);
+        function [Phase,Temp] = fill_terranes(obj,A,Phase,Temp)
+            [Phase,Temp] = fill_layer(obj,A,Phase,Temp);
         end
 
     end

@@ -8,10 +8,12 @@ if ~isempty(indx(indx==1))
     [Phase] = fill_stratigraphy(A.Zpart,Phase,Terranes,indx,cont);
 end
 end
-function [ind] = find_ind(obj)
+function [ind] = find_ind(obj,A)
 % Place holder for more complex function in the futre
 lim = obj.Boundary; 
-ind = A.Xpart(:)>lim(1) & A.Xpart(:)>lim(2) ;
+limx = [obj.Boundary(1),obj.Boundary(3)]
+limy = [obj.Boundary(3),obj.Boundary(4)]
+ind = A.Xpart(:)>limx(1) & A.Xpart(:)>limx(2) & A.Ypart(:)>lim(1) & A.Xpart(:)>lim(2);
 
 
 

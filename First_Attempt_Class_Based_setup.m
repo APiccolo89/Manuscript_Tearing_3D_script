@@ -31,8 +31,8 @@ continental_stratigraphy.phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt
 continental_stratigraphy.Tk     = [0.0,-15.0,-30.0,-100.0];
 oceanic_stratigraphy.phases = [phases.Ph_OC(2), phases.Ph_OLt(1)];
 oceanic_stratigraphy.Tk     = [0.0, -80.0];
-continental_stratigraphy.phases = [phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
-continental_stratigraphy.Tk     = [0.0,-15.0,-30.0,-100.0];
+continental_stratigraphy2.phases = [phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
+continental_stratigraphy2.Tk     = [0.0,-15.0,-30.0,-100.0];
 %% Thermal Type designed for the setup
 Thermal_TypeTrench = Thermal_Type;
 Thermal_TypeTrench.Age = convert_Age_velocity(80,1); 
@@ -50,7 +50,6 @@ Thermal_information.TS = 20;
 Thermal_information=Thermal_information.kappa_calculation; 
 % List Trech
 Continent1     = Terrane;
-Oceanic_Plate  = Terrane;
 Continent2     = Terrane;
 passive_margin1 = Passive_Margin; 
 % Special Boundary
@@ -65,15 +64,25 @@ Continent2.Boundary = [0,min(Gr.y_g),1000,max(Gr.y_g)];
 Continent2.Stratigraphy=continental_stratigraphy2; 
 Continent2.Thermal_type = Thermal_TypeContinent; 
 Continent2.Thermal_information = Thermal_information; 
-%
+% Fill the properties of the subduction zone
+T.Boundary = 0.0;
+T.Stratigraphy_Continental = continental_stratigraphy;
+T.Stratigraphy_Oceanic = oceanic_stratigraphy;
+T.theta=30;
+T.theta_c = 20;
+T.D0   = 80; 
+T.L0   = 300; 
+T.Decoupling_depth = -100; 
+T.Thermal_type = Thermal_TypeTrench;
+T.Thermal_information = Thermal_information; 
+T.R = [120,T.R-T.D0]; 
+T.Type_Subduction = 'Mode_1'; 
+T.tk_WZ = 0.0; 
 
-
-bla = 0; 
 
 
 % Organize
 %% Buffer Terranes: Terranes at the left most area of the numerical domains:
-
 
 %% Continental Terranes 1
 %Terranes.Continent1
@@ -101,17 +110,10 @@ bla = 0;
 % Oceanic_Plate.Trench        = 'Subduction';
 % Oceanic_Plate.Trench_properties = T;
 
-Terranes = struct('Buffer',Buffer,'Continent1',Continent1,'Continent2',Continent2,'Oceanic_Plate',Oceanic_Plate);
+Terranes = struct('Continent1',Continent1,'Continent2',Continent2,'Trench',Trench,'Passive_Margin',passive_margin1);
 %% Generic information numerical domain:
-Gen.T_P = 1350;
-Gen.T_S = 20;
-Gen.Ph_Air   = phases.Ph_Ar(1);
-Gen.Ph_UM    = phases.Ph_UM(1);
-Gen.WZ       = phases.Ph_WZ(1);
-Gen.PrismPh = phases.Ph_cont_pr(1);
-Gen.AvTS    = 800;
-TA = cputime;
-Create_Setup(Terranes,phases,Gen,A,npart,Gr,Parallel_partition);
+
+Create_Setup(Terranes,phases,Thermal_information,A,npart,Gr,Parallel_partition);
 TB = cputime;
 disp('====================================================================')
 disp(['The Setup is finished and took ', num2str(round((TB-TA)./60)), ' min'])

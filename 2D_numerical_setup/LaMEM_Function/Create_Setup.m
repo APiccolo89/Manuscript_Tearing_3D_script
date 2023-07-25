@@ -1,4 +1,4 @@
-function Create_Setup(Terranes,ph,Gen,A,npart,Gr,Parallel_partition)
+function Create_Setup(Terranes,ph,TI,A,npart,Gr,Parallel_partition)
 
 RandomNoise             =   logical(0);
 Is64BIT                 =   logical(0);
@@ -6,8 +6,8 @@ Phase = 0.0.*((A.Xpart));
 Temp  = 0.0.*((A.Xpart));
 
 % Set Mantle Phase
-Phase(:,:,:)  = Gen.Ph_Air;
-Temp(:,:,:)   = Gen.T_P;
+Phase(:,:,:)  = nan;
+Temp(:,:,:)   = TI.TP;
 
 % Set up continental terranes:
 % Temperature is computed only for the layer considered, while the rest
@@ -17,6 +17,8 @@ Temp(:,:,:)   = Gen.T_P;
 % To Do => Create ad hoc function
 
 %=====================================================================%
+[Phase,Temp]=Terranes.Continent1.fill_terranes(A,Phase,Temp);
+
 terranes_list = fieldnames(Terranes);
 for it =1:length(terranes_list)
     t = Terranes.(terranes_list{it});
