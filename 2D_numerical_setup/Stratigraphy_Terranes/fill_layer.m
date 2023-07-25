@@ -1,5 +1,6 @@
 function [Phase,Temp] = fill_layer(obj,A,Phase,Temp)
 % Select the layer and portion of the model:
+time_A = cputime; 
 ind = find_ind(obj,A);
 if ~isempty(ind(ind==1))
 % Compute the thermal profile
@@ -7,6 +8,8 @@ if ~isempty(ind(ind==1))
 % Fill the phase stratigraphy:
     [Phase] = fill_stratigraphy(obj,A,Phase,ind);
 end
+time_B = cputime; 
+disp(['Terrane took ', num2str((time_B-time_A)/60,3),' minutes']);
 end
 
 function [ind] = find_ind(obj,A)

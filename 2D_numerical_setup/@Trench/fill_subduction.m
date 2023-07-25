@@ -1,12 +1,7 @@
 function [Phase,Temp] = fill_subduction(obj,A,Phase,Temp,Gen)
-[Layout,~,cont] = find_slab_(A,'Slab');
-% Set the temperature
-if strcmp(Terranes.Trench_properties.Temperature,'McKenzie')
-    [Temp] = compute_temperature_profile(Layout,Temp,-1,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx
-    [Temp] = compute_temperature_profile_McKenzie(Layout,Temp,-1,Gen,Terranes,ind_x,A);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
-else
-    [Temp] = compute_temperature_profile(Layout,Temp,-1,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
-end
+obj = find_slab_(A,'Slab');
+[Temp] = compute_temperature_profile(obj,)
+
 % Correct Temperaure and Phase
 id1 = min(A.Xpart(~isnan(Layout)));
 id2 = max(A.Xpart(~isnan(Layout)));

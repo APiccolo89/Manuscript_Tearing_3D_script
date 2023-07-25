@@ -9,13 +9,17 @@ Temp  = 0.0.*((A.Xpart));
 Phase(:,:,:)  = nan;
 Temp(:,:,:)   = TI.TP;
 
-% Function in each classes of terranes (i.e., trench, passive margin, and
-% so forth) has the same name, but different internal structure. It is
-% easier to call automatically in the future.
+% Set up continental terranes:
+% Temperature is computed only for the layer considered, while the rest
+% is assumed to be not affected by the half space cooling - just to
+% simplify a bit
+% To Do => Convert this shit in Python
+% To Do => Create ad hoc function
+
 %=====================================================================%
 [Phase,Temp]=Terranes.Continent1.fill_terranes(A,Phase,Temp);
 [Phase,Temp]=Terranes.Continent2.fill_terranes(A,Phase,Temp);
-[Phase,Temp]=Terranes.T.fill_terranes(A,Phase,Temp); 
+[Phase,Temp]=Terranes.Trench.find_slab_(A)
 
 
 terranes_list = fieldnames(Terranes);

@@ -9,10 +9,10 @@ else
 end
 end
 function [obj] = find_slab_mode_1(obj,A)
-% Convert the angle in radians 
+
 ang_  = (obj.theta)*pi/180;
-ang_2 = (obj.theta+90)*pi/180; %needed for the linear portion of the slab
-r      = obj.R; % radius upper and lower surface
+ang_2 = (obj.theta+90)*pi/180;
+R      = obj.R;
 sl    = 1    ;
 arc_angleS = [];
 ind = (A.Xpart(:)>=obj.C(1) & A.Xpart(:)<=obj.C(1)+2.*obj.L0) & A.Zpart(:)>=-1.5*obj.L0 & A.Zpart(:)<=1.0;
@@ -64,11 +64,12 @@ Py(1) = p1(1);
 Py(2) = p2(1);
 Py(3) = p4(1);
 Py(4) = p3(1);
+%Pz = [p1(2,:) p2(2,:) p4(2,:) p3(2,:)];
 Pz(1) = p1(2);
 Pz(2) = p2(2);
 Pz(3) = p4(2);
 Pz(4) = p3(2);
-% Inpolygon 
+%
 [in,~] = inpolygon(x,z,Py,Pz);
 P = [x(in), z(in)];
 Layout(in) = -(find_distance_linear(P,p2,p4))';
@@ -77,7 +78,8 @@ disp(['Time Loop = ', num2str(B_time-A_time)]);
 obj.Layout = reshape(Layout,size(A.Xpart));
 obj.continent = reshape(continent,size(A.Xpart));
 end
-% Ribe mode must be rethinked and properly done. This is not yet good
+
+
 function [obj] = find_slab_ribe(obj,A)
 x_p    = A.Xpart(:); % Vector of X
 z_p    = A.Zpart(:); % Vector of Y

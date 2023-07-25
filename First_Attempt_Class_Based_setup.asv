@@ -79,7 +79,7 @@ T.R = [120,T.R-T.D0];
 T.Type_Subduction = 'Mode_1'; 
 T.tk_WZ = 0.0; 
 
-Terranes = struct('Continent1',Continent1,'Continent2',Continent2,'T',T,'Passive_Margin',passive_margin1);
+Terranes = struct('Continent1',Continent1,'Continent2',Continent2,'Trench',Trench,'Passive_Margin',passive_margin1);
 %% Generic information numerical domain:
 
 Create_Setup(Terranes,phases,Thermal_information,A,npart,Gr,Parallel_partition);
