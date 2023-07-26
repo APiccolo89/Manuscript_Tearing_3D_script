@@ -1,6 +1,7 @@
 classdef Trench
 
     properties
+        name = 'Subduction zone'
         Type_Subduction % Subduction type {Mode_1}{Ribe}{To_Do: Linear _World_Builder_example => CITE IT}
         Boundary = [0,0]% x-y coordinate trench 
         R       % Curvature radius
@@ -25,7 +26,11 @@ classdef Trench
         % Phase and Temp array and modify accordingly
 
         function [Phase,Temp] = fill_terranes(obj,A,Phase,Temp)
+            disp([obj.name, 'object is filling....'])
+            A_time = cputime; 
             [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
+            B_time = cputime; 
+            disp(['and took ', num2str(B_time-A_time,3), 'seconds']);
         end
         [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
     end

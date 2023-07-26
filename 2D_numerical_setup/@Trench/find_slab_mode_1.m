@@ -74,7 +74,7 @@ Pz(4) = p3(2);
 P = [x(in), z(in)];
 % Find the distance from the top surface 
 d(in) = -(find_distance_linear(P,p2,p4))';
-[Length,ind_decoupling] = find_length_slab(obj,x,z,C,r_m,d,Length);
+[Length,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r_m,d,Length,Phase,Temp);
 %Update the object
 obj.l_slab = Length;
 obj.d_slab = reshape(d,size(A.Xpart));
@@ -119,6 +119,6 @@ zprojection(slab==1 &isnan(l)) = (m.*x(slab==1 & isnan(l)) + m^2.*z(slab==1 & is
 l(slab==1 & isnan(l)) = r*obj.theta*pi/180+sqrt((xprojection(slab==1 & isnan(l))-PA(1)).^2+(zprojection(slab==1 & isnan(l))-PA(2)).^2);
 ind_decoupling = find(zprojection>=obj.Decoupling_depth,1);  
 % Corret the damn Phase and Temperature
-Phase(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2)& x>C(1)) = obj.Thermal_information.Ph_Ast;
-Temp(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2) & x>C(1)) = obj.Thermal_information.TP;
+Phase(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2)& x>C(1) & ~isnan(Phase(:))) = obj.Thermal_information.Ph_Ast;
+Temp(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2) & x>C(1) &~isnan(Phase(:))) = obj.Thermal_information.TP;
 end
