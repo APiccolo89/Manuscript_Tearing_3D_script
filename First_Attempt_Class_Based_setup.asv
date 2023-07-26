@@ -33,6 +33,10 @@ oceanic_stratigraphy.phases = [phases.Ph_OLt(1)];
 oceanic_stratigraphy.Tk     = [0.0, -80.0];
 continental_stratigraphy2.phases = [phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
 continental_stratigraphy2.Tk     = [0.0,-15.0,-30.0,-100.0];
+continental_stratigraphy_s.phases =[phases.Ph_pas_m(1),phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
+continental_stratigraphy_s.Tk     = [0.0,-12.0,-15.0,-30.0,-100.0];
+
+
 %% Thermal Type designed for the setup
 Thermal_TypeTrench = Thermal_Type;
 Thermal_TypeTrench.Age = convert_Age_velocity(80,1); 
@@ -49,7 +53,7 @@ Thermal_information.TP = 1350;
 Thermal_information.TS = 20; 
 Thermal_information=Thermal_information.kappa_calculation; 
 Thermal_information.Ph_Air = 0; 
-Thermal_inf
+Thermal_information.Ph_Ast = 5; 
 % List Trech
 Continent1     = Terrane;
 Continent2     = Terrane;
@@ -68,10 +72,9 @@ Continent2.Thermal_type = Thermal_TypeContinent;
 Continent2.Thermal_information = Thermal_information; 
 % Fill the properties of the subduction zone
 T.Boundary = 0.0;
-T.Stratigraphy_Continental = continental_stratigraphy;
+T.Stratigraphy_Continental = continental_stratigraphy_s;
 T.Stratigraphy_Oceanic = oceanic_stratigraphy;
 T.theta=30;
-T.theta_c = 20;
 T.D0   = 80; 
 T.L0   = 300; 
 T.Decoupling_depth = -100; 
@@ -80,7 +83,8 @@ T.Thermal_information = Thermal_information;
 T.R = [120,T.R-T.D0]; 
 T.Type_Subduction = 'Mode_1'; 
 T.tk_WZ = 0.0; 
-
+T.Subducted_crust_L = [0.0,0.0,0.0,-80.0,50.0,0.0];
+%                      x1   z1
 Terranes = struct('Continent1',Continent1,'Continent2',Continent2,'T',T,'Passive_Margin',passive_margin1);
 %% Generic information numerical domain:
 

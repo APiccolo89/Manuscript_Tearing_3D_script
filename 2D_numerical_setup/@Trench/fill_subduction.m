@@ -6,6 +6,7 @@ B_time = cputime;
 disp(['   Temperature field of the slab took ', num2str(B_time-A_time,3), ' seconds'])
 A_time = cputime; 
 [Phase] = fill_stratigraphy(obj,A,Phase,[]);
+[Phase] = generate_accretion_prism(obj,A,Phase);
 B_time = cputime; 
 disp(['   Phase field of the slab took ', num2str(B_time-A_time,3), ' seconds'])
 % Fill up the weak zone of the slab

@@ -4,19 +4,27 @@ classdef Trench
         name = 'Subduction zone'
         Type_Subduction % Subduction type {Mode_1}{Ribe}{To_Do: Linear _World_Builder_example => CITE IT}
         Boundary = [0,0]% x-y coordinate trench 
+        % Thermal information +/- Generic information needed
+        Thermal_type        % typology thermal structure
+        Thermal_information % Data required thermal structure
+        % Information concerning the subduction
         R       % Curvature radius
         C       % Center of radius curvature
         theta   % Bending angle
-        theta_c % angle continental subduction
         tk_WZ   % thickness of the
         L0      % Lenght of the slab
         D0      % Thickness of the slab
         Decoupling_depth % Decoupling depth
-        Depth_continent = -50; 
+        % Stratigraphic information
         Stratigraphy_Continental % 
         Stratigraphy_Oceanic     %
-        Thermal_type        % typology thermal structure
-        Thermal_information % Data required thermal structure
+        % Subducted crust 
+        Subducted_crust_L        % Polygon crust subduction
+        % Orogenic prism information 
+        position_end_prism= 100; 
+        phase_prism  
+        % Field that are used internally to the class to do the proper
+        % computation
         d_slab % store the distance from the top surface
         l_slab % store the length of the slab {useful for McKenzie temperature profile}
         continent %highlight where is the continental crust 
@@ -30,7 +38,10 @@ classdef Trench
             A_time = cputime; 
             [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
             B_time = cputime; 
+            % Function fill the orogenic prism. 
+
             disp(['and took ', num2str(B_time-A_time,3), 'seconds']);
+
         end
         [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
     end
@@ -41,6 +52,7 @@ classdef Trench
       % Slab mode 1
       [obj,Phase,Temp]= find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp)
       [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp) % I need the data of the object for this particular function 
+      [Phase] = generate_accretion_prism(obj,A,Phase)
    end
 end
 

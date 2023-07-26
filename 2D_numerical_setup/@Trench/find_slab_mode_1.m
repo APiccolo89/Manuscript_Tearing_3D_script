@@ -24,9 +24,7 @@ d(ind==1) = sqrt((x(ind==1)-C(1)).^2+(z(ind==1)- C(2)).^2);
 % circumference and the current marker
 arc_angleS(ind==1) = acos((z(ind==1)-C(2))./d(ind==1)).*180/pi;
 % find the portion that are considered continent
-angle_c(ind==1) = d(ind==1)>=r(2)-obj.Depth_continent+((obj.Depth_continent-0.0)./(obj.theta_c)).*arc_angleS(ind==1) & d(ind==1)<=(r(2)); %& arc_angleS(ind==1)<=theta_c ;
 % save the information in continent 
-continent(angle_c==1)=1.0;
 % Exclude the points that feature a distance from the center that are less
 % or higher than the actual internal and external radius of circumference
 d(d<r(1) | d>r(2)) = NaN;
@@ -76,6 +74,19 @@ P = [x(in), z(in)];
 d(in) = -(find_distance_linear(P,p2,p4))';
 [Length,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r_m,d,Length,Phase,Temp);
 %Update the object
+% Find the continent portion {additional change to the structure}
+% I have the length and the depth, which mean that I have an ortogonal
+% system of coordinate that I can use to generate my stuff. 
+Points = obj.Subducted_crust_L; 
+Pl(1)     = Points(1);
+Pl(2)     = Points(3);
+Pl(3)     = Points(5); 
+Pd(1)     = Points(2);
+Pd(2)     = Points(4);
+Pd(3)     = Points(6); 
+[in,~] = inpolygon(Length,d,Pl,Pd);
+continent(in==1)=1.0;
+
 obj.l_slab = Length;
 obj.d_slab = reshape(d,size(A.Xpart));
 obj.continent = reshape(continent,size(A.Xpart));
