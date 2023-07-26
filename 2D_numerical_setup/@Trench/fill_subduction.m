@@ -1,28 +1,22 @@
-function [Phase,Temp] = fill_subduction(obj,A,Phase,Temp,Gen)
-obj = obj.find_slab_(A,'Slab');
+function [Phase,Temp] = fill_subduction(obj,A,Phase,Temp)
+[obj,Phase,Temp] = obj.find_slab_(A,'Slab',Phase,Temp); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
+A_time = cputime;
 [Temp] = compute_temperature_profile(obj,A,[],Temp);
-
-% Correct Temperaure and Phase
-id1 = min(A.Xpart(~isnan(obj.d_slab)));
-id2 = max(A.Xpart(~isnan(obj.d_slab)));
-id3 = min(A.Zpart(~isnan(obj.d_slab)));
-ind_x1 = find(squeeze(A.Xpart(1,:,1))>=id1,1);
-ind_x2 = find(squeeze(A.Xpart(1,:,1))>=id2,1);
-ind_z1 = find(squeeze(A.Zpart(1,1,:))>=id3,1);
-for i= ind_x1:ind_x2
-    ind_L = find((Layout(1,i,:)==min(Layout(1,i,:))),1);
-    Phase(:,i,ind_z1:ind_L) = Gen.Ph_Air;
-    Temp(:,i,ind_z1:ind_L) = Gen.T_P;
-end
-[Phase] = fill_stratigraphy(Layout,Phase,Terranes,ind_x,cont);
+B_time = cputime; 
+disp(['   Temperature field of the slab took ', num2str(B_time-A_time,3), ' seconds'])
+A_time = cputime; 
+[Phase] = fill_stratigraphy(obj,A,Phase,[]);
+B_time = cputime; 
+disp(['   Phase field of the slab took ', num2str(B_time-A_time,3), ' seconds'])
 % Fill up the weak zone of the slab
-[Layout] = find_slab_(A,'Weak');
-if strcmp( Terranes.Trench_properties,'Mode_1')
-    ind =(Layout<=0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh);
-    Phase(ind) = Gen.WZ;
-else
-    ind =(Layout>0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh & A.Zpart<0.0);
-    Phase(ind) = Gen.WZ;
-end
+% [Layout] = find_slab_(A,'Weak');
+% if strcmp( Terranes.Trench_properties,'Mode_1')
+%     ind =(Layout<=0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh);
+%     Phase(ind) = Gen.WZ;
+% else
+%     ind =(Layout>0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh & A.Zpart<0.0);
+%     Phase(ind) = Gen.WZ;
+% end
+bla = 0; 
 
 end

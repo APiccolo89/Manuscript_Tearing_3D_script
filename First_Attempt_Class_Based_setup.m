@@ -29,7 +29,7 @@ phases.Ph_pas_m = [13,2680];
 % Stratigraphies type
 continental_stratigraphy.phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
 continental_stratigraphy.Tk     = [0.0,-15.0,-30.0,-100.0];
-oceanic_stratigraphy.phases = [phases.Ph_OC(2), phases.Ph_OLt(1)];
+oceanic_stratigraphy.phases = [phases.Ph_OLt(1)];
 oceanic_stratigraphy.Tk     = [0.0, -80.0];
 continental_stratigraphy2.phases = [phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
 continental_stratigraphy2.Tk     = [0.0,-15.0,-30.0,-100.0];
@@ -48,6 +48,8 @@ Thermal_information = Thermal_Information;
 Thermal_information.TP = 1350; 
 Thermal_information.TS = 20; 
 Thermal_information=Thermal_information.kappa_calculation; 
+Thermal_information.Ph_Air = 0; 
+Thermal_information.Ph_Ast = 5; 
 % List Trech
 Continent1     = Terrane;
 Continent2     = Terrane;

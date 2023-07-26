@@ -1,4 +1,4 @@
-function [obj] = find_slab_mode_1(obj,A,Weak_Slab)
+function [obj,Phase,Temp] = find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp)
 % Convert the angle in radians
 x     = A.Xpart(:); % x part coordinate
 z     = A.Zpart(:); % z part coordinate
@@ -6,7 +6,7 @@ y     = A.Ypart(:); % y part coordinate
 ang_  = (obj.theta)*pi/180; % angle of the slab
 ang_2 = (obj.theta+90)*pi/180; %needed for the linear portion of the slab
 r      = [obj.R-obj.D0,obj.R]; % radius upper and lower surface
-r_m    = sum(obj.R)./2; % average radius, to compute the linear integral
+r_m    = sum(r)./2; % average radius, to compute the linear integral
 C      = [obj.Boundary,obj.Boundary-obj.R]; % center of the curvature
 sl    = 1    ; 
 % select the point that are worth to check if they belong to the slab
@@ -75,14 +75,14 @@ P = [x(in), z(in)];
 % Find the distance from the top surface 
 d(in) = -(find_distance_linear(P,p2,p4))';
 [Length,ind_decoupling] = find_length_slab(obj,x,z,C,r_m,d,Length);
-B_time = cputime;
-disp(['Time Loop = ', num2str(B_time-A_time)]);
 %Update the object
 obj.l_slab = Length;
 obj.d_slab = reshape(d,size(A.Xpart));
 obj.continent = reshape(continent,size(A.Xpart));
 obj.Decoupling_depth(1) = obj.Decoupling_depth;
 obj.Decoupling_depth(2) = ind_decoupling; 
+B_time = cputime;
+disp(['Finding the slab took = ', num2str((B_time-A_time),3), ' sec']);
 end
 
 
@@ -95,7 +95,7 @@ d  = A./sqrt(B);
 
 end
 
-function [l,ind_decoupling] = find_length_slab(obj,x,z,C,r,d,l)
+function [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp)
 slab = ~isnan(d)==1; 
 % Compute the two point along the midplane of the slab
 % 1) After the curved part of the slab
@@ -118,4 +118,7 @@ zprojection(slab==1 &isnan(l)) = (m.*x(slab==1 & isnan(l)) + m^2.*z(slab==1 & is
 % Compute the length of the slab along the midsurface
 l(slab==1 & isnan(l)) = r*obj.theta*pi/180+sqrt((xprojection(slab==1 & isnan(l))-PA(1)).^2+(zprojection(slab==1 & isnan(l))-PA(2)).^2);
 ind_decoupling = find(zprojection>=obj.Decoupling_depth,1);  
+% Corret the damn Phase and Temperature
+Phase(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2)& x>C(1)) = obj.Thermal_information.Ph_Ast;
+Temp(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2) & x>C(1)) = obj.Thermal_information.TP;
 end

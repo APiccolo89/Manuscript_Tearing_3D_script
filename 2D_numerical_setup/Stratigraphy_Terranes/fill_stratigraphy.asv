@@ -20,10 +20,12 @@ function [Phase] = fill_stratigraphy(obj,A,Phase,ind)
 if isa(obj,'Trench')
     ph = obj.Stratigraphy_Oceanic.phases;  % phases of the terranes
     t_Tk = obj.Stratigraphy_Oceanic.Tk;    % Thickness stratigraphy
-    D    = obj.Layout 
+    D    = obj.d_slab; 
+    ind  = (~isnan(D));
 else
     ph = obj.Stratigraphy.phases;    % phase vector: i.e., the phases that are required to fill up     
     t_Tk = obj.Stratigraphy.Tk;      % depth of interface 
+    D    = A.Zpart; 
 end
 % Extract relevant information 
 T_Tk = [0.0, t_Tk(end)]; % Thickness of the terrain
@@ -38,13 +40,13 @@ for i=1:length(ph)
         B = t_Tk(i+1);
     end
     if ~isempty(ind)
-        ind_ph = Z < T & Z>=B & indx>0 & ind==1;
+        ind_ph = D(:) < T & D(:)>=B & ind==1;
     else
-        ind_ph = Z < T & Z>=B & ind == 1 ;
+        ind_ph = D(:) < T & D(:)>=B & ind == 1 ;
     end
     Phase(ind_ph) = ph(i);
     T=B;
-    ind = [];
+    ind_ph = [];
 end
 if isa(obj,'Trench')
     TT = obj.Stratigraphy.Continental_stratigraphy;
@@ -56,11 +58,11 @@ if isa(obj,'Trench')
             B = TT.Tk(i+1);
         end
 
-        ind = Z < T & Z>=B & cont>0;
+        ind_c = D(:) < T & D(:)>=B & cont>0;
 
-        Phase(ind) = TT.phases(i);
+        Phase(ind_c) = TT.phases(i);
         T=B;
-        ind = [];
+        ind_c = [];
     end
 end
 

@@ -1,7 +1,7 @@
-function [obj] = find_slab_(obj,A,Weak_Slab)
+function [obj,Phase,Temp] = find_slab_(obj,A,Weak_Slab,Phase,Temp)
 
 if strcmp(obj.Type_Subduction,'Mode_1')
-    [obj] = obj.find_slab_mode_1(A,Weak_Slab);
+    [obj,Phase,Temp] = obj.find_slab_mode_1(A,Weak_Slab,Phase,Temp);
 elseif strcmp(obj.Type_Subduction,'Ribe')
     [obj] = obj.find_slab_ribe(A,Weak_Slab);
 else

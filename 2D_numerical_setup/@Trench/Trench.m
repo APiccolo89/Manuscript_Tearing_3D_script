@@ -32,10 +32,10 @@ classdef Trench
     methods (Access = private)
       % Function that modify the object only when is needed and without
       % consuming memory {everything is locally used}
-      obj = find_slab_(obj,A,Weak_Slab)
+      [obj,Phase,Temp] = find_slab_(obj,A,Weak_Slab,Phase,Temp)
       % Slab mode 1
-      obj = find_slab_mode_1(obj,A,Weak_Slab)
-      [l] = find_length_slab(obj,x,z,C,r,d,l) % I need the data of the object for this particular function 
+      [obj,Phase,Temp]= find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp)
+      [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp) % I need the data of the object for this particular function 
    end
 end
 

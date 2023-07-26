@@ -9,7 +9,7 @@ if ~isempty(ind(ind==1))
     [Phase] = fill_stratigraphy(obj,A,Phase,ind);
 end
 time_B = cputime; 
-disp(['Terrane took ', num2str((time_B-time_A)/60,3),' minutes']);
+disp(['Terrane took ', num2str((time_B-time_A),3),' seconds']);
 end
 
 function [ind] = find_ind(obj,A)

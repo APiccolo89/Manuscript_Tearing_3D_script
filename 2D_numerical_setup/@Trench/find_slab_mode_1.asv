@@ -1,4 +1,4 @@
-function [obj] = find_slab_mode_1(obj,A,Weak_Slab)
+function [obj,Phase,Temp] = find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp)
 % Convert the angle in radians
 x     = A.Xpart(:); % x part coordinate
 z     = A.Zpart(:); % z part coordinate
@@ -30,6 +30,9 @@ continent(angle_c==1)=1.0;
 % Exclude the points that feature a distance from the center that are less
 % or higher than the actual internal and external radius of circumference
 d(d<r(1) | d>r(2)) = NaN;
+% Correct the Phase and Temp
+
+
 % Exclude the points that feature an angular distance w.r.t. C that is
 % higher or lower than the actual angle {TO DO detecting the bending}
 d(arc_angleS>obj.theta | arc_angleS<0)=NaN;
@@ -74,13 +77,15 @@ Pz(4) = p3(2);
 P = [x(in), z(in)];
 % Find the distance from the top surface 
 d(in) = -(find_distance_linear(P,p2,p4))';
-[Length] = find_length_slab(obj,x,z,C,r_m,d,Length);
-B_time = cputime;
-disp(['Time Loop = ', num2str(B_time-A_time)]);
+[Length,ind_decoupling] = find_length_slab(obj,x,z,C,r_m,d,Length);
 %Update the object
-obj.Length = Length;
-obj.Layout = reshape(d,size(A.Xpart));
+obj.l_slab = Length;
+obj.d_slab = reshape(d,size(A.Xpart));
 obj.continent = reshape(continent,size(A.Xpart));
+obj.Decoupling_depth(1) = obj.Decoupling_depth;
+obj.Decoupling_depth(2) = ind_decoupling; 
+B_time = cputime;
+disp(['Finding the slab took = ', num2str((B_time-A_time),3), ' sec']);
 end
 
 
@@ -93,7 +98,7 @@ d  = A./sqrt(B);
 
 end
 
-function [l] = find_length_slab(obj,x,z,C,r,d,l)
+function [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp)
 slab = ~isnan(d)==1; 
 % Compute the two point along the midplane of the slab
 % 1) After the curved part of the slab
@@ -107,12 +112,17 @@ m=(PB(2)-PA(2))./(PB(1)-PA(1));
 %m = 1./m;
 % project all the x points into the line (from:
 % https://math.stackexchange.com/questions/62633/orthogonal-projection-of-a-point-onto-a-line)
-% 
+% Project all the points that belong to the slab into the mid surface
 xprojection = d.*0.0; 
 zprojection = d.*0.0;
 b = PA(2)-PA(1).*m;
 xprojection(slab==1 & isnan(l)) = (x(slab==1 & isnan(l)) + m.*z(slab==1 & isnan(l))-m.*b)./(1+m.^2); 
 zprojection(slab==1 &isnan(l)) = (m.*x(slab==1 & isnan(l)) + m^2.*z(slab==1 & isnan(l))+b)./(1+m.^2);
+% Compute the length of the slab along the midsurface
 l(slab==1 & isnan(l)) = r*obj.theta*pi/180+sqrt((xprojection(slab==1 & isnan(l))-PA(1)).^2+(zprojection(slab==1 & isnan(l))-PA(2)).^2);
+ind_decoupling = find(zprojection>=obj.Decoupling_depth,1);  
+% Corret the damn Phase and Temperature
+Phase(z<)
+
 
 end

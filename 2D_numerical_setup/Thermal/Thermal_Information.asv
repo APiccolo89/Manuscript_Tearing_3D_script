@@ -7,7 +7,7 @@ classdef Thermal_Information
         rho  =3000;   % average density
         Hr   = 0   % radiogenic heat production 
         kappa  
-        Ph_Ast     
+        Ph_Ast 
         Ph_Air
     end
     
