@@ -1,5 +1,5 @@
 function [Temp]= compute_temperature_profile(obj,A,ind,Temp)
-%=
+%=========================================================================
 % This is a public function that is accessed by several other classes. 
 % obj: -> Terrane/Boundary that needs to be filled with temperature 
 % D  : -> Depth {Z coordinates or distance from the top surface in case of subduction}
@@ -7,13 +7,15 @@ function [Temp]= compute_temperature_profile(obj,A,ind,Temp)
 % ind : where to fill the temperature field. 
 % Temp: Temperature array
 %==========================================================================
-
+% OUTPUT: -> Temp updated.
+%==========================================================================
 
 Type = obj.Thermal_type.Type; % type of continental geotherm
 if isa((obj),'Terrane')
     D = A.Zpart;  % For Layered structure Z coordinate make its job
-elseif isa(class(obj),'trench')
-    D = obj.Layout; % Layout is the member of the trench that collects all the distance from the top surface of the slab
+elseif isa((obj),'Trench')
+    ind = ~isnan(obj.d_slab); 
+    D = obj.d_slab; % Layout is the member of the trench that collects all the distance from the top surface of the slab
 end
 
 if strcmp(Type,'ContinentalGeotherm') % Is continental
@@ -27,7 +29,7 @@ elseif strcmp(Type,'McKenzie')
     % field is to introduce a weighted average as a function of the
     % decoupling depth. 
     [Temp] = HalfSpaceCooling(obj,D,ind,Temp);
-    [Temp] = compute_temperature_profile_McKenzie(obj,D,ind,Temp);
+    [Temp] = compute_temperature_profile_McKenzie(obj,ind,Temp);
 elseif strcmp(Type,'Average_T')
     [Temp] = Average_T(obj,D,ind,Temp);
 else

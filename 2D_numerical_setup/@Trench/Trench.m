@@ -16,8 +16,8 @@ classdef Trench
         Stratigraphy_Oceanic     %
         Thermal_type        % typology thermal structure
         Thermal_information % Data required thermal structure
-        Layout % store the distance from the top surface
-        Lenght % store the length of the slab {useful for McKenzie temperature profile}
+        d_slab % store the distance from the top surface
+        l_slab % store the length of the slab {useful for McKenzie temperature profile}
         continent %highlight where is the continental crust 
     end
     methods (Access = public)
@@ -33,7 +33,9 @@ classdef Trench
       % Function that modify the object only when is needed and without
       % consuming memory {everything is locally used}
       obj = find_slab_(obj,A,Weak_Slab)
+      % Slab mode 1
       obj = find_slab_mode_1(obj,A,Weak_Slab)
+      [l] = find_length_slab(obj,x,z,C,r,d,l) % I need the data of the object for this particular function 
    end
 end
 

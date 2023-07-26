@@ -13,9 +13,9 @@ function [Temp]= compute_temperature_profile(obj,A,ind,Temp)
 Type = obj.Thermal_type.Type; % type of continental geotherm
 if isa((obj),'Terrane')
     D = A.Zpart;  % For Layered structure Z coordinate make its job
-elseif isa(class(obj),'trench')
-    ind = ~isnan(obj.Layout); 
-    D = obj.Layout; % Layout is the member of the trench that collects all the distance from the top surface of the slab
+elseif isa((obj),'Trench')
+    ind = ~isnan(obj.d_slab); 
+    D = obj.d_slab; % Layout is the member of the trench that collects all the distance from the top surface of the slab
 end
 
 if strcmp(Type,'ContinentalGeotherm') % Is continental
@@ -29,7 +29,7 @@ elseif strcmp(Type,'McKenzie')
     % field is to introduce a weighted average as a function of the
     % decoupling depth. 
     [Temp] = HalfSpaceCooling(obj,D,ind,Temp);
-    [Temp] = compute_temperature_profile_McKenzie(obj,D,ind,Temp);
+    [Temp] = compute_temperature_profile_McKenzie(obj,Temp,A);
 elseif strcmp(Type,'Average_T')
     [Temp] = Average_T(obj,D,ind,Temp);
 else
