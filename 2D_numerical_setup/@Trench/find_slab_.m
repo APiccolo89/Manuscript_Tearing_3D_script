@@ -1,82 +1,17 @@
-function [obj] = find_slab_(obj,A)
+function [obj] = find_slab_(obj,A,Weak_Slab)
 
 if strcmp(obj.Type_Subduction,'Mode_1')
-    [obj] = find_slab_mode_1(obj,A);
+    [obj] = obj.find_slab_mode_1(A,Weak_Slab);
 elseif strcmp(obj.Type_Subduction,'Ribe')
-    [obj] = find_slab_ribe(obj,A);
+    [obj] = obj.find_slab_ribe(A,Weak_Slab);
 else
     error('Oh pityful soul, why did you not read the not existant user guide. The two slab types are {Mode_1}, and {Ribe}')
 end
 end
-function [obj] = find_slab_mode_1(obj,A)
-% Convert the angle in radians 
-ang_  = (obj.theta)*pi/180;
-ang_2 = (obj.theta+90)*pi/180; %needed for the linear portion of the slab
-r      = obj.R; % radius upper and lower surface
-sl    = 1    ;
-arc_angleS = [];
-ind = (A.Xpart(:)>=obj.C(1) & A.Xpart(:)<=obj.C(1)+2.*obj.L0) & A.Zpart(:)>=-1.5*obj.L0 & A.Zpart(:)<=1.0;
-A_time = cputime;
-x     = A.Xpart(:);
-z     = A.Zpart(:);
-y     = A.Ypart(:);
-% Vector version
-Layout = x*nan;
-d      = Layout;
-arc_angleS = x.*NaN;
-continent = arc_angleS;
-angle_c = continent;
-u = zeros(2,length(x));
-v = u;
-u(1,ind==1) = x(ind==1)';
-u(2,ind==1) = z(ind==1)';
-d(ind==1) = sqrt((u(1,ind==1)-obj.C(1)).^2+(u(2,ind==1)- obj.C(2)).^2);
-arc_angleS(ind==1) = acos((z(ind==1)-obj.C(2))./d(ind==1)).*180/pi;
-c_slab = d(ind==1)>=r(1) & d(ind==1)<=(r(2)) & arc_angleS(ind==1)<=theta & arc_angleS(ind==1)>=0;
-angle_c(ind==1) = d(ind==1)>=r(2)-obj.Cont+((obj.Cont-0.0)./(theta_c)).*arc_angleS(ind==1) & d(ind==1)<=(r(2)); %& arc_angleS(ind==1)<=theta_c ;
-continent(angle_c==1)=1.0;
-Layout= d;
-Layout(d<r(1) | d>r(2)) = NaN;
-Layout(arc_angleS>theta | arc_angleS<0)=NaN;
-Layout = Layout-r(2);
-if strcmp(type,'Weak')
-    r(1) = r(2);
-    r(2) = r(2)+obj.tk_WZ;
-    if obj.theta == 90
-        sl = 0;
-    end
-    %=============
 
-end
 
-obj.C(1)     =obj.C(1);
-obj.C(2)     = obj.obj.C(2);
-p1(1)    = obj.C(1)+r(1)*sin(ang_);
-p1(2)    = obj.C(2)+r(1)*cos(ang_);
-p2(1) = obj.C(1)+r(2)*sin(ang_);
-p2(2) = obj.C(2)+r(2)*cos(ang_);
-p3(1)    = p1(1)+obj.L0*sin(ang_2);
-p3(2)    = p1(2)+obj.L0*cos(ang_2);
-p4(1)    = p2(1)+obj.L0*sin(ang_2);
-p4(2)     = p2(2)+obj.L0*cos(ang_2);
-%
-Py(1) = p1(1);
-Py(2) = p2(1);
-Py(3) = p4(1);
-Py(4) = p3(1);
-Pz(1) = p1(2);
-Pz(2) = p2(2);
-Pz(3) = p4(2);
-Pz(4) = p3(2);
-% Inpolygon 
-[in,~] = inpolygon(x,z,Py,Pz);
-P = [x(in), z(in)];
-Layout(in) = -(find_distance_linear(P,p2,p4))';
-B_time = cputime;
-disp(['Time Loop = ', num2str(B_time-A_time)]);
-obj.Layout = reshape(Layout,size(A.Xpart));
-obj.continent = reshape(continent,size(A.Xpart));
-end
+
+
 % Ribe mode must be rethinked and properly done. This is not yet good
 function [obj] = find_slab_ribe(obj,A)
 x_p    = A.Xpart(:); % Vector of X

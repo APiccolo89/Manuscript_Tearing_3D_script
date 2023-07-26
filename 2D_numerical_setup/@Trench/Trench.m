@@ -11,6 +11,7 @@ classdef Trench
         L0      % Lenght of the slab
         D0      % Thickness of the slab
         Decoupling_depth % Decoupling depth
+        Depth_continent = -50; 
         Stratigraphy_Continental % 
         Stratigraphy_Oceanic     %
         Thermal_type        % typology thermal structure
@@ -19,11 +20,21 @@ classdef Trench
         Lenght % store the length of the slab {useful for McKenzie temperature profile}
         continent %highlight where is the continental crust 
     end
-    methods
+    methods (Access = public)
+        % Function that interacts with the external enviroment: Take the
+        % Phase and Temp array and modify accordingly
+
         function [Phase,Temp] = fill_terranes(obj,A,Phase,Temp)
             [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
         end
+        [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
     end
+    methods (Access = private)
+      % Function that modify the object only when is needed and without
+      % consuming memory {everything is locally used}
+      obj = find_slab_(obj,A,Weak_Slab)
+      obj = find_slab_mode_1(obj,A,Weak_Slab)
+   end
 end
 
 

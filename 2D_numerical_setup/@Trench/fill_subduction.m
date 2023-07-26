@@ -1,6 +1,6 @@
 function [Phase,Temp] = fill_subduction(obj,A,Phase,Temp,Gen)
-obj = find_slab_(A,'Slab');
-[Temp] = compute_temperature_profile(obj,)
+obj = obj.find_slab_(A,'Slab');
+[Temp] = compute_temperature_profile(obj,A,[],Temp);
 
 % Correct Temperaure and Phase
 id1 = min(A.Xpart(~isnan(Layout)));
@@ -15,6 +15,7 @@ for i= ind_x1:ind_x2
     Temp(:,i,ind_z1:ind_L) = Gen.T_P;
 end
 [Phase] = fill_stratigraphy(Layout,Phase,Terranes,ind_x,cont);
+% Fill up the weak zone of the slab
 [Layout] = find_slab_(A,'Weak');
 if strcmp( Terranes.Trench_properties,'Mode_1')
     ind =(Layout<=0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh);

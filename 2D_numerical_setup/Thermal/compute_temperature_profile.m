@@ -14,6 +14,7 @@ Type = obj.Thermal_type.Type; % type of continental geotherm
 if isa((obj),'Terrane')
     D = A.Zpart;  % For Layered structure Z coordinate make its job
 elseif isa(class(obj),'trench')
+    ind = ~isnan(obj.Layout); 
     D = obj.Layout; % Layout is the member of the trench that collects all the distance from the top surface of the slab
 end
 

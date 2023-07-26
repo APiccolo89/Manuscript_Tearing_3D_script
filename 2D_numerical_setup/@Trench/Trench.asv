@@ -15,15 +15,21 @@ classdef Trench
         Stratigraphy_Oceanic     %
         Thermal_type        % typology thermal structure
         Thermal_information % Data required thermal structure
-        Layout % 
-        Lenght 
-        continent
+        Layout % store the distance from the top surface
+        Lenght % store the length of the slab {useful for McKenzie temperature profile}
+        continent %highlight where is the continental crust 
     end
-    methods
+    methods (Access = public)
         function [Phase,Temp] = fill_terranes(obj,A,Phase,Temp)
             [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
         end
+        [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
     end
+    methods (Access = private)
+      
+      obj = find_slab_(obj,A,Weak_Slab)
+      obj = find_slab_mode_1(obj,A)
+   end
 end
 
 
