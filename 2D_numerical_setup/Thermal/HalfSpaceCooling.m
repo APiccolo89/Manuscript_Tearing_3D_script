@@ -12,12 +12,15 @@ function [Temp] = HalfSpaceCooling(obj,D,ind,Temp)
 % OUTPUT:updated temperature field.
 if isa(obj,"Trench")
     T_tk = [0.0, -obj.D0]; % Stratigraphy of the object
-elseif isa(obj,"Terrane")
+elseif isa(obj,"Terrane") || isa(obj,"Passive_Margin")
     T_tk = [0.0, obj.Stratigraphy.Tk(end)]; % Stratigraphy of the object
-
 end
 kappa  = obj.Thermal_information.kappa; %Thermal conductivity of the object 
-T_Age = obj.Thermal_type.Age;    % Age of the object in [s]
+if isa(obj,'Passive_Margin')
+    T_Age = obj.Thermal_type_O.Age; 
+else 
+    T_Age = obj.Thermal_type.Age;    % Age of the object in [s]
+end
 T_P   = obj.Thermal_information.TP; % Mantle potential temperature in C
 T_S   = obj.Thermal_information.TS; % Surface temperature in C
 

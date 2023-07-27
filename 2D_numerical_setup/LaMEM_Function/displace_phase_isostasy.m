@@ -1,5 +1,5 @@
 
-function [A,surf] = displace_phase_isostasy(ph,A,Gr,Gen)
+function [A,surf] = displace_phase_isostasy(ph,A,Gr,TI)
 % =========================================================================
 % Function that compute the relative displacement of the phase if we
 % consider them in Isostatic equilibrium.
@@ -49,8 +49,8 @@ end
 
 Ph2(isnan(Ph2)& Z >0.0)=ph.Ph_Ar(1);
 Ph2(isnan(Ph2)& Z <0.0)=ph.Ph_UM(1);
-T2(isnan(T2) & Z >0.0)=Gen.T_S;
-T2(isnan(T2)& Z <0.0)=Gen.T_P;
+T2(isnan(T2) & Z >0.0)=TI.TS;
+T2(isnan(T2)& Z <0.0)=TI.TP;
 
 for iy = 1:ily
     A.Phase(:,iy,:) = Ph2;
