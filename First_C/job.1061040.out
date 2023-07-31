@@ -1,0 +1,61 @@
+Loading mpi version 2021.5.0
+Loading compiler version 2022.1.0
+Loading tbb version 2021.8.0
+Loading debugger version 2023.0.0
+Loading compiler-rt version 2023.0.0
+Loading dpl version 2022.0.0
+  Load "debugger" to debug DPC++ applications with the gdb-oneapi debugger.
+  Load "dpl" for additional DPC++ APIs: https://github.com/oneapi-src/oneDPL
+Loading mpi version 2021.5.0
+Loading compiler version 2022.1.0
+Loading tbb version 2021.8.0
+Loading debugger version 2023.0.0
+Loading compiler-rt version 2023.0.0
+Loading dpl version 2022.0.0
+  Load "debugger" to debug DPC++ applications with the gdb-oneapi debugger.
+  Load "dpl" for additional DPC++ APIs: https://github.com/oneapi-src/oneDPL
+-------------------------------------------------------------------------- 
+                   Lithosphere and Mantle Evolution Model                   
+     Compiled: Date: Apr  4 2023 - Time: 09:10:04 	    
+-------------------------------------------------------------------------- 
+        STAGGERED-GRID FINITE DIFFERENCE CANONICAL IMPLEMENTATION           
+-------------------------------------------------------------------------- 
+Parsing input file : SSB_Nevena.dat 
+   Adding PETSc option: -snes_ksp_ew
+   Adding PETSc option: -snes_ksp_ew_rtol0 1e-2
+   Adding PETSc option: -snes_max_it 18
+   Adding PETSc option: -snes_PicardSwitchToNewton_rtol 1e-4
+   Adding PETSc option: -js_ksp_type fgmres
+   Adding PETSc option: -js_ksp_max_it 20
+   Adding PETSc option: -js_ksp_min_it 4
+   Adding PETSc option: -snes_monitor
+   Adding PETSc option: -gmg_pc_mg_levels 5
+   Adding PETSc option: -gmg_pc_mg_galerkin
+   Adding PETSc option: -gmg_pc_mg_type multiplicative
+   Adding PETSc option: -gmg_pc_mg_cycle_type v
+   Adding PETSc option: -gmg_mg_levels_ksp_type richardson
+   Adding PETSc option: -gmg_mg_levels_ksp_richardson_scale 0.5
+   Adding PETSc option: -gmg_mg_levels_ksp_max_it 2
+   Adding PETSc option: -gmg_mg_levels_pc_type jacobi
+   Adding PETSc option: -crs_pc_type redundant
+   Adding PETSc option: -crs_pc_redundant_number 1
+Finished parsing input file : SSB_Nevena.dat 
+--------------------------------------------------------------------------
+Scaling parameters:
+   Temperature : 1000. [C/K] 
+   Length      : 1000. [m] 
+   Viscosity   : 1e+20 [Pa*s] 
+   Stress      : 1e+09 [Pa] 
+--------------------------------------------------------------------------
+Grid parameters:
+   Total number of cpu                  : 128 
+   Processor grid  [nx, ny, nz]         : [4, 4, 8]
+   Fine grid cells [nx, ny, nz]         : [256, 256, 256]
+   Number of cells                      :  16777216
+   Number of faces                      :  50528256
+   Maximum cell aspect ratio            :  4.00000
+   Lower coordinate bounds [bx, by, bz] : [-1500., -1500., -700.]
+   Upper coordinate bounds [ex, ey, ez] : [1500., 1500., 50.]
+--------------------------------------------------------------------------
+Saving processor partitioning ... done (0.0390825 sec)
+--------------------------------------------------------------------------
