@@ -3,7 +3,8 @@ classdef Trench
     properties
         name = 'Subduction zone'
         Type_Subduction % Subduction type {Mode_1}{Ribe}{To_Do: Linear _World_Builder_example => CITE IT}
-        Boundary = [0,0]% x-y coordinate trench
+        Boundary = Boundary_class; 
+                   %================================================================================
         % Thermal information +/- Generic information needed
         Thermal_type        % typology thermal structure
         Thermal_information % Data required thermal structure

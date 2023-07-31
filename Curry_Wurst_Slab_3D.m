@@ -893,80 +893,6 @@ ind_x2 = ind_x2(end);
     
 end
 
-
-
-function [string] = save_topography(A,topo_M,Gr)
-    
-    
-    dX = (max(Gr.x_g)-min(Gr.x_g))/1500;
-    x_t = min(Gr.x_g):dX:max(Gr.x_g);
-    topo_t=interp1(squeeze(A.Xpart(:,1,1)),topo_M,x_t,'nearest','extrap');
-    
-    Topo = zeros(length(x_t),length(Gr.y_g));
-    Topo(:,1)        = topo_t;
-    Topo(:,2)        = topo_t;
-    Easting     = x_t;
-    Northing    = Gr.y_g;
-  
-    % compute grid spacing
-    dx = (max(Easting) - min(Easting))/(length(Easting)-1);
-    dy = (max(Northing) - min(Northing))/(length(Northing)-1);
-    
-    
-    % transpose Topo to be read correctly by LaMEM
-    %Topo    = Topo';
-    
-    % write binary to be read by LaMEM
-    % (FILENAME,[# of points in x-dir, # of points in y-dir, x-coord of SW corner, y_coord of SW corner,
-    % grid spacing in x-dir, grid spacing in y-dir, TopoMatrix in vector form])
-    PetscBinaryWrite('topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
-    string = 'Isostatic balance finished, and the resulted topography has been saved in Topo.dat';
-end 
-
-
-function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart,Testing_3D)
-   %==========================================================================
-    % OUTPUT OPTIONS
-    %==========================================================================
-    % See model setup in Paraview 1-YES; 0-NO
-
-    RandomNoise             =   logical(0);
-    Is64BIT                 =   logical(0);
-    %==========================================================================
-    % LOAD MESH GRID FROM LaMEM PARTITIONING FILE
-    %==========================================================================
-    npart_x =   npart(1);
-    npart_y =   npart(2);
-    npart_z =   npart(3);
-
-    % Load grid from parallel partitioning file
-    [X,Y,Z,x,y,z, Xpart,Ypart,Zpart] = FDSTAGMeshGeneratorMatlab(npart_x,npart_y,npart_z,Parallel_partition, RandomNoise, Is64BIT);
-
-    Gr.x_g = [min(x),max(x)]; 
-    Gr.z_g =[min(z),max(z)];
-    Gr.y_g = [min(y),max(y)]; 
-    % Update variables (size of grid in [x,y,z] direction
-    nump_x  =   size(X,2);
-    nump_y  =   size(X,1);
-    nump_z  =   size(X,3);  
-    W       =   max(x)-min(x);
-    mW      =   abs(min(x));
-    L       =   max(y)-min(y);
-    mL      =   abs(min(y));
-    H       =   max(z)-min(z);
-    mH      =   abs(min(z)); 
-    Xvec    =   squeeze(X(1,:,1));
-    Yvec    =   squeeze(Y(:,1,1));
-    Zvec    =   squeeze(Z(1,1,:));
-    % Temporary save memory
-    clear Z Xpart Ypart Zpart
-    % Prepare data for visualization/output
-    A           =   struct('W',[],'L',[],'H',[],'nump_x',[],'nump_y',[],'nump_z',[],'Phase',[],'Temp',[],'x',[],'y',[],'z',[],'npart_x',[],'npart_y',[],'npart_z',[]);
-    % Linear vectors containing coords
-    [A.Xpart,A.Ypart,A.Zpart] =meshgrid(single(Xvec),single(Yvec),single(Zvec));
-end
-
-
 function [y]  = linear_margin(xa,theta,y0,x)
 
 % Function to describe the linear margin of a terranes 
@@ -983,14 +909,7 @@ function [theta_c]  = continental_theta_angle(x,xa,xb,theta_c0,theta_c1)
 theta_c = theta_c0+(((theta_c1-theta_c0))./(xb-xa)).*(x-xa);
 
 end
-
-function [y]  = parabolic_margin(xa,xv,yv,x)
-
-% Function to describe the linear margin of a terranes 
-a = -yv./(xa-xv).^2;
-y = a.*(x-xv).^2+yv; 
-
-end
+ 
 
 function [y] = circumference_margin(xa,xb,ya,Cx,R,x)
 
