@@ -9,22 +9,10 @@ npart = [3,3,3];
 Paraview_output        = 1;
 % Output parallel files for LaMEM, using a processor distribution file (msetup = parallel)
 LaMEM_Parallel_output  = 1;
-Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
+Parallel_partition     = 'ProcessorPartitioning_128cpu_4.4.8.bin';
 [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart,1);
-
-% Structure concerning slab 
-T.R        = 40;   %curvature radius 
-T.theta_c  = 50;   %curvature radius ingested continental crust
-T.theta_dc = 20;   % additional curvature to emulate passive margin (optional)
-T.theta    = 90;   % curvature slab
-T.tk_WZ    = 20;   % thickness of the weak zone
-T.L0       = 300;  % length of the slab from the bottom of the lithosphere
-T.D0       = 80;   % Thickness of the slab
-T.C  = [0.0 -T.D0-T.R];  %center of curvature 
-T.r  = [T.R T.R+T.D0]; %radius of curvature
-T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ]; %weak zone data
-T.D_WZ = -100; %ultimate weakzone depth 
-T.Type = 'Mode1'; % 'Ribe_Mode' "Mode1" create the slab following radius of curvature and tagent to the curvature, Ribe_Mode uses equation of Ribe et al 2010
+Radius_terranes = 700; 
+arc_length = 1200; 
 
 %phase database, first element phase.ph_Air(1) = phase number, 2nd element
 %density (useful and necessary for the isostasy)
@@ -44,11 +32,30 @@ phases.Ph_sed_oc = [11,2680];
 phases.Ph_cont_pr = [12,2680];
 phases.Ph_pas_m = [13,2680];
 
+phases.Ph_OLt2 = [19,3367.957866] ;% Ocean Lithosphere 
+phases.Ph_OC2  = [20,3367.957866]   ;%place holder
+% Structure concerning slab 
+T.R        = 40;   %curvature radius 
+T.theta_c  = 90;   %curvature radius ingested continental crust
+T.theta    = 90;   % curvature slab
+T.tk_WZ    = 20;   % thickness of the weak zone
+T.L0       = 300;  % length of the slab from the bottom of the lithosphere
+T.D0       = 80;   % Thickness of the slab
+T.C  = [0.0 -T.D0-T.R];  %center of curvature 
+T.r  = [T.R T.R+T.D0]; %radius of curvature
+T.r_WZ = [T.r(2), T.r(2)+T.tk_WZ]; %weak zone data
+T.D_WZ = -100; %ultimate weakzone depth 
+T.Type = 'Mode1'; % 'Ribe_Mode' "Mode1" create the slab following radius of curvature and tagent to the curvature, Ribe_Mode uses equation of Ribe et al 2010
+T.Continent_phases = [10,9];
+T.Stratigraphy     = [-15,-30];
+T.Radius_terranes = Radius_terranes;
+T.arc_length      = arc_length;
 % List of terranes 
-Buffer         = Terrane; %Terranes placed in the leftmost portion of the model: in case you use pushing block, you need to deform the area
-Continent1     = Terrane; %continent 1 
-Oceanic_Plate  = Terrane; %oceanic plate 
-Continent2     = Terrane; %continent 2
+Continent1                = Terrane; %continent 1 
+Oceanic_Plate             = Terrane; %oceanic plate 
+Continent2                = Terrane; %continent 2
+Oceanic_Plate_Background  = Terrane; %oceanic plate 
+
 
 
 % Organize 
@@ -57,44 +64,65 @@ Continent2     = Terrane; %continent 2
 %  calculation. And, it is a low viscosity terranes that allow convergence
 %  velocity; 
 %==========================================================================
-Buffer.order        = 1; 
-Buffer.Type         = 'Buffer';
-Buffer.x_lim        = [-1500.0,-1300.0];
-Buffer.Phases       = [phases.Ph_sed_oc(1),phases.Ph_OC(1),phases.Ph_OLt(1)]; 
-Buffer.Stratigraphy = [0.0,-2.0,-7.0,-80.0];
-Buffer.Age          = 5.0;
+
 
 %% Continental Terranes 1 
+[xa,xb,xc,yc]=find_terrane_size(Radius_terranes,arc_length);
+disp(['x coordinates', num2str(xa)])
+disp(['center coordinates', num2str(xc),'' ,num2str(yc)])
+f_c2_handle = @(x) circumference_margin(xa,xb,0.0,0.0,Radius_terranes,x);%parabolic_margin(-750.0,0.0,70.0,x)
+f_continent_handle = @(x) continental_theta_angle(x,0.0,arc_length,T.theta_c,0);
+f_theta_handle = @(x) continental_theta_angle(x,0.0,arc_length,T.theta,60);
+T.function_continent = f_continent_handle; 
+%T.function_bending_plate = f_theta_handle; 
+
+%% Oceanic plate 
+Oceanic_Plate_Background.order = 1; 
+Oceanic_Plate_Background.Type  = 'Ocean';
+Oceanic_Plate_Background.x_lim = [-1500.0, 1500.0]; 
+Oceanic_Plate_Background.y_lim  = [-1500.0, 0.0]; 
+Oceanic_Plate_Background.Phases = [phases.Ph_OC2(1),phases.Ph_OLt2(1)];
+Oceanic_Plate_Background.Stratigraphy = [0.0,-7.0,-80.0];
+Oceanic_Plate_Background.Age          = 30.0; 
+%Oceanic_Plate_Background.Trench        = 'Subduction'; 
+%Oceanic_Plate_Background.Trench_properties = T;  
+
 %Terranes.Continent1
 Continent1.order = 2; 
 Continent1.Type  = 'Continent';
-Continent1.x_lim = [-1300.0,0.0];
+Continent1.x_lim = [-1500.0,1500.0];
+Continent1.y_lim = [0.0,1500.0];
 Continent1.Phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
-Continent1.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
+Continent1.Stratigraphy = [0.0,-15.0,-30.0,-80.0];
 Continent1.Age          = 100.0; 
-Continent1.Passive_Margin = {'none'};
+Continent1.Passive_Margin = {'segment1','segment2'};
+Continent1.Passive_Margin_segment = {'along_x',[-1500.0,xa],[xb,1500.0]}; 
 Continent1.Passive_Margin_phase = phases.Ph_pas_m;
+Continent2.Accretion_prism = 'Prism'; 
+Continent2.Trench_properties = {T,f_c2_handle,[xa,xb]}; 
+Continent2.prism_phase      = phases.Ph_cont_pr;
 %% Continent Terranes 2 
 Continent2.order = 3; 
 Continent2.Type  = 'Continent';
-Continent2.x_lim = [0.0,1500];
+Continent2.x_lim = [xa,xb];
+%f_c2_handle = @ (x) linear_margin(Continent2.x_lim(1),30,0.0,x);
+Continent2.y_lim = {-500,f_c2_handle};
 Continent2.Phases = [phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
-Continent2.Stratigraphy = [0.0,-15.0,-30.0,-100.0];
-Continent2.Age          = 100.0; 
-Continent2.Accretion_prism = 'Prism'; 
-Continent2.Trench_properties = T; 
-Continent2.prism_phase      = phases.Ph_cont_pr;
-%% Oceanic plate 
-Oceanic_Plate.order = 4; 
-Oceanic_Plate.Type  = 'Ocean';
-Oceanic_Plate.x_lim = [0.0,0.0]; 
-Oceanic_Plate.Phases = [phases.Ph_sed_oc(1),phases.Ph_OC(1),phases.Ph_OLt(1)];
-Oceanic_Plate.Stratigraphy = [0.0,-2.0,-7.0,-80.0];
-Oceanic_Plate.Age          = 30.0; 
-Oceanic_Plate.Trench        = 'Subduction'; 
-Oceanic_Plate.Trench_properties = T;  
+Continent2.Stratigraphy = [0.0,-15.0,-30.0,-80];
+Continent2.Age          = 80.0; 
 
-Terranes = struct('Buffer',Buffer,'Continent1',Continent1,'Continent2',Continent2,'Oceanic_Plate',Oceanic_Plate); 
+%% Oceanic plate 
+ Oceanic_Plate.order = 4; 
+ Oceanic_Plate.Type  = 'Ocean';
+ Oceanic_Plate.x_lim = [xa,xb]; 
+ Oceanic_Plate.y_lim = {f_c2_handle,f_c2_handle};
+ Oceanic_Plate.Phases = [phases.Ph_OC(1),phases.Ph_OLt(1)];
+ Oceanic_Plate.Stratigraphy = [0.0,-7.0,-80.0];
+ Oceanic_Plate.Age          = 30.0; 
+ Oceanic_Plate.Trench        = 'Subduction'; 
+ Oceanic_Plate.Trench_properties = T;  
+
+Terranes = struct('Oceanic_Plate_Background',Oceanic_Plate_Background,'Continent1',Continent1,'Continent2',Continent2,'Oceanic_Plate',Oceanic_Plate); 
 %% Generic information numerical domain: 
 Gen.T_P = 1375; 
 Gen.T_S = 20; 
@@ -155,8 +183,8 @@ function Create_Setup(Terranes,ph,Gen,A,npart,Gr,Parallel_partition)
     ind = Phase == 0 & A.Zpart<0.0;
     Phase(ind)  = Gen.Ph_UM;
     Temp(ind)   = Gen.T_P;
-    Temp = Temp+abs(A.Zpart).*0.3;
-    ind = Phase == 0 & A.Zpart>0.0;
+    %Temp = Temp+abs(A.Zpart).*0.3;
+    ind = A.Zpart>0.0;
     Temp(ind)   = Gen.T_S;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -181,9 +209,10 @@ function Create_Setup(Terranes,ph,Gen,A,npart,Gr,Parallel_partition)
     A.y      =  double(y(:));
     A.z      =  double(z(:));
     
-    [A,surf] = displace_phase_isostasy(ph,A,Gr,Gen); 
+    
+   %[A,surf] = displace_phase_isostasy(ph,A,Gr,Gen); 
 
-    plot_initial_setup2D(A,surf); 
+   % plot_initial_setup2D(A,surf); 
    
     A.RandomNoise = logical(0);
 
@@ -250,7 +279,8 @@ if strcmp(passive_margin,'none') == 0
 
    for i=1:length(passive_margin)
         direction = Terranes.Passive_Margin{i};
-        [Phase,Temp] = generate_passive_margin(A,Phase,Temp,Terranes,direction,Gen);
+        limits=Terranes.Passive_Margin_segment{i+1}; 
+        [Phase,Temp] = generate_passive_margin(A,Phase,Temp,Terranes,direction,Gen,limits);
    end
      B_fill_Passive = cputime;
      t = B_fill_Passive-A_fill_Passive; 
@@ -287,7 +317,7 @@ end
 
 
 
-function [Layout,arc_angleS] = find_slab_(A,Slab,type)
+function [Layout,angle_c] = find_slab_(A,Slab,type,Terranes)
 %=========================================================================
 % Short explanation, i need to yet find the best solution that works in any
 % case provided. In general Ribe mode require a bit of work as such angle
@@ -364,91 +394,136 @@ function [Layout,arc_angleS] = find_slab_(A,Slab,type)
 %
 % find the area belonging to the curvature slab: 
 Xvec = A.Xpart(1,:,1);
+Yvec = A.Ypart(:,1,1);
 Zvec = A.Zpart(1,1,:);
 C     = Slab.C;
 D0    = abs(Slab.D0);
-ind_z = find(Zvec >= C(2)-Slab.L0 & Zvec<=0.0);
-ind_x = find(Xvec>=C(1) & Xvec <= C(1)+D0*4);
-x     = A.Xpart;
-z     = A.Zpart;
+
+
+%% New Approach to improve
+fhandle = Terranes.y_lim{2};
+fhandle_c = Slab.function_continent;
+fhandle_arc_length = @(x,y) arc_length_x(x,y,Terranes.x_lim(1),0.0,Slab.Radius_terranes);
+if isfield(Slab,'function_bending_plate')
+    f_handle_theta = Slab.function_bending_plate; 
+end
+
 theta = Slab.theta;
+theta_c = Slab.theta_c; 
 ang_  = (theta)*pi/180;
 ang_2 = (theta+90)*pi/180;
-C     = Slab.C;
+
 r     = Slab.r;
 L0    = Slab.L0 - Slab.R;
 sl    = 1               ;
 arc_angleS = []; 
 
+ind = (A.Xpart(:)>=Terranes.x_lim(1)) & (A.Xpart(:)<=Terranes.x_lim(2)) & (A.Ypart(:)>=(fhandle(A.Xpart(:)))) & (A.Ypart(:)<=(fhandle(A.Xpart(:)))+2.*L0) & A.Zpart(:)>=-1.5*L0 & A.Zpart(:)<=1.0; 
+index = find(ind==1); 
+Layout = ind*nan;
+d      = Layout; 
+l_ind = length(ind); 
+ 
+ A_time = cputime; 
+ x     = A.Xpart(:);
+ z     = A.Zpart(:);
+ y     = A.Ypart(:);
+ x     = x(ind==1);
+ y     = y(ind==1);
+ z     = z(ind==1); 
+ % Vector version 
+ arc_angleS = x.*NaN; 
+ continent = arc_angleS;
+ s = fhandle_arc_length(x,fhandle(x)); 
+
+ Layout_buf = x.*NaN; 
+ u = zeros(2,length(x));
+ v = u; 
+ u(1,:) = y; 
+ u(2,:) = z;
+ v(1,:) = fhandle(x);
+ v(2,:) = z; 
+ d = sqrt((u(1,:)-fhandle(x)').^2+(u(2,:)- Slab.C(2)).^2);
+ arc_angleS = acos((z-Slab.C(2))./d').*180/pi;
+ if isfield(Slab,'function_bending_plate')
+     c_slab = d>=r(1) & d<=(r(2)) & arc_angleS'<=f_handle_theta(s)' & arc_angleS'>=0;
+     continent(arc_angleS' <= fhandle_c(s)' & arc_angleS'<f_handle_theta(s)')=1.0;
+ else
+     continent(arc_angleS'<fhandle_c(s)')=1.0;
+     c_slab = d>=r(1) & d<=(r(2)) & arc_angleS'<=theta & arc_angleS'>=0;
+ end
+ Layout_buf(c_slab==1)= d(c_slab==1)-r(2); 
+ Layout_buf(d<r(1) & d>r(2)) = NaN; 
+ Layout_buf(arc_angleS>theta & arc_angleS<0)=NaN; 
+  
+ x_buf = squeeze(A.Xpart(1,:,1));
+ x_buf = x_buf(x_buf>=Terranes.x_lim(1) & x_buf<=Terranes.x_lim(2)); 
+ if strcmp(type,'Weak')
+     r(1) = r(2);
+     r(2) = r(2)+Slab.tk_WZ;
+     if Slab.theta == 90
+         sl = 0;
+     end
+     %=============
+
+ end
 
 
-if strcmp(Slab.Type,'Mode1')
+ 
+ for  i=1:length(x_buf) 
+ sections = x==x_buf(i);
+  if isfield(Slab,'function_bending_plate')
+    x_s = (x_buf(i));
+    y_s = fhandle(x_buf(i));
+    s_s = fhandle_arc_length(x_s,y_s); 
+    ang_  = (f_handle_theta(s_s))*pi/180;
+    ang_2 = (f_handle_theta(s_s)+90)*pi/180;
+  end
 
 
-    if strcmp(type,'Weak')
-        r(1) = r(2);
-        r(2) = r(2)+Slab.tk_WZ;
-        if Slab.theta == 90
-            sl = 0;
-        end
-        %=============
+ yy = y(sections==1);
+ zz = z(sections==1); 
 
-    end
+ C(1)     = x_buf(i);
+ C(2)     = fhandle(x_buf(i));
+ C(3)     = Slab.C(2);
+ p1(1)    = C(2)+r(1)*sin(ang_);
+ p1(2)    = C(3)+r(1)*cos(ang_);
+ p2(1) = C(2)+r(2)*sin(ang_);
+ p2(2) = C(3)+r(2)*cos(ang_);
+ p3(1)    = p1(1)+L0*sin(ang_2);
+ p3(2)    = p1(2)+L0*cos(ang_2);
+ p4(1)    = p2(1)+L0*sin(ang_2);
+ p4(2)     = p2(2)+L0*cos(ang_2);
+% 
+ Py(1) = p1(1);
+ Py(2) = p2(1);
+ Py(3) = p4(1);
+ Py(4) = p3(1);
+ %Pz = [p1(2,:) p2(2,:) p4(2,:) p3(2,:)];
+ Pz(1) = p1(2);
+ Pz(2) = p2(2);
+ Pz(3) = p4(2);
+ Pz(4) = p3(2);
+%       
+  [in,~] = inpolygon(yy,zz,Py,Pz);
+ P = zeros(2,length(zz)); 
+ P(1,:) = yy;
+ P(2,:) = zz; 
+ Layout_sections = Layout_buf(sections==1);
+ Layout_sections(in==1) = -find_distance_linear(P(:,in==1),p2,p4);
+ Layout_buf(sections==1) = Layout_sections; 
+ end
 
-
-    p1    = [C(1)+r(1)*sin(ang_),C(2)+r(1)*cos(ang_)];
-    p2    = [C(1)+r(2)*sin(ang_),C(2)+r(2)*cos(ang_)];
-    p3    = [p1(1)+L0*sin(ang_2),p1(2)+L0*cos(ang_2)];
-    p4    = [p2(1)+L0*sin(ang_2),p2(2)+L0*cos(ang_2)];
-
-
-    Px = [p1(1) p2(1) p4(1) p3(1)];
-    Pz = [p1(2) p2(2) p4(2) p3(2)];
-
-    [in,out] = inpolygon(x,z,Px,Pz);
-    % =========================
-    %  P2X           P4X
-    %   r2            r2
-    %   |             |
-    %  P1X           P3X
-    %   r1            r1
-    %========================
-    ls = size(x);
-    arc_angleS = ones(size(x))*nan;
-    d = ones(size(x))*-1000;
-    Layout = ones(size(x))*nan;
-
-    for i=1:ls(1)
-        for j=1:length(ind_x)
-            for k=1:length(ind_z)
-
-                lx = ind_x(j);
-                lz = ind_z(k);
-                u = [x(i,lx,lz);z(i,lx,lz)];
-                v = [C(1);z(i,lx,lz)];
-                a = sqrt(u(1).^2+u(2).^2);
-                b = sqrt(v(1).^2+v(2).^2);
-                %arc_angleS(i,lx,lz) = asin(dot(v,u)./(a.*b)).*180/pi;
-                d(i,lx,lz) = sqrt((u(1)-C(1))^2+(u(2)- C(2))^2);
-                arc_angleS(i,lx,lz) = acos((z(i,lx,lz)-C(2))/d(i,lx,lz)).*180/pi;
-
-                if (d(i,lx,lz)>=r(1) && d(i,lx,lz)<=r(2))
-                    if(arc_angleS(i,lx,lz)>=0.0 && arc_angleS(i,lx,lz)<=theta)
-
-                        Layout(i,lx,lz) = d(i,lx,lz)-r(2);
-                    end
-                end
-                if sl == 1
-                    if(in(i,lx,lz)>0)
-                        P = [x(i,lx,lz);z(i,lx,lz)];
-                        Layout(i,lx,lz) = -(find_distance_linear(P,p2,p4));
-                    end
-                end
-            end
-        end
-    end
-
-end
+        
+ B_time = cputime; 
+ disp(['Time Loop = ', num2str(B_time-A_time)]);
+angle_c = Layout*0.0; 
+ Layout(index)=Layout_buf; 
+angle_c(index)= continent; 
+Layout = reshape(Layout,size(A.Xpart));
+angle_c = reshape(angle_c,size(A.Xpart)); 
+ bla = 0; 
 
 
 if strcmp(Slab.Type,'Ribe_Mode')
@@ -535,9 +610,9 @@ end
 function [d] = find_distance_linear(P,p1,p2)
 
 % Ok, wiki saves my day because I was too lazy: 
-A  = abs((p2(1)-p1(1))*(p1(2)-P(2))-(p1(1)-P(1))*(p2(2)-p1(2)));
-B  = (p2(1)-p1(1))^2+(p2(2)-p1(2))^2;
-d  = A/sqrt(B);
+A  = abs((p2(1)-p1(1)).*(p1(2)-P(2,:))-(p1(1)-P(1,:)).*(p2(2)-p1(2)));
+B  = (p2(1)-p1(1)).^2+(p2(2)-p1(2)).^2;
+d  = A./sqrt(B);
 
 end
 
@@ -653,7 +728,34 @@ end
 
 function [Phase,Temp] = fill_layer(A,Terranes,Phase,Temp,Gen)
 % Select the layer and portion of the model:
-indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
+if strcmp(Terranes.y_lim,'none')
+    indx = A.Xpart >= Terranes.x_lim(1) & A.Xpart < Terranes.x_lim(2);
+else
+    
+        if iscell(Terranes.y_lim)
+            c = {Terranes.y_lim{1},isa(Terranes.y_lim{1},'function_handle')};
+            d = {Terranes.y_lim{2},isa(Terranes.y_lim{2},'function_handle')};
+        else
+            c = Terranes.y_lim(1);
+            d = Terranes.y_lim(2); 
+        end
+        if iscell(Terranes.x_lim)
+            a = {Terranes.x_lim{1},isa(Terranes.x_lim{1},'function_handle')};
+            b = {Terranes.x_lim{2},isa(Terranes.x_lim{2},'function_handle')};
+        else
+            a = Terranes.x_lim(1);
+            b = Terranes.x_lim(2);
+        end
+        %(var,less_higher,A,axis)
+        indx  = 0.0*A.Zpart;
+        x_a = check_belonging_layer(a,1,A,1);
+        x_b = check_belonging_layer(b,0,A,1);
+        y_a = check_belonging_layer(c,1,A,2);
+        y_b = check_belonging_layer(d,0,A,2); 
+        indx(x_a==1 & x_b ==1 & y_a == 1 & y_b ==1) = 1.0; 
+    
+    
+end
 % Compute the thermal profile
 [Temp] = compute_temperature_profile(A,Temp,1,Gen,Terranes,indx);
 % Fill the phase stratigraphy: 
@@ -663,7 +765,7 @@ end
 function [Phase,Temp] = fill_subduction(A,Terranes,Phase,Temp,Gen)
 ind_x=[];
 
-[Layout,~] = find_slab_(A,Terranes.Trench_properties,'Slab');
+[Layout,angle_c] = find_slab_(A,Terranes.Trench_properties,'Slab',Terranes);
 % Set the temperature
 [Temp] = compute_temperature_profile(Layout,Temp,-1,Gen,Terranes,ind_x);%(A,Temp,Type,T_tk,Gen,Terranes,indx)
 % Correct Temperaure and Phase
@@ -679,7 +781,13 @@ for i= ind_x1:ind_x2
     Temp(:,i,ind_z1:ind_L) = Gen.T_P;
 end
 [Phase] = fill_stratigraphy(Layout,Phase,Terranes,ind_x);
-[Layout,~] = find_slab_(A,Terranes.Trench_properties,'Weak');
+ind = angle_c ==1 & Layout >= -15.0 & Layout <=0.0; 
+Phase(ind) = Terranes.Trench_properties.Continent_phases(1); 
+ind2 = angle_c ==1 & Layout >= -30.0 & Layout <=-15.0; 
+Phase(ind2) =Terranes.Trench_properties.Continent_phases(2); 
+
+
+[Layout,~] = find_slab_(A,Terranes.Trench_properties,'Weak',Terranes);
 if strcmp( Terranes.Trench_properties,'Mode_1')
     ind =(Layout<=0.0 & A.Zpart >= Terranes.Trench_properties.D_WZ & Phase ~=Gen.PrismPh);
     Phase(ind) = Gen.WZ;
@@ -700,7 +808,7 @@ for i=1:length(Terranes.Phases)
         B = Terranes.Stratigraphy(i+1);
     end
     if ~isempty(indx)
-        ind = Z < T & Z>=B & indx>0 & Phase == 0;
+        ind = Z < T & Z>=B & indx>0;
     else
         ind = Z < T & Z>=B;
     end
@@ -714,47 +822,75 @@ end
 
 function  [Phase] = generate_accretion_prism(A,Terranes,Phase)
 
-C = Terranes.Trench_properties.C;
-d_p = [C(1)+Terranes.position_end_prism 0.0];
-s   = (d_p(2)-C(2))./(d_p(1)-C(1)); 
-Phases = Terranes.Phases; 
-for i = 1:length(Phases)
-ind2 = A.Zpart>s.*(A.Xpart-C(1))+C(2)  & Phase == Phases(i);
-Phase(ind2) = Terranes.prism_phase(1);
-end
+T = Terranes.Trench_properties{1};
+f_c = Terranes.Trench_properties{2};
+xlim = Terranes.Trench_properties{3};
+C_z = T.C(2);
+ind_x = find(A.Xpart(1,:,1)>=xlim(1),1);
+ind_x2 = find(A.Xpart(1,:,1)<=xlim(2));
+ind_x2 = ind_x2(end);
+x =squeeze(A.Xpart(1,:,1));
+y = squeeze(A.Ypart(:,1,:));
+z = squeeze(A.Zpart(:,1,:));
 
-end
-
-function [Phase,Temp] = generate_passive_margin(A,Phase,Temp,Terranes,direction,Gen)
-
-bla =0; 
-
-if ~isempty(direction)
-    depo_X = Terranes.Passive_Margin_depo_center_pos;
-    depo_Z = Terranes.Passive_Margin_depo_center;
-    Length = Terranes.Passive_Margin_length; 
-    if strcmp(direction,'left')
-    
-    else
-    
-    lim_depo = [Terranes.x_lim(2)-Length, Terranes.x_lim(2)]; 
-    Depo_x   = lim_depo(1)+depo_X.*Length; 
-    Depo_z   = - depo_Z; 
-    x        = [lim_depo(1),Depo_x,lim_depo(2),lim_depo(2)+0.1*Length];
-    z        = [0.0, Depo_z,Depo_z,0.0];
-    Lithos   = Terranes.Stratigraphy(end);
-    x_l      = [lim_depo(1),lim_depo(2),lim_depo(2)];
-    z_l      = [Lithos,Lithos,Lithos+Terranes.Passive_Margin_d_lithos];
-
+for ix = ind_x:ind_x2
+    y_C= f_c(x(ix));
+    d_p = [y_C+Terranes.position_end_prism 0.0];
+    s   = (d_p(2)-C_z)./(d_p(1)-y_C);
+    Phases = Terranes.Phases;
+    Ph = squeeze(Phase(:,ix,:));
+    for i = 1:length(Phases)
+        ind2 = z>s.*(y-y_C)+C_z  & y>=y_C & z<=1.0 & z>=Terranes.Stratigraphy(end);
+        Ph(ind2==1) = Terranes.prism_phase(1);
+        ind2=[];
     end
-    [in,~] = inpolygon(A.Xpart,A.Zpart,x,z);
-    Phase(in) = Terranes.Passive_Margin_phase(1); 
-    [in2,~]  = inpolygon(A.Xpart,A.Zpart,x_l,z_l);
-    Phase(in2) = Gen.Ph_UM;
-    Temp(in2) = Gen.T_P; 
+    Phase(:,ix,:)=Ph;
+    
+end
+end
+
+function [Phase,Temp] = generate_passive_margin(A,Phase,Temp,Terranes,direction,Gen,limits)
+
+    bla =0; 
     
 
-end
+
+ind_x = find(A.Xpart(1,:,1)>=limits(1),1);
+ind_x2 = find(A.Xpart(1,:,1)<=limits(2));
+ind_x2 = ind_x2(end);
+
+
+    if ~isempty(Terranes.Passive_Margin_segment)
+
+        depo_Y = Terranes.Passive_Margin_depo_center_pos;
+        depo_Z = Terranes.Passive_Margin_depo_center;
+        Length = Terranes.Passive_Margin_length; 
+      
+        lim_depo = [Terranes.y_lim(1)-20, Terranes.y_lim(1)+Length]; 
+        Depo_y   = lim_depo(2)-depo_Y.*Length; 
+        Depo_z   = - depo_Z; 
+        y        = [lim_depo(1),Depo_y,lim_depo(2),lim_depo(2)+0.1*Length];
+        z        = [1.0, Depo_z,Depo_z,1.0];
+        Lithos   = Terranes.Stratigraphy(end);
+       % y_l      = [lim_depo(1),lim_depo(2),lim_depo(2)];
+        %z_l      = [Lithos,Lithos,Lithos+Terranes.Passive_Margin_d_lithos];
+    
+    end
+    for i = ind_x:ind_x2
+        Ay = squeeze(A.Ypart(:,i,:));
+        Az = squeeze(A.Zpart(:,i,:));
+        Ph = squeeze(Phase(:,i,:));
+        T  = squeeze(Temp(:,i,:));
+        [in,~] = inpolygon(Ay,Az,y,z);
+        Ph(in) = Terranes.Passive_Margin_phase(1); 
+%        [in2,~]  = inpolygon(Ay,Az,y_l,z_l);
+      %  Ph(in2) = Gen.Ph_UM;
+       % T(in2) = Gen.T_P; 
+        Phase(:,i,:)=Ph; 
+        Temp(:,i,:)=T;
+    end
+    
+    
 end
 
 
@@ -788,76 +924,12 @@ function [string] = save_topography(A,topo_M,Gr)
 end 
 
 
-
-function plot_initial_setup2D(A,surf)
-figure(1)
-ratioX = max(A.Xpart(:,1,1))-min(A.Xpart(:,1,1));
-ratioZ = max(A.Zpart(1,1,:))- min(A.Zpart(1,1,:));
-r = [1,ratioZ./ratioX,1];
-x = squeeze(A.Xpart(:,1,:));
-z = squeeze(A.Zpart(:,1,:));
-T = squeeze(A.Temp(:,1,:)); 
-ph = squeeze(A.Phase(:,1,:)); 
-T(ph==0)=nan;
-ph(ph==0)=nan;
-hold on 
-plot(surf(1,:),surf(2,:),"Color",'r','LineStyle','--','LineWidth',1.2)
-pcolor(x,z,T);
-hold off
-shading interp; 
-pbaspect(r); 
-xlabel('x, [km]', Interpreter='latex'); 
-ylabel('z, [km]',Interpreter='latex'); 
-title('Temperature Field [$^\circ$ C]',Interpreter='latex');
-grid on; 
-colormap("summer"); 
-box on 
-xaxisproperties= get(gca, 'XAxis');
-xaxisproperties.TickLabelInterpreter = 'latex'; 
-yaxisproperties= get(gca, 'YAxis');
-yaxisproperties.TickLabelInterpreter = 'latex'; 
-c = colorbar;
-c.Label.String = 'Temperature $[^\circ C]$';
-c.Label.Interpreter = 'latex';
-c.TickLabelInterpreter='latex';
-print('Temperature','-dpng','-r0')
-
-
-figure(2)
-lv = 1:12;
-hold on 
-plot(surf(1,:),surf(2,:),"Color",'r','LineStyle','--','LineWidth',1.2)
-contourf(x,z,ph,13); 
-
-hold off
-shading interp; 
-pbaspect(r); 
-xlabel('x, [km]', Interpreter='latex'); 
-ylabel('z, [km]',Interpreter='latex'); 
-title('Temperature Field [$^\circ$ C]',Interpreter='latex');
-grid on
-caxis([1,12]); 
-box on 
-xaxisproperties= get(gca, 'XAxis');
-xaxisproperties.TickLabelInterpreter = 'latex'; 
-yaxisproperties= get(gca, 'YAxis');
-yaxisproperties.TickLabelInterpreter = 'latex'; 
-c = colorbar;%(['Upper Crust 1','Lower Crust 1', 'Lithospheric Mantle 1', ' Lithospheric Mantle 2', 'Upper Mantle','Oceanic Slab', 'Oceanic Crust', 'Weak Zone', 'Upper Crust 2', 'Lower Crust 2', 'Oceanic Sed.', 'Passive/Prism']);
-c.Label.String = 'Phase ';
-c.Label.Interpreter = 'latex';
-c.TickLabelInterpreter='latex';
-print('Phase','-dpng','-r0')
-
-
-
-end
 function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Parallel_output,npart,Testing_3D)
    %==========================================================================
     % OUTPUT OPTIONS
     %==========================================================================
     % See model setup in Paraview 1-YES; 0-NO
 
-    Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
     RandomNoise             =   logical(0);
     Is64BIT                 =   logical(0);
     %==========================================================================
@@ -893,3 +965,119 @@ function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Paral
     % Linear vectors containing coords
     [A.Xpart,A.Ypart,A.Zpart] =meshgrid(single(Xvec),single(Yvec),single(Zvec));
 end
+
+
+function [y]  = linear_margin(xa,theta,y0,x)
+
+% Function to describe the linear margin of a terranes 
+theta_r = theta*pi/180;
+m       = tan(theta_r);
+y       = m.*(x-xa)+y0; 
+
+end
+
+
+function [theta_c]  = continental_theta_angle(x,xa,xb,theta_c0,theta_c1)
+
+% Function to describe the linear margin of a terranes 
+theta_c = theta_c0+(((theta_c1-theta_c0))./(xb-xa)).*(x-xa);
+
+end
+
+function [y]  = parabolic_margin(xa,xv,yv,x)
+
+% Function to describe the linear margin of a terranes 
+a = -yv./(xa-xv).^2;
+y = a.*(x-xv).^2+yv; 
+
+end
+
+function [y] = circumference_margin(xa,xb,ya,Cx,R,x)
+
+% Check if the user had the brilliant idea to create a circumference whose
+% radius is less the the distance between the two points
+if R<(xb-xa)/2
+    error('Just think to the pytaghora theorem, i.e., you cannot have a triangle rectangle whose hyp is less than one of the other two')
+end
+% I try to put more general formulation, but the stuff for this particular
+% case is easy
+c_ = (xa-Cx).^2-R.^2+ya^2;
+b_ = 2.*ya; 
+delta = sqrt(b_^2-4.*c_);
+center_y = [(b_-delta)./2;(b_+delta)./2]; 
+y_ind = find(center_y<=ya,1); 
+y_c = center_y(y_ind);
+% Compute the semi-circumference  (only positive)
+y = (R^2-(x-Cx).^2).^(0.5)+y_c; 
+end
+
+function [xa,xb,xc,yc] = find_terrane_size(R,arc_length)
+theta_ = arc_length./(R); 
+xa     = -R.*sin(theta_./2);
+xb     = R.*sin(theta_./2);
+xc     = 0.0; 
+yc     = -R.*cos(theta_./2); 
+end
+
+function [s] = arc_length_x(x,y,xa,ya,R)
+% compute the arc length of a given point using the Pa - Px points 
+d = sqrt((x-xa).^2+(y-ya).^2);
+theta = 2*asin(d./(2*R));
+s = R.*theta; 
+end
+
+
+function [W] = length_parabolic_margin(xa,xv,yv,x)
+a = -yv./(xa-xv).^2;
+xb  = -xa; 
+t  = (xa-xv);
+t2 = (xb-xv); 
+W1 = (2.*a.*t.*(4.*a.*a.*t.^2+1)+asinh(2.*a.*t))./(4.*a);
+W2 = (2.*a.*t2.*(4.*a.*a.*t2.^2+1)+asinh(2.*a.*t2))./(4.*a);
+W = W2-W1;
+end
+
+function [yes_no] = check_belonging_layer(var,less_higher,A,axis)
+% Function to check if specific ensemble of particles belong to the layer 
+
+if iscell(var)
+    if(var{2}==0)
+        buf = var{1};
+        var =[]; 
+        var = buf; 
+    else
+        fun = var{1};
+        if less_higher == 0 
+            if axis == 1 
+                yes_no = A.Xpart <= fun(A.Ypart);
+            else 
+                yes_no = A.Ypart <= fun(A.Xpart);
+            end
+        else
+           if axis == 1 
+                yes_no = A.Xpart >= fun(A.Ypart);
+            else 
+                yes_no = A.Ypart >= fun(A.Xpart);
+            end
+        end
+    end
+end
+if iscell(var) == 0 
+   if less_higher == 0 
+       if axis == 1 
+            yes_no = A.Xpart <= var;
+       else 
+            yes_no = A.Ypart <= var;
+       end
+
+   else
+       if axis == 1 
+            yes_no = A.Xpart >= var;
+       else 
+            yes_no = A.Ypart >= var;
+       end
+   end
+end
+
+end
+
