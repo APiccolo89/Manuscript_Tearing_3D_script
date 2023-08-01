@@ -1,4 +1,4 @@
-classdef Boundary_class
+classdef Boundary
     %BOUNDARY_CLASS Summary of this class goes here
     %   Detailed explanation goes here
     %======================================================================
@@ -33,11 +33,11 @@ classdef Boundary_class
         x2     % x2 
         y1     %
         y2
-        c    = [0,0]           % center (x,y) coordinate of the center
-        A           % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
-        B              % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
-        C              %
-        D              %
+        c    = [0,0];           % center (x,y) coordinate of the center
+        A    = {[],[]};      % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
+        B    = {[],[]};         % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
+        C    = {[],[]};      %
+        D    = {[],[]};       %
         angle          % primary axis direction w.r.t. current axis 
      
     end
@@ -47,7 +47,7 @@ classdef Boundary_class
             % For now, this function, deal with simple rectangular terrane
             % that has not any direction 
             % compute x1,x2,y1,y2
-            if length(obj) ~= 2 
+            if length(obj.c) ~= 2 
                 error('Center must be a point within x-y plane')
             end
             obj.x1 = obj.c(1)-obj.L/2; 
@@ -55,17 +55,13 @@ classdef Boundary_class
             obj.y1 = obj.c(2)-obj.W/2;
             obj.y2 = obj.c(2)+obj.W/2; 
 
-            A = [obj.x1,obj.y1,obj.x1,obj.y2];
-            B = [obj.x1,obj.y2,obj.x2,obj.y2];
-            C = [obj.x2,obj.y2,obj.x2,obj.y1];
-            D = [obj.x2,obj.y1,obj.x1,obj.y1]; 
-
-            obj.A = {A,[]};
-            obj.B = {B,[]};
-            obj.C = {C,[]};
-            obj.D = {D,[]}; 
+            obj.A{1} = [obj.x1,obj.y1,obj.x1,obj.y2];
+            obj.B{1} = [obj.x1,obj.y2,obj.x2,obj.y2];
+            obj.C{1} = [obj.x2,obj.y2,obj.x2,obj.y1];
+            obj.D{1} = [obj.x2,obj.y1,obj.x1,obj.y1]; 
         end
         
+         [obj] = modify_boundary_limits(obj,arcLength)
 
       
     end

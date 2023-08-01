@@ -2,6 +2,7 @@
 clear all;
 close all; 
 addpath matlab   %Here -> Folder2LaMEM/matlab => all the function that handle matlab files are there
+addpath (genpath('3D_numerical_setup'))
 
 
 npart = [3,3,3];
