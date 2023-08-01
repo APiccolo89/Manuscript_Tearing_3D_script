@@ -1,0 +1,12 @@
+function [xa,xb,xc,yc] = modify_terrane_size(R,arc_length)
+%=========================================================================%
+% Argument Radius of curvature 
+% R = radius of curvature 
+% arc_length = the length of the curved slab
+%=========================================================================%
+theta_ = arc_length./(R); 
+xa     = -R.*sin(theta_./2);
+xb     = R.*sin(theta_./2);
+xc     = 0.0; 
+yc     = -R.*cos(theta_./2); 
+end

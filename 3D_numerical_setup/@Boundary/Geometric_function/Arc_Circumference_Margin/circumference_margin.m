@@ -1,4 +1,4 @@
-function [y] = circumference_margin(xa,xb,ya,Cx,R,x)
+function [y] = circumference_margin(obj,C,R,x)
 
 % Check if the user had the brilliant idea to create a circumference whose
 % radius is less the the distance between the two points
@@ -17,18 +17,3 @@ y_c = center_y(y_ind);
 y = (R^2-(x-Cx).^2).^(0.5)+y_c; 
 end
 
-function [xa,xb,xc,yc] = find_terrane_size(R,arc_length)
-theta_ = arc_length./(R); 
-xa     = -R.*sin(theta_./2);
-xb     = R.*sin(theta_./2);
-xc     = 0.0; 
-yc     = -R.*cos(theta_./2); 
-end
-
-
-function [s] = arc_length_x(x,y,xa,ya,R)
-% compute the arc length of a given point using the Pa - Px points 
-d = sqrt((x-xa).^2+(y-ya).^2);
-theta = 2*asin(d./(2*R));
-s = R.*theta; 
-end

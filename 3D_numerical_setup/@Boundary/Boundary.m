@@ -34,10 +34,10 @@ classdef Boundary
         y1     %
         y2
         c    = [0,0];           % center (x,y) coordinate of the center
-        A    = {[],[]};      % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
-        B    = {[],[]};         % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
-        C    = {[],[]};      %
-        D    = {[],[]};       %
+        A    = {[],[],[]};      % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
+        B    = {[],[],[]};         % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
+        C    = {[],[],[]};      %
+        D    = {[],[],[]};       %
         angle          % primary axis direction w.r.t. current axis 
      
     end
@@ -62,6 +62,9 @@ classdef Boundary
         end
         
          [obj] = modify_boundary_limits(obj,arcLength)
+         [obj] = circumference_margin(obj)
+
+
 
       
     end
