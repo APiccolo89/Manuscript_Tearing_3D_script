@@ -60,13 +60,10 @@ classdef Boundary
             obj.C{1} = [obj.x2,obj.y2,obj.x2,obj.y1];
             obj.D{1} = [obj.x2,obj.y1,obj.x1,obj.y1]; 
         end
-        
-         [obj] = modify_boundary_limits(obj,arcLength)
+         % Arc Circumference like terrane
+         [obj] = modify_terrane_limits(R,arc_length,Boundary)
          [obj] = circumference_margin(obj)
-
-
-
-      
+         [obj] = Create_arc_circumference_margin(obj,R,Boundary) 
     end
 end
 
