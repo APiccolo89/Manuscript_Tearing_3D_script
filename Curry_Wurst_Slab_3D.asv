@@ -3,7 +3,42 @@ clear all;
 close all; 
 addpath matlab   %Here -> Folder2LaMEM/matlab => all the function that handle matlab files are there
 addpath (genpath('3D_numerical_setup'))
-addpath (genpath('3D_numerical_setup/B'))
+
+% Debug
+B = BoundsT;
+B.c = [0,0];
+B.W = 500; 
+B=B.Create_arc_circumference_margin(1000,'B',1200); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

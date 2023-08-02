@@ -1,4 +1,4 @@
-classdef Boundary_class
+classdef BoundsT
     %BOUNDARY_CLASS Summary of this class goes here
     %   Detailed explanation goes here
     %======================================================================
@@ -26,20 +26,24 @@ classdef Boundary_class
 
     properties
         name 
-        type (1,:){mustBeTextScalar} = 'Composite'; % elipses %circle. 
+        type (1,:){mustBeTextScalar} = 'Composite'; % elipses %circle %linear
         W     {mustBeGreaterThan(W,0)} = 1.0      ; % W => can be the radius 
         L      {mustBeGreaterThan(L,0)} = 1.0     ; % L=> can be the radius 
         x1     % x1 
         x2     % x2 
         y1     %
         y2
-        c    = [0,0]           % center (x,y) coordinate of the center
-        A           % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
-        B              % 4 value {x1,x2,function_handle,Lenght_function_handle} | {}
-        C              %
-        D              %
+        c    = [0,0];           % center (x,y) coordinate of the center
+       
+        % A{1} => Vector P1-P2 of a boundary
+        % A{2} => Type 'circular', 'none', 'none'
+        % A{3} => Vector containing v(1) x_c, v(2), y_c, v(3), radius of
+        % curvature
+        A    = {[],['none'],[]};      % 4 value {x1,x2,R,c} | {}
+        B    = {[],['none'],[]};         % 4 value {x1,x2,R,c} | {}
+        C    = {[],['none'],[]};      %
+        D    = {[],['none'],[]};       %
         angle          % primary axis direction w.r.t. current axis 
-     
     end
     
     methods
@@ -47,7 +51,7 @@ classdef Boundary_class
             % For now, this function, deal with simple rectangular terrane
             % that has not any direction 
             % compute x1,x2,y1,y2
-            if length(obj) ~= 2 
+            if length(obj.c) ~= 2 
                 error('Center must be a point within x-y plane')
             end
             obj.x1 = obj.c(1)-obj.L/2; 
@@ -55,19 +59,28 @@ classdef Boundary_class
             obj.y1 = obj.c(2)-obj.W/2;
             obj.y2 = obj.c(2)+obj.W/2; 
 
-            A = [obj.x1,obj.y1,obj.x1,obj.y2];
-            B = [obj.x1,obj.y2,obj.x2,obj.y2];
-            C = [obj.x2,obj.y2,obj.x2,obj.y1];
-            D = [obj.x2,obj.y1,obj.x1,obj.y1]; 
-
-            obj.A = {A,[]};
-            obj.B = {B,[]};
-            obj.C = {C,[]};
-            obj.D = {D,[]}; 
+            obj.A{1} = [obj.x1,obj.y1,obj.x1,obj.y2];
+            obj.B{1} = [obj.x1,obj.y2,obj.x2,obj.y2];
+            obj.C{1} = [obj.x2,obj.y2,obj.x2,obj.y1];
+            obj.D{1} = [obj.x2,obj.y1,obj.x1,obj.y1]; 
         end
-        
+        function [ind] = find_ind_terrane(obj,A)
+            if strcmp(obj.type,'Composite')
+                % Composite Terrane are defined only by the 4 boundaries {i.e. are rectangle with modified margin}
 
-      
+                  [ind] = find_composite_terrane(obj,A); 
+                
+            end
+
+
+
+        end
+
+         % Arc Circumference like terrane
+         [Size,CC] = modify_terrane_limits(obj,R,arc_length,Boundary,c)
+         [obj] = Create_arc_circumference_margin(obj,R,Boundary,arcLength) 
+         [y] = circumference_margin(obj,Boundary,x) % Find the coordinate of the boundary
+         [s] = arc_length_CB(obj,x,y,Boundary)      % For a given y and x -> find the arc_length
     end
 end
 
