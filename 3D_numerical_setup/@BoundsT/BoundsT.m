@@ -43,7 +43,7 @@ classdef BoundsT
         B    = {[],['none'],[]};         % 4 value {x1,x2,R,c} | {}
         C    = {[],['none'],[]};      %
         D    = {[],['none'],[]};       %
-        angle          % primary axis direction w.r.t. current axis 
+        angle = NaN          % primary axis direction w.r.t. current axis 
     end
     
     methods

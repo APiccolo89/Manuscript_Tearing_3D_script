@@ -29,7 +29,7 @@ classdef Passive_Margin % => Composite class with continents ~ Default value
                 Thermal_type_O  = Thermal_Type;
                 Thermal_type_C = Thermal_Type;    % Thermal type of the attached continent     
                 Thermal_information = Thermal_Information;
-
+                Boundary_terrane_list = 'D'; 
                 Tk_X           % Information local thickness
     end
     

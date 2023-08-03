@@ -1,7 +1,7 @@
 function [Phase,Temp] = fill_layer(obj,A,Phase,Temp)
 % Select the layer and portion of the model:
 time_A = cputime; 
-ind = find_ind(obj,A);
+ind = obj.Boundary.find_ind_terrane(A);
 if ~isempty(ind(ind==1))
 % Compute the thermal profile
     [Temp] = compute_temperature_profile(obj,A,ind,Temp);

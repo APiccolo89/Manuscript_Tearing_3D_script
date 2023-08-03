@@ -1,7 +1,7 @@
 classdef Terrane
     properties
         name = 'Nameless Terrane' % Name Terrane
-        Boundary                    = [0,0,0,0];  %x1 x2 y1 y2
+        Boundary                    = BoundsT %
         Phases
         Stratigraphy
         Thermal_information = Thermal_Information; % Default value of class
