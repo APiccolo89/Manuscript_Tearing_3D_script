@@ -48,6 +48,7 @@ if ~isempty(obj.Boundary_terrane_list)
                 B.Xpart     = A.Ypart;
                 B.Ypart     = A.Xpart;
                 B.Zpart     = A.Zpart;
+
                 lim_depo = [C.Boundary.x2-obj.length, C.Boundary.x2];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
@@ -67,6 +68,10 @@ if ~isempty(obj.Boundary_terrane_list)
             [x,z,x_l,z_l] = find_coordinates_object(obj,C,lim_depo,Depo_x,Depo_z,2);
 
         end
+        if ~strcmp(C.Boundary.(obj.Boundary_terrane_list{ib}),'none')
+            [B] = transform_coordinate(obj,C,B,obj.Boundary_terrane_list{ib});
+
+        end
         iy =  A.Ypart>=l1 & A.Ypart<=l2;
         [in,~] = inpolygon(B.Xpart,B.Zpart,x,z);
         Phase(in==1 & A.Ypart>=l1 & A.Ypart<=l2) = obj.ph_pas_m;
@@ -76,33 +81,24 @@ if ~isempty(obj.Boundary_terrane_list)
         % => Thermal information
         % Compute the new thermal structure within the terrane area:
         % select the point chosen point:
-        if strcmp(obj.Direction,'left')
-            ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy==1; % chosen particles
-            x_chosen = (B.Xpart(ind==1)-lim_depo(1))./obj.length; % weight of the average
-            z_chosen = B.Zpart(ind==1);
-            obj.Tk_X    = obj.Stratigraphy.Tk(end)+obj.d_lithos*x_chosen;
-            T_prov1   = x_chosen.*nan;
-            T_prov2   = x_chosen.*nan;
-            [T_prov1] = HalfSpaceCooling(obj,z_chosen,ind(ind==1),T_prov1);
-            [T_prov2] = Continental_Geotherm(obj,z_chosen,ind(ind==1),T_prov1);
-            T         = T_prov1.*x_chosen + T_prov2.*(1-x_chosen);
-            Temp(ind==1) = T;
+        if strcmp(obj.Direction,'left') || strcmp(obj.Boundary_terrane_list(ib),'A') ||strcmp(obj.Boundary_terrane_list(ib),'D')
+            ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
         else
             ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))); % chosen particles
-            x_chosen = (B.Xpart(ind==1)-lim_depo(1))./obj.length; % weight of the average
-            z_chosen = B.Zpart(ind==1);
-            obj.Tk_X    = obj.Stratigraphy.Tk(end)+obj.d_lithos*x_chosen;
-            T_prov1   = x_chosen.*nan;
-            T_prov2   = x_chosen.*nan;
-            [T_prov1] = HalfSpaceCooling(obj,z_chosen,ind(ind==1),T_prov1);
-            [T_prov2] = Continental_Geotherm(obj,z_chosen,ind(ind==1),T_prov1);
-            T         = T_prov1.*x_chosen + T_prov2.*(1-x_chosen);
-            Temp(ind==1) = T;
-
         end
+        x_chosen = abs((B.Xpart(ind==1)-lim_depo(1))./obj.length); % weight of the average
+        z_chosen = B.Zpart(ind==1);
+        obj.Tk_X    = obj.Stratigraphy.Tk(end)+obj.d_lithos*x_chosen;
+        T_prov1   = x_chosen.*nan;
+        T_prov2   = x_chosen.*nan;
+        [T_prov1] = HalfSpaceCooling(obj,z_chosen,ind(ind==1),T_prov1);
+        [T_prov2] = Continental_Geotherm(obj,z_chosen,ind(ind==1),T_prov1);
+        T         = T_prov1.*x_chosen + T_prov2.*(1-x_chosen);
+        Temp(ind==1) = T;
     end
 end
 end
+
 
 
 function [x,z,x_l,z_l] = find_coordinates_object(obj,C,lim_depo,Depo_x,Depo_z,Direction)
@@ -144,3 +140,13 @@ else
 end
 z_l      = [Lithos,Lithos,Lithos+obj.d_lithos];
 end
+function [B] = transform_coordinate(obj,C,B,boundary)
+%========================================================================== 
+% function to transform coordinate such that the curved boundary is
+% deflected back to linear. 
+% x - dx, dx = f(x)-xn 
+%==========================================================================
+
+
+end
+
