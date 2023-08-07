@@ -74,17 +74,14 @@ if ~isempty(obj.Boundary_terrane_list)
         end
         iy =  B.Ypart>=l1 & B.Ypart<=l2;
         [in,~] = inpolygon(B.Xpart,B.Zpart,x,z);
-        Phase(in==1 & A.Ypart>=l1 & A.Ypart<=l2) = obj.ph_pas_m;
-        [in2,~]  = inpolygon(A.Xpart,A.Zpart,x_l,z_l);
-        Phase(in2 &  iy==1) = C.Thermal_information.Ph_Ast;
-        Temp(in2 & iy==1) = C.Thermal_information.TP;
+        Phase(in==1 & iy==1) = obj.ph_pas_m;
         % => Thermal information
         % Compute the new thermal structure within the terrane area:
         % select the point chosen point:
         if strcmp(obj.Direction,'left') || strcmp(obj.Boundary_terrane_list(ib),'A') ||strcmp(obj.Boundary_terrane_list(ib),'D')
             ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
         else
-            ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))); % chosen particles
+            ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
         end
         x_chosen = abs((B.Xpart(ind==1)-lim_depo(1))./obj.length); % weight of the average
         z_chosen = B.Zpart(ind==1);
@@ -100,6 +97,10 @@ if ~isempty(obj.Boundary_terrane_list)
         end
         T         = T_prov1.*x_chosen + T_prov2.*(1-x_chosen);
         Temp(ind==1) = T;
+        % Lithosphere correction
+        [in2,~]  = inpolygon(B.Xpart,B.Zpart,x_l,z_l);
+        Phase(in2(:)==1 &  iy(:)==1) = C.Thermal_information.Ph_Ast;
+        Temp(in2(:)==1 & iy(:)==1) = C.Thermal_information.TP;
     end
 end
 end
