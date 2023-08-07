@@ -35,5 +35,6 @@ y_ind = find(center_y<=ya,1);
 y_c = center_y(y_ind);
 % Compute the semi-circumference  (only positive)
 y = (R^2-(x-c).^2).^(0.5)+y_c; 
+y(x<xa & x>xb) = nan;
 end
 

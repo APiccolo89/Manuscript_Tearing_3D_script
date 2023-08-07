@@ -1,0 +1,33 @@
+function [B] = transform_coordinate(obj,B,Boundary) 
+%========================================================================== 
+% function to transform coordinate such that the curved boundary is
+% deflected back to linear. 
+% x - dx, dx = f(x)-xn. 
+% Approach: take the coordinate (A.Xpart) => compute the deflection imposed
+% by the type of the boundary and correct this coordinate for filling up
+% the phase. 
+%==========================================================================
+data_boundary = obj.(Boundary); 
+if strcmp(data_boundary{2},'Circular')
+        dx  = obj.circumference_margin(Boundary,B.Ypart(:));
+        [loc1, loc2] = find(tril(data_boundary{1} == data_boundary{1}', -1)); % find the main boundary. 
+        dx  = dx-data_boundary{1}(loc1);
+        if rem(loc1,2)==0
+            ya = data_boundary{1}(1);
+            yb = data_boundary{2}(3); 
+        else
+            ya = data_boundary{1}(2);
+            yb = data_boundary{2}(4); 
+        end
+        if strcmp(Boundary,'A')||strcmp(Boundary,'D')
+            dx = 
+        else
+
+        end
+        B.Xpart(B.Ypart>=ya & B.Ypart<=yb) = B.Xpart(B.Ypart>=ya & B.Ypart<=yb)+dx; 
+end
+
+
+
+
+end

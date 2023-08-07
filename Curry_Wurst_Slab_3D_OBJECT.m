@@ -56,7 +56,7 @@ C1.L = Lx;
 C1=C1.compute_coordinate_boundary_composite;
 %South Continent 
 C2 = BoundsT; 
-C2.c = [0.0,-500];
+C2.c = [0.0,-250];
 C2.W = 500.0;
 C2.L = 500.0;
 C2=C2.Create_arc_circumference_margin(1000,'B',1200);
@@ -95,6 +95,7 @@ Continent1     = Terrane;
 Continent2     = Terrane;
 %T = Trench; 
 passive_margin1 = Passive_Margin; % To apply to continent 1
+passive_margin2 = Passive_Margin; % To apply to continent 1
 %==========================================================================
 % Filling up the type with specific user command
 %==========================================================================
@@ -106,6 +107,15 @@ passive_margin1.Thermal_type_C = Thermal_TypeContinent;
 passive_margin1.Stratigraphy= continental_stratigraphy;
 passive_margin1.Thermal_information = Thermal_information;
 passive_margin1.Boundary_terrane_list = {'D'}; 
+% Passive margin type 2
+passive_margin2.Direction = 'right';
+passive_margin2.ph_pas_m  = phases.Ph_pas_m(1);
+passive_margin2.shape     = 'trapezoidal'; 
+passive_margin2.Thermal_type_O = Thermal_TypeTrench;
+passive_margin2.Thermal_type_C = Thermal_TypeContinent; 
+passive_margin2.Stratigraphy= continental_stratigraphy2;
+passive_margin2.Thermal_information = Thermal_information;
+passive_margin2.Boundary_terrane_list = {'B'}; 
 %==========================================================================
 Continent1.name = 'Continent 1 ';
 Continent1.Boundary = C1;
@@ -119,6 +129,8 @@ Continent2.Boundary = C2;
 Continent2.Stratigraphy=continental_stratigraphy2; 
 Continent2.Thermal_type = Thermal_TypeContinent; 
 Continent2.Thermal_information = Thermal_information; 
+Continent2.Passive_Margin = passive_margin2; 
+
 %==========================================================================
 % T.Boundary = 0.0;
 % T.Stratigraphy_Continental = continental_stratigraphy_s;

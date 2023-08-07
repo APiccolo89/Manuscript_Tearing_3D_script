@@ -4,7 +4,7 @@ function [ind] = find_composite_terrane(obj,A)
 if isnan(obj.angle)
     fx1 =  A.Xpart(:)>=boundary_criteria(obj,A.Ypart(:),'A',obj.x1);
     fx2 =  A.Xpart(:)<=boundary_criteria(obj,A.Ypart(:),'C',obj.x2);
-    fy2 =  A.Ypart(:)<=boundary_criteria(obj,A.Ypart(:),'B',obj.y2);
+    fy2 =  A.Ypart(:)<=boundary_criteria(obj,A.Xpart(:),'B',obj.y2);
     fy1 =  A.Ypart(:)>=boundary_criteria(obj,A.Xpart(:),'D',obj.y1);
     ind = fx1==1 & fx2 == 1 & fy1 ==1 & fy2 ==1; 
 

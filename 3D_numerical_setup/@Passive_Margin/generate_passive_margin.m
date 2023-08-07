@@ -24,8 +24,8 @@ if ~isempty(obj.Boundary_terrane_list)
                 lim_depo = [C.Boundary.y1+obj.length, C.Boundary.y1];
                 Depo_x   = lim_depo(1)-depo_X.*obj.length;
                 Depo_z   = - depo_Z;
-                l1 = C.Boundary.y1;
-                l2 = C.Boundary.y2;
+                l1 = C.Boundary.x1;
+                l2 = C.Boundary.x2;
             else
                 B.Xpart     = A.Xpart;
                 B.Ypart     = A.Ypart;
@@ -33,8 +33,8 @@ if ~isempty(obj.Boundary_terrane_list)
                 lim_depo = [C.Boundary.x1+obj.length, C.Boundary.x1];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
-                l1 = C.Boundary.x1;
-                l2 = C.Boundary.x2;
+                l1 = C.Boundary.y1;
+                l2 = C.Boundary.y2;
             end
             [x,z,x_l,z_l] = find_coordinates_object(obj,C,lim_depo,Depo_x,Depo_z,1);
 
@@ -52,8 +52,8 @@ if ~isempty(obj.Boundary_terrane_list)
                 lim_depo = [C.Boundary.x2-obj.length, C.Boundary.x2];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
-                l1 = C.Boundary.x1;
-                l2 = C.Boundary.x2;
+                l1 = C.Boundary.y1;
+                l2 = C.Boundary.y2;
             else
                 B.Xpart     = A.Ypart;
                 B.Ypart     = A.Xpart;
@@ -61,21 +61,21 @@ if ~isempty(obj.Boundary_terrane_list)
                 lim_depo = [C.Boundary.y2-obj.length, C.Boundary.y2];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
-                l1 = C.Boundary.y1;
-                l2 = C.Boundary.y2;
+                l1 = C.Boundary.x1;
+                l2 = C.Boundary.x2;
             end
 
             [x,z,x_l,z_l] = find_coordinates_object(obj,C,lim_depo,Depo_x,Depo_z,2);
 
         end
         if ~strcmp(C.Boundary.(obj.Boundary_terrane_list{ib}),'none')
-            [B] = transform_coordinate(obj,C,B,obj.Boundary_terrane_list{ib});
+            [B,dx] = C.Boundary.transform_coordinate(B,obj.Boundary_terrane_list{ib});
 
         end
-        iy =  A.Ypart>=l1 & A.Ypart<=l2;
+        iy =  B.Ypart>=l1 & B.Ypart<=l2;
         [in,~] = inpolygon(B.Xpart,B.Zpart,x,z);
         Phase(in==1 & A.Ypart>=l1 & A.Ypart<=l2) = obj.ph_pas_m;
-        [in2,~]  = inpolygon(B.Xpart,B.Zpart,x_l,z_l);
+        [in2,~]  = inpolygon(A.Xpart,A.Zpart,x_l,z_l);
         Phase(in2 &  iy==1) = C.Thermal_information.Ph_Ast;
         Temp(in2 & iy==1) = C.Thermal_information.TP;
         % => Thermal information
@@ -92,7 +92,12 @@ if ~isempty(obj.Boundary_terrane_list)
         T_prov1   = x_chosen.*nan;
         T_prov2   = x_chosen.*nan;
         [T_prov1] = HalfSpaceCooling(obj,z_chosen,ind(ind==1),T_prov1);
-        [T_prov2] = Continental_Geotherm(obj,z_chosen,ind(ind==1),T_prov1);
+        if strcmp(obj.Thermal_type_C.Type,'HalfSpaceCooling')
+            [T_prov1] = HalfSpaceCooling(obj,z_chosen,ind(ind==1),T_prov1);
+
+        else
+            [T_prov2] = Continental_Geotherm(obj,z_chosen,ind(ind==1),T_prov2);
+        end
         T         = T_prov1.*x_chosen + T_prov2.*(1-x_chosen);
         Temp(ind==1) = T;
     end
@@ -102,15 +107,7 @@ end
 
 
 function [x,z,x_l,z_l] = find_coordinates_object(obj,C,lim_depo,Depo_x,Depo_z,Direction)
-%
-%
-%
-%
-%
-%
-%
-%
-%
+
 if strcmp(obj.shape,'triangular')
     if Direction == 1
         x        = [lim_depo(2),Depo_x,lim_depo(1)];
@@ -124,9 +121,9 @@ if strcmp(obj.shape,'triangular')
 
 elseif strcmp (obj.shape,'trapezoidal')
     if Direction == 1
-        x        = [lim_depo(2),Depo_x,lim_depo(2),lim_depo(2)];
+        x        = [lim_depo(2),Depo_x,lim_depo(1),lim_depo(1)];
     else
-        x        = [lim_depo(1),Depo_x,lim_depo(1),lim_depo(1)];
+        x        = [lim_depo(1),Depo_x,lim_depo(2),lim_depo(2)];
     end
     z        = [0.0,Depo_z,Depo_z,0.0];
 else
@@ -136,17 +133,8 @@ Lithos   = C.Stratigraphy.Tk(end);
 if Direction==1
     x_l      = [lim_depo(1),lim_depo(2),lim_depo(2)];
 else
-    x_l      = [lim_depo(2),lim_depo(1),lim_depo(1)];
+    x_l      = [lim_depo(1),lim_depo(2),lim_depo(2)];
 end
 z_l      = [Lithos,Lithos,Lithos+obj.d_lithos];
-end
-function [B] = transform_coordinate(obj,C,B,boundary)
-%========================================================================== 
-% function to transform coordinate such that the curved boundary is
-% deflected back to linear. 
-% x - dx, dx = f(x)-xn 
-%==========================================================================
-
-
 end
 
