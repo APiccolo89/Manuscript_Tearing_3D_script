@@ -1,6 +1,22 @@
 
 function [Phase,Temp] = generate_passive_margin(obj,C,A,Phase,Temp)
-
+%=========================================================================%
+% Input:
+% obj => the passive_margin object associated with a specific terranes
+% C   => The terrane object 
+% A   => The grid properties
+% Phase and Temp = > the phase and temperature fields, that are update
+% within this function. 
+% Approach: The actual version is accounting rectangular terranes, with
+% different kind of boundary (circular or parabolic, whatsoever). In order
+% to avoid the generation of additional variable, and to communicate the
+% grid properties, i create B (which is A in which i switch X-Y, making all
+% the function related to boundarie being an explicit function of "x").
+% Simply I rotate of 90 degree the reference system. 
+% If the boundary is parabolic or circle like, i compute the deflection and
+% transform locally the coordinate to do the phase filling without doing
+% obnoxious loop. 
+%==========================================================================
 
 if ~isempty(obj.Boundary_terrane_list)
     list_boundary = numel(obj.Boundary_terrane_list);
