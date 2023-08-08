@@ -47,7 +47,11 @@ continental_stratigraphy_s.Tk     = [0.0,-12.0,-15.0,-30.0,-100.0];
 
 Lx = max(Gr.x_g)-min(Gr.x_g);
 Wy = max(Gr.y_g)-min(Gr.y_g); 
-
+BG = BoundsT;
+BG.c = [0.0,0.0]; 
+BG.W = Wy; 
+BG.L = Lx; 
+BG = BG.compute_coordinate_boundary_composite; 
 %North Continent 
 C1 = BoundsT;
 C1.c = [0.0, Wy/4];
@@ -69,7 +73,7 @@ C2=C2.Create_arc_circumference_margin(1000,'B',1200);
 
 Thermal_TypeTrench = Thermal_Type;
 Thermal_TypeTrench.Age = convert_Age_velocity(30,1); 
-Thermal_TypeTrench.vel = convert_Age_velocity(3,2); 
+Thermal_TypeTrench.vel = {[convert_Age_velocity(3,2),convert_Age_velocity(3,2)],'none'}; 
 Thermal_TypeTrench.Type = 'McKenzie';
 % 
 Thermal_TypeContinent = Thermal_Type; 
@@ -91,6 +95,7 @@ Thermal_information.Ph_Ast = 5;
 % that belongs to a terrane. 
 % 
 %==========================================================================
+Ocean_BG       = Terrane; 
 Continent1     = Terrane;
 Continent2     = Terrane;
 %T = Trench; 
@@ -130,9 +135,15 @@ Continent2.Stratigraphy=continental_stratigraphy2;
 Continent2.Thermal_type = Thermal_TypeContinent; 
 Continent2.Thermal_information = Thermal_information; 
 Continent2.Passive_Margin = passive_margin2; 
+%==========================================================================
+Ocean_BG.name = 'Ocean Background';
+Ocean_BG.Boundary = BG; 
+Ocean_BG.Stratigraphy = oceanic_stratigraphy;
+Ocean_BG.Thermal_information = Thermal_information;
+Ocean_BG.Thermal_type = Thermal_TypeTrench;
 
 %==========================================================================
-T.Boundary = 0.0;
+T.Boundary = C2;
 T.Stratigraphy_Continental = continental_stratigraphy_s;
 T.Stratigraphy_Oceanic = oceanic_stratigraphy;
 T.theta = {[90,90],'none'};
@@ -141,7 +152,7 @@ T.L0   = 400;
 T.Decoupling_depth = -100; 
 T.Thermal_type = Thermal_TypeTrench;
 T.Thermal_information = Thermal_information; 
-T.R = [120,T.R-T.D0]; 
+T.R = [120,120-T.D0]; 
 T.Type_Subduction = 'Mode_1'; 
 T.tk_WZ = 20.0; 
 T.ph_WZ = phases.Ph_WZ(1);
@@ -160,7 +171,7 @@ T.position_end_prism = 200;
 % thickness? 
 % Proper continental lithosphere geotherm. 
 %==========================================================================
-Terranes = struct('Continent1',Continent1,'Continent2',Continent2);%,'T',T);
+Terranes = struct('Ocean_BG',Ocean_BG,'Continent1',Continent1,'Continent2',Continent2,'Trench',T);%,'T',T);
 %==========================================================================
 TA = cputime; 
 Create_Setup(Terranes,phases,Thermal_information,A,npart,Gr,Parallel_partition);

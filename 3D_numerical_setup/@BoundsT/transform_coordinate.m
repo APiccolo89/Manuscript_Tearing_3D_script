@@ -1,4 +1,4 @@
-function [B,dx] = transform_coordinate(obj,B,Boundary)
+function [B] = transform_coordinate(obj,A,Boundary)
 %==========================================================================
 % function to transform coordinate such that the curved boundary is
 % deflected back to linear.
@@ -8,7 +8,7 @@ function [B,dx] = transform_coordinate(obj,B,Boundary)
 % the phase.
 %==========================================================================
 data_boundary = obj.(Boundary);
-if strcmp(obj.Boundary_terrane_list(ib),'D')||strcmp(obj.Boundary_terrane_list(ib),'B')
+if strcmp(Boundary,'D')||strcmp(Boundary,'B')
     % local transformation of the variable name in the
     % structure. This is a way [Convoluted way to transform coordinates by rotation of 90 degree]
     B.Xpart     = A.Ypart;

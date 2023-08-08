@@ -71,7 +71,7 @@ if ~isempty(obj.Boundary_terrane_list)
 
         end
         % Transform  the coordinate of the system
-        [B,~] = C.Boundary.transform_coordinate(A,obj.Boundary_terrane_list{ib});       
+        [B] = C.Boundary.transform_coordinate(A,obj.Boundary_terrane_list{ib});       
         iy =  B.Ypart>=l1 & B.Ypart<=l2;
         [in,~] = inpolygon(B.Xpart,B.Zpart,x,z);
         Phase(in==1 & iy==1) = obj.ph_pas_m;

@@ -24,8 +24,8 @@ end
 T_P   = obj.Thermal_information.TP; % Mantle potential temperature in C
 T_S   = obj.Thermal_information.TS; % Surface temperature in C
 
-ind_z = D < T_tk(1) & D>=T_tk(2) & ind==1;
-ind_o = D < T_tk(2) & ind==1;
+ind_z = D(:) < T_tk(1) & D(:)>=T_tk(2) & ind==1;
+ind_o = D(:) < T_tk(2) & ind==1;
     
 erf_function = erf(D(ind_z).*1000/2/(kappa*T_Age)^0.5);
 Temp(ind_z) = T_S - (T_P-T_S).*erf_function;
