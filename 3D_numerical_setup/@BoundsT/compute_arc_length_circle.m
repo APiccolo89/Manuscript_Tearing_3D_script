@@ -1,5 +1,8 @@
-function [s] = arc_length_CB(obj,x,y,Boundary)
-% compute the arc length of a given point using the Pa - Px points 
+function [s] = compute_arc_length_circle(obj,x,Boundary)
+[y] = obj.circumference_margin(Boundary,x);
+%COMPUTE_ARC_LENGTH_CIRCLE Summary of this function goes here
+%   Detailed explanation goes here
+ compute the arc length of a given point using the Pa - Px points 
 if strcmp(Boundary,'A')
 elseif strcmp(Boundary,'B')
     B=obj.B{3}; %function handle boundary
@@ -13,3 +16,4 @@ d = sqrt((x-CC(1)).^2+(y-CC(2)).^2);
 theta = 2*asin(d./(2*R));
 s = R.*theta; 
 end
+

@@ -4,12 +4,24 @@ boundary_list = obj.Boundaries_list;
 for ib = 1:numel(boundary_list)
     % Transform coordinate:
     % Transform  the coordinate of the system
-    [B,~] = obj.Boundary.transform_coordinate(A,obj.boundary_list{ib}); % transform the coordinate of the system
-    B.Length_along = obj.Boundary.arc_length_CB(obj,B.Xpart(:),B.Ypart(:),obj.boundary_list{ib}); % save the arclenght. 
+    [B] = obj.Boundary.transform_coordinate(A,obj.Boundaries_list{ib}); % transform the coordinate of the system
+    B.Length_along = B.Xpart*nan; % I need this temporary variable
+    % unavoidable
+    if strcmp(boundary_list{ib},'A')||strcmp(boundary_list{ib},'C')
+        B.Length_along = obj.Boundary.arc_length_CB(A.Xpart(:),B.Ypart(:),obj.Boundaries_list{ib}); % save the arclenght.
+    else
+        ya = obj.(Boundaries_list{ib}){1}(1);
+        yb = obj.(Boundaries_list{ib}){1}(3);
+        B.Length_along(B.Ypart<=ya & B.Ypart<=) = obj.compute_arc_length_circle(B.Ypart(:),obj.Boundaries_list{ib});
+ % save the arclenght.
+    end
     if strcmp(obj.theta{2},'none')
         theta = obj.theta{1}(1);
         [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.boundary_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
     else
+        % Place holder for a loop over y direction 
+        % ALG: 
+        % B.y(i) => send function => fill => update 
         %=================================================================%
         % next => create a loop over the y particle and compute all the
         % necessary stuff each loop imply a different theta => is sliced up
@@ -20,7 +32,8 @@ for ib = 1:numel(boundary_list)
         %==================================================================
         % NB:The direction of the slab is not perpendicular to the boundary
         %, but depends on the x/y position. This is the best easy peasy
-        %solution
+        %solution that I found for the project at hand. 
+        %==================================================================
         error('God the seventh day rested. I simply run out of my contract, do by yourself this functionality. With godly love AP')
     end
 

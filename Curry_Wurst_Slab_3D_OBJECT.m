@@ -102,7 +102,7 @@ Thermal_information.Ph_Ast = 5;
 Ocean_BG       = Terrane; 
 Continent1     = Terrane;
 Continent2     = Terrane;
-%T = Trench; 
+T = Trench; 
 passive_margin1 = Passive_Margin; % To apply to continent 1
 passive_margin2 = Passive_Margin; % To apply to continent 1
 %==========================================================================
@@ -148,6 +148,7 @@ Ocean_BG.Thermal_type = Thermal_TypeTrench;
 
 %==========================================================================
 T.Boundary = C2;
+T.Boundaries_list = {'B'}; 
 T.Stratigraphy_Continental = continental_stratigraphy_s;
 T.Stratigraphy_Oceanic = oceanic_stratigraphy;
 T.theta = {[90,90],'none'};

@@ -4,8 +4,19 @@ boundary_list = obj.Boundaries_list;
 for ib = 1:numel(boundary_list)
     % Transform coordinate:
     % Transform  the coordinate of the system
-    [B,~] = obj.Boundary.transform_coordinate(A,obj.boundary_list{ib}); % transform the coordinate of the system
-    B.Length_along = obj.Boundary.arc_length_CB(obj,B.Xpart(:),B.Ypart(:),obj.boundary_list{ib}); % save the arclenght. 
+    [B] = obj.Boundary.transform_coordinate(A,obj.Boundaries_list{ib}); % transform the coordinate of the system
+    B.Length_along = B.Xpart*nan; % I need this temporary variable
+    % unavoidable
+    if strcmp(boundary_list{ib},'A')||strcmp(boundary_list{ib},'C')
+        ya = obj.Boundary.(boundary_list{ib}){1}(2);
+        yb = obj.Boundary.(boundary_list{ib}){1}(4);
+    else
+        ya = obj.Boundary.(boundary_list{ib}){1}(1);
+        yb = obj.Boundary.(boundary_list{ib}){1}(3);
+    end
+     
+    B.Length_along(B.Ypart>=ya & B.Ypart<=yb) = obj.compute_arc_length_circle(B.Ypart(B.Ypart>=ya & B.Ypart<=yb),obj.Boundaries_list{ib});
+
     if strcmp(obj.theta{2},'none')
         theta = obj.theta{1}(1);
         [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.boundary_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
