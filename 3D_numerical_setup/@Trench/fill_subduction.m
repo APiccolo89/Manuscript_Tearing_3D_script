@@ -15,7 +15,7 @@ for ib = 1:numel(boundary_list)
         yb = obj.Boundary.(boundary_list{ib}){1}(3);
     end
      
-    B.Length_along(B.Ypart>=ya & B.Ypart<=yb) = obj.compute_arc_length_circle(B.Ypart(B.Ypart>=ya & B.Ypart<=yb),obj.Boundaries_list{ib});
+    B.Length_along(B.Ypart>=ya & B.Ypart<=yb) = obj.Boundary.compute_arc_length_circle(B.Ypart(B.Ypart>=ya & B.Ypart<=yb),obj.Boundaries_list{ib});
 
     if strcmp(obj.theta{2},'none')
         theta = obj.theta{1}(1);

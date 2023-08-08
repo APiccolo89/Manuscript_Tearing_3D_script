@@ -82,6 +82,7 @@ classdef BoundsT
          [y] = circumference_margin(obj,Boundary,x) % Find the coordinate of the boundary
          [s] = arc_length_CB(obj,x,y,Boundary)      % For a given y and x -> find the arc_length
          [B] = transform_coordinate(obj,A,Boundary) % Transform the local coordinate system as such that within the area of the boundary the coordinate are transformed. 
+         [s] = compute_arc_length_circle(obj,x,Boundary); % Compute per each x,y => the length 
     end
 end
 
