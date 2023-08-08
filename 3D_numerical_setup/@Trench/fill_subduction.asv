@@ -10,9 +10,6 @@ for ib = 1:numel(boundary_list)
         theta = obj.theta{1}(1);
         [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.boundary_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
     else
-        % Place holder for a loop over y direction 
-        % ALG: 
-        % B.y(i) => send function => fill => update 
         %=================================================================%
         % next => create a loop over the y particle and compute all the
         % necessary stuff each loop imply a different theta => is sliced up
@@ -23,8 +20,7 @@ for ib = 1:numel(boundary_list)
         %==================================================================
         % NB:The direction of the slab is not perpendicular to the boundary
         %, but depends on the x/y position. This is the best easy peasy
-        %solution that I found for the project at hand. 
-        %==================================================================
+        %solution
         error('God the seventh day rested. I simply run out of my contract, do by yourself this functionality. With godly love AP')
     end
 

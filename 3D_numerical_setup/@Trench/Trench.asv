@@ -30,7 +30,7 @@ classdef Trench
         % computation
         d_slab % store the distance from the top surface
         l_slab % store the length of the slab {useful for McKenzie temperature profile}
-        length_continent = {[100,20],'none'} 
+        length_continent = {[20,50],'none'} 
     end
     methods (Access = public)
         % Function that interacts with the external enviroment: Take the

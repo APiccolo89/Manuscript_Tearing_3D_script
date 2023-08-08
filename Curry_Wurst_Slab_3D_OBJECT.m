@@ -69,7 +69,7 @@ C2=C2.Create_arc_circumference_margin(1000,'B',1200);
 
 Thermal_TypeTrench = Thermal_Type;
 Thermal_TypeTrench.Age = convert_Age_velocity(30,1); 
-Thermal_TypeTrench.vel = convert_Age_velocity(3,2); 
+Thermal_TypeTrench.vel = {[convert_Age_velocity(3,2),convert_Age_velocity(3,2)],'none'}; 
 Thermal_TypeTrench.Type = 'McKenzie';
 % 
 Thermal_TypeContinent = Thermal_Type; 
@@ -132,23 +132,23 @@ Continent2.Thermal_information = Thermal_information;
 Continent2.Passive_Margin = passive_margin2; 
 
 %==========================================================================
-% T.Boundary = 0.0;
-% T.Stratigraphy_Continental = continental_stratigraphy_s;
-% T.Stratigraphy_Oceanic = oceanic_stratigraphy;
-% T.theta = 90;
-% T.D0   = 80; 
-% T.L0   = 400; 
-% T.Decoupling_depth = -100; 
-% T.Thermal_type = Thermal_TypeTrench;
-% T.Thermal_information = Thermal_information; 
-% T.R = [120,T.R-T.D0]; 
-% T.Type_Subduction = 'Mode_1'; 
-% T.tk_WZ = 20.0; 
-% T.ph_WZ = phases.Ph_WZ(1);
-% T.Subducted_crust_L = [0.0,0.0,0.0,-80.0,50.0,0.0];
-% %                     x1   z1
-% T.phase_prism = phases.Ph_cont_pr(1);
-% T.position_end_prism = 200; 
+T.Boundary = 0.0;
+T.Stratigraphy_Continental = continental_stratigraphy_s;
+T.Stratigraphy_Oceanic = oceanic_stratigraphy;
+T.theta = {[90,90],'none'};
+T.D0   = 80; 
+T.L0   = 400; 
+T.Decoupling_depth = -100; 
+T.Thermal_type = Thermal_TypeTrench;
+T.Thermal_information = Thermal_information; 
+T.R = [120,T.R-T.D0]; 
+T.Type_Subduction = 'Mode_1'; 
+T.tk_WZ = 20.0; 
+T.ph_WZ = phases.Ph_WZ(1);
+T.Subducted_crust_L = [0.0,0.0,0.0,-80.0,50.0,0.0];
+%                     x1   z1
+T.phase_prism = phases.Ph_cont_pr(1);
+T.position_end_prism = 200; 
 
 %==========================================================================
 % Filling the Terrane structure:=> The order is important as the phase will

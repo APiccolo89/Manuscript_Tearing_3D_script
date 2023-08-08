@@ -5,9 +5,9 @@ function [Phase,Temp] = generate_passive_margin(obj,C,A,Phase,Temp)
 % obj => the passive_margin object associated with a specific terranes
 % C   => The terrane object 
 % A   => The grid properties
-% Phase and Temp = > the phase and temperature fields, that are update
+% Phase and Temp = > the phase and temperature fields, that are updated
 % within this function. 
-% Approach: The actual version is accounting rectangular terranes, with
+% Approach: The actual version is only accounting rectangular terranes, with
 % different kind of boundary (circular or parabolic, whatsoever). In order
 % to avoid the generation of additional variable, and to communicate the
 % grid properties, i create B (which is A in which i switch X-Y, making all
@@ -32,20 +32,13 @@ if ~isempty(obj.Boundary_terrane_list)
             % having complex geometries, due to the inherent slowness of
             % the function and the necessity to vectorize.
             if strcmp(obj.Boundary_terrane_list(ib),'D')
-                % local transformation of the variable name in the
-                % structure. This is a way
-                B.Xpart     = A.Ypart;
-                B.Ypart     = A.Xpart;
-                B.Zpart     = A.Zpart;
                 lim_depo = [C.Boundary.y1+obj.length, C.Boundary.y1];
                 Depo_x   = lim_depo(1)-depo_X.*obj.length;
                 Depo_z   = - depo_Z;
                 l1 = C.Boundary.x1;
                 l2 = C.Boundary.x2;
             else
-                B.Xpart     = A.Xpart;
-                B.Ypart     = A.Ypart;
-                B.Zpart     = A.Zpart;
+
                 lim_depo = [C.Boundary.x1+obj.length, C.Boundary.x1];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
@@ -61,19 +54,12 @@ if ~isempty(obj.Boundary_terrane_list)
             if strcmp(obj.Boundary_terrane_list(ib),'C')
                 % local transformation of the variable name in the
                 % structure. This is a way
-                B.Xpart     = A.Ypart;
-                B.Ypart     = A.Xpart;
-                B.Zpart     = A.Zpart;
-
                 lim_depo = [C.Boundary.x2-obj.length, C.Boundary.x2];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
                 l1 = C.Boundary.y1;
                 l2 = C.Boundary.y2;
             else
-                B.Xpart     = A.Ypart;
-                B.Ypart     = A.Xpart;
-                B.Zpart     = A.Zpart;
                 lim_depo = [C.Boundary.y2-obj.length, C.Boundary.y2];
                 Depo_x   = lim_depo(1)+depo_X.*obj.length;
                 Depo_z   = - depo_Z;
@@ -84,10 +70,8 @@ if ~isempty(obj.Boundary_terrane_list)
             [x,z,x_l,z_l] = find_coordinates_object(obj,C,lim_depo,Depo_x,Depo_z,2);
 
         end
-        if ~strcmp(C.Boundary.(obj.Boundary_terrane_list{ib}),'none')
-            [B,dx] = C.Boundary.transform_coordinate(B,obj.Boundary_terrane_list{ib});
-
-        end
+        % Transform  the coordinate of the system
+        [B,~] = C.Boundary.transform_coordinate(A,obj.Boundary_terrane_list{ib});       
         iy =  B.Ypart>=l1 & B.Ypart<=l2;
         [in,~] = inpolygon(B.Xpart,B.Zpart,x,z);
         Phase(in==1 & iy==1) = obj.ph_pas_m;
