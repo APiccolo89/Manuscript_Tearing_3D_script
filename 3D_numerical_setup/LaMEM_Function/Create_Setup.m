@@ -22,7 +22,7 @@ disp(['The full operation took ', num2str(round((TB-TA)./60)), ' minutes'])
 disp('====================================================================')
 
 % Final correction 
-ind = Temp == TI.TP & A.Zpart<0.0; 
+ind =   abs(Temp-TI.TP)<0.1 & A.Zpart<0.0; 
 Phase(ind)  = TI.Ph_Ast;
 Temp(ind)   = TI.TP;
 
