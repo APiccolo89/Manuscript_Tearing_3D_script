@@ -1,4 +1,4 @@
-function [obj,Phase,Temp] = find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,data_boundary,theta)
+function [obj,Phase,Temp] = find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
 % linear part of the slab: should I compute?
 sl    = 1    ; % Always YES, NO, only if we are considering weak zone, which has 90 deg theta
 % Convert the angle in radians
@@ -6,7 +6,7 @@ sl    = 1    ; % Always YES, NO, only if we are considering weak zone, which has
 x     = A.Xpart(:); % x part coordinate
 z     = A.Zpart(:); % z part coordinate
 y     = A.Ypart(:); % y part coordinate
-
+data_boundary = obj.Boundary.(Boundary);
 %Select the boundary = limits of the boundary
 [loc1, ~] = find(tril(data_boundary{1} == data_boundary{1}', -1)); % find the main boundary.
 if rem(loc1,2)==0
@@ -23,9 +23,9 @@ end
 ang_  = (theta)*pi/180; % angle of the slab
 ang_2 = (theta+90)*pi/180; %needed for the linear portion of the slab
 
-r      = [obj.R-obj.D0,obj.R]; % radius upper and lower surface
+r      = obj.R; % radius upper and lower surface
 r_m    = sum(r)./2; % average radius, to compute the linear integral
-C      = [xc,0.0-obj.R]; % center of the curvature
+C      = [xc,0.0-obj.R(2)]; % center of the curvature
 
 if strcmp(Weak_Slab,'Weak')
     r(1) = r(2);
@@ -36,7 +36,7 @@ if strcmp(Weak_Slab,'Weak')
     %=============
 end
 % select the point that are worth to check if they belong to the slab
-ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0  y(:)>=ya & y(:)<=yb;
+ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>=ya & y<=yb;
 A_time = cputime;
 % Vector version
 d = x*nan; % d the distance array for the slab
@@ -61,12 +61,12 @@ end
 d(d<r(1) | d>r(2)) = NaN;
 % Exclude the points that feature an angular distance w.r.t. C that is
 % higher or lower than the actual angle {TO DO detecting the bending}
-d(arc_angleS>obj.theta | arc_angleS<0)=NaN;
+d(arc_angleS>theta | arc_angleS<0)=NaN;
 % Compute the effective distance from the top surface
 d = d-r(2);
 % Compute the length of the curved slab as a function of the mid distance
 % layer. {r_m*angle} => angle in radians.
-Length(~isnan(d))= r_m.*arc_angleS(~isnan(d) & arc_angleS<=obj.theta)*pi/180; % compute the length associated with the
+Length(~isnan(d))= r_m.*arc_angleS(~isnan(d) & arc_angleS<=theta)*pi/180; % compute the length associated with the
 
 if sl ==1
 
@@ -94,24 +94,37 @@ if sl ==1
     Pz(4) = p3(2);
     % Inpolygon => Select the pint that belongs to the polygon
     [in,~] = inpolygon(x,z,Py,Pz);
-    P = [x(in), z(in)];
+    P = [x(in & y>=ya & y<=yb), z(in & y>=ya & y<=yb)];
     % Find the distance from the top surface
-    d(in) = -(find_distance_linear(P,p2,p4))';
+    d(in & y>=ya & y<=yb) = -(find_distance_linear(P,p2,p4))';
     %Update the object
     % Find the continent portion {additional change to the structure}
     % I have the length and the depth, which mean that I have an ortogonal
     % system of coordinate that I can use to generate my stuff.
     if ~strcmp(Weak_Slab,'Weak')
-        [Length,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r_m,d,Length,Phase,Temp);
-        Points = obj.Subducted_crust_L;
-        Pl(1)     = Points(1);
-        Pl(2)     = Points(3);
-        Pl(3)     = Points(5);
-        Pd(1)     = Points(2);
-        Pd(2)     = Points(4);
-        Pd(3)     = Points(6);
-        [in,~] = inpolygon(Length,d,Pl,Pd);
-        continent(in==1)=1.0;
+        [Length,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r_m,d,Length,Phase,Temp,theta);
+        if ~strcmp(obj.length_continent{2},'none')
+            [L] = Compute_properties_along_function(ya,yb,obj.length_continent,A.Length_along);
+            Points = obj.Subducted_crust_L;
+            Pl(1)     = Points(1);
+            Pl(2)     = Points(3);
+            Pl(3)     = 1.0;
+            Pd(1)     = Points(2);
+            Pd(2)     = Points(4);
+            Pd(3)     = Points(6);
+            [in,~] = inpolygon(Length./L(:),d,Pl,Pd);
+            continent(in==1 & y>=ya & y<=yb)=1.0;
+        else
+            Points = obj.Subducted_crust_L;
+            Pl(1)     = Points(1);
+            Pl(2)     = Points(3);
+            Pl(3)     = Points(5);
+            Pd(1)     = Points(2);
+            Pd(2)     = Points(4);
+            Pd(3)     = Points(6);
+            [in,~] = inpolygon(Length,d,Pl,Pd);
+            continent(in==1 & y>=ya & y<=yb)=1.0;
+        end
         % Need to do as follow, I lose any hope to have any fixed
         % organisation
         obj.Decoupling_depth(1) = obj.Decoupling_depth;
@@ -138,15 +151,15 @@ d  = A./sqrt(B);
 
 end
 
-function [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp)
+function [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp,theta)
 slab = ~isnan(d)==1;
 % Compute the two point along the midplane of the slab
 % 1) After the curved part of the slab
-PA(1)=C(1)+r*sin(obj.theta*pi/180);
-PA(2)=C(2)+r*cos(obj.theta*pi/180);
+PA(1)=C(1)+r*sin(theta*pi/180);
+PA(2)=C(2)+r*cos(theta*pi/180);
 %Coordinate of the midsurface at the depth of slab  (bottom of the slab)
-PB(1)=PA(1)+obj.L0*cos(obj.theta*pi/180);
-PB(2)=PA(2)-obj.L0*sin(obj.theta*pi/180);
+PB(1)=PA(1)+obj.L0*cos(theta*pi/180);
+PB(2)=PA(2)-obj.L0*sin(theta*pi/180);
 % Compute the slope of the line:
 m=(PB(2)-PA(2))./(PB(1)-PA(1));
 %m = 1./m;
@@ -159,9 +172,11 @@ b = PA(2)-PA(1).*m;
 xprojection(slab==1 & isnan(l)) = (x(slab==1 & isnan(l)) + m.*z(slab==1 & isnan(l))-m.*b)./(1+m.^2);
 zprojection(slab==1 &isnan(l)) = (m.*x(slab==1 & isnan(l)) + m^2.*z(slab==1 & isnan(l))+b)./(1+m.^2);
 % Compute the length of the slab along the midsurface
-l(slab==1 & isnan(l)) = r*obj.theta*pi/180+sqrt((xprojection(slab==1 & isnan(l))-PA(1)).^2+(zprojection(slab==1 & isnan(l))-PA(2)).^2);
+l(slab==1 & isnan(l)) = r.*theta*pi/180+sqrt((xprojection(slab==1 & isnan(l))-PA(1)).^2+(zprojection(slab==1 & isnan(l))-PA(2)).^2);
 ind_decoupling = find(zprojection>=obj.Decoupling_depth,1);
 % Corret the damn Phase and Temperature
 Phase(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2)& x>C(1) & ~isnan(Phase(:))) = obj.Thermal_information.Ph_Ast;
 Temp(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2) & x>C(1) &~isnan(Phase(:))) = obj.Thermal_information.TP;
 end
+
+

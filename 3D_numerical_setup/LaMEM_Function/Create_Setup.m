@@ -50,9 +50,8 @@ A.x      =  double(x(:));
 A.y      =  double(y(:));
 A.z      =  double(z(:));
 
-[A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
+%[A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
 
-plot_initial_setup2D(A,surf);
 
 A.RandomNoise = logical(0);
 

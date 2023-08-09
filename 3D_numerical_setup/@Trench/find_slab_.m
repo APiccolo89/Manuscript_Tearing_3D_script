@@ -1,4 +1,4 @@
-function [obj,Phase,Temp] = find_slab_(obj,A,Weak_Slab,Phase,Temp,Boundary)
+function [obj,Phase,Temp] = find_slab_(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
 
 if strcmp(obj.Type_Subduction,'Mode_1')
     [obj,Phase,Temp] = obj.find_slab_mode_1(A,Weak_Slab,Phase,Temp,Boundary,theta);

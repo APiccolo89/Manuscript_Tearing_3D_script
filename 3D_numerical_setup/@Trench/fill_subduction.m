@@ -19,7 +19,7 @@ for ib = 1:numel(boundary_list)
 
     if strcmp(obj.theta{2},'none')
         theta = obj.theta{1}(1);
-        [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.boundary_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
+        [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.Boundaries_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
     else
         % Place holder for a loop over y direction 
         % ALG: 

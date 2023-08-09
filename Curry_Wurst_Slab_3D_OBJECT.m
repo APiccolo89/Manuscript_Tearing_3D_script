@@ -78,7 +78,7 @@ Thermal_TypeTrench.Type = 'McKenzie';
 %
 Thermal_TypeOcean = Thermal_Type;
 Thermal_TypeOcean.Age = convert_Age_velocity(30,1); 
-Thermal_TypeTrench.Type = 'HalfSpace';
+Thermal_TypeOcean.Type = 'HalfSpace';
 % 
 Thermal_TypeContinent = Thermal_Type; 
 Thermal_TypeContinent.Type = 'ContinentalGeotherm'; 
@@ -157,7 +157,7 @@ T.L0   = 400;
 T.Decoupling_depth = -100; 
 T.Thermal_type = Thermal_TypeTrench;
 T.Thermal_information = Thermal_information; 
-T.R = [120,120-T.D0]; 
+T.R = [120-T.D0, 120]; 
 T.Type_Subduction = 'Mode_1'; 
 T.tk_WZ = 20.0; 
 T.ph_WZ = phases.Ph_WZ(1);
@@ -165,6 +165,7 @@ T.Subducted_crust_L = [0.0,0.0,0.0,-80.0,50.0,0.0];
 %                     x1   z1
 T.phase_prism = phases.Ph_cont_pr(1);
 T.position_end_prism = 200; 
+T.length_continent = {[100,20],'linear'};
 
 %==========================================================================
 % Filling the Terrane structure:=> The order is important as the phase will
