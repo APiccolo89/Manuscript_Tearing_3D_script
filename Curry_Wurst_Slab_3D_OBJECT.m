@@ -144,7 +144,7 @@ Ocean_BG.name = 'Ocean Background';
 Ocean_BG.Boundary = BG; 
 Ocean_BG.Stratigraphy = oceanic_stratigraphy;
 Ocean_BG.Thermal_information = Thermal_information;
-Ocean_BG.Thermal_type = Thermal_TypeTrench;
+Ocean_BG.Thermal_type = Thermal_TypeOcean;
 
 %==========================================================================
 T.Boundary = C2;

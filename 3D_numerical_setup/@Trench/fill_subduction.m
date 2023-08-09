@@ -40,13 +40,13 @@ for ib = 1:numel(boundary_list)
     end
 
     A_time = cputime;
-    [Temp] = compute_temperature_profile(obj,B,[],Temp);
+    [Temp] = compute_temperature_profile(obj,B,[],Temp,obj.Boundaries_list{ib});
     B_time = cputime;
     disp(['   Temperature field of the slab took ', num2str(B_time-A_time,3), ' seconds'])
     A_time = cputime;
     [Phase] = fill_stratigraphy(obj,B,Phase,[]);
-    [Phase] = obj.generate_accretion_prism(A,Phase);
-    [obj,Phase,Temp] = obj.find_slab_(B,'Weak',Phase,Temp,obj.boundary_list{ib});
+    [Phase] = obj.generate_accretion_prism(B,Phase,boundary_list{ib});
+    [obj,Phase,Temp] = obj.find_slab_(B,'Weak',Phase,Temp,boundary_list{ib});
     [Phase] = obj.fill_weak_zone(Phase);
     B_time = cputime;
     disp(['   Phase field of the slab, prism weakzone  took ', num2str(B_time-A_time,3), ' seconds'])
