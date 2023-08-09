@@ -54,7 +54,7 @@ classdef Trench
         % Slab mode 1
         [obj,Phase,Temp]= find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
         [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp) % I need the data of the object for this particular function
-        [Phase] = generate_accretion_prism(obj,A,Phase)
+        [Phase] = generate_accretion_prism(obj,A,Phase,Boundary)
         function [Phase] = fill_weak_zone(obj,Phase)
             ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism;
             Phase(ind) = obj.ph_WZ;

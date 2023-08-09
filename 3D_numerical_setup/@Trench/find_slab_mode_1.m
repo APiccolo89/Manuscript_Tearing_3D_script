@@ -30,7 +30,7 @@ C      = [xc,0.0-obj.R(2)]; % center of the curvature
 if strcmp(Weak_Slab,'Weak')
     r(1) = r(2);
     r(2) = r(2)+obj.tk_WZ;
-    if obj.theta == 90
+    if theta == 90
         sl = 0;
     end
     %=============

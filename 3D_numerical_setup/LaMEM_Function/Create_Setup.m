@@ -22,10 +22,11 @@ disp(['The full operation took ', num2str(round((TB-TA)./60)), ' minutes'])
 disp('====================================================================')
 
 % Final correction 
-ind = Temp == TI.TP & A.Zpart<0.0;
+ind = Temp == TI.TP & A.Zpart<0.0; 
 Phase(ind)  = TI.Ph_Ast;
 Temp(ind)   = TI.TP;
-ind = isnan(Phase) & A.Zpart>0.0;
+
+ind = A.Zpart>0.0;
 Temp(ind)   = TI.TS;
 Phase(ind)  = TI.Ph_Air;
 
@@ -55,7 +56,6 @@ A.z      =  double(z(:));
 
 A.RandomNoise = logical(0);
 
-clear Temp Phase
 
 
 % PARAVIEW VISUALIZATION

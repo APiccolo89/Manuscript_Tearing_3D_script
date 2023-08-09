@@ -14,7 +14,7 @@ for it =1:length(terranes_list)
     t = Terranes.(terranes_list{it});
     disp('=================================')
     [Phase,Temp] =  t.fill_terranes(A,Phase,Temp);
-     disp('=================================')
+    disp('=================================')
 end
 TB = cputime;
 disp('=================================TERRANES ARE FINISHED==============')
@@ -22,10 +22,11 @@ disp(['The full operation took ', num2str(round((TB-TA)./60)), ' minutes'])
 disp('====================================================================')
 
 % Final correction 
-ind = Temp == TI.TP & A.Zpart<0.0;
+ind = Temp == TI.TP & A.Zpart<0.0; 
 Phase(ind)  = TI.Ph_Ast;
 Temp(ind)   = TI.TP;
-ind = isnan(Phase) & A.Zpart>0.0;
+
+ind = A.Zpart>0.0;
 Temp(ind)   = TI.TS;
 Phase(ind)  = TI.Ph_Air;
 
@@ -50,13 +51,11 @@ A.x      =  double(x(:));
 A.y      =  double(y(:));
 A.z      =  double(z(:));
 
-[A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
+%[A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
 
-plot_initial_setup2D(A,surf);
 
 A.RandomNoise = logical(0);
 
-clear Temp Phase
 
 
 % PARAVIEW VISUALIZATION

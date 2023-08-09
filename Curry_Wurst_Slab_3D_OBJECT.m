@@ -29,6 +29,10 @@ phases.Ph_LC2  = [10,2700]  ;
 phases.Ph_UC2  = [11,2750] ;
 phases.Ph_cont_pr = [12,2680];
 phases.Ph_pas_m = [13,2680];
+phases.Ph_OLt2 = [14,3324] ;% Ocean Lithosphere
+phases.Ph_OC2  = [15,3324]   ;%place holder
+
+
 %==========================================================================
 % Stratigraphic structure list 
 % Stratigraphies types ~ Structure containing the number of phases and
@@ -38,9 +42,11 @@ continental_stratigraphy.phases = [phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt
 continental_stratigraphy.Tk     = [0.0,-15.0,-30.0,-100.0];
 oceanic_stratigraphy.phases = [phases.Ph_OC(1),phases.Ph_OLt(1)];
 oceanic_stratigraphy.Tk     = [0.0,-7.0, -80.0];
+oceanic_stratigraphy2.phases = [phases.Ph_OC2(1),phases.Ph_OLt2(1)];
+oceanic_stratigraphy2.Tk     = [0.0,-7.0, -80.0];
 continental_stratigraphy2.phases = [phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
 continental_stratigraphy2.Tk     = [0.0,-15.0,-30.0,-100.0];
-continental_stratigraphy_s.phases =[phases.Ph_pas_m(1),phases.Ph_UC(1),phases.Ph_LC(1),phases.Ph_Clt(1)];
+continental_stratigraphy_s.phases =[phases.Ph_pas_m(1),phases.Ph_UC2(1),phases.Ph_LC2(1),phases.Ph_Clt2(1)];
 continental_stratigraphy_s.Tk     = [0.0,-12.0,-15.0,-30.0,-100.0];
 
 % Boundaries
@@ -142,7 +148,7 @@ Continent2.Passive_Margin = passive_margin2;
 %==========================================================================
 Ocean_BG.name = 'Ocean Background';
 Ocean_BG.Boundary = BG; 
-Ocean_BG.Stratigraphy = oceanic_stratigraphy;
+Ocean_BG.Stratigraphy = oceanic_stratigraphy2;
 Ocean_BG.Thermal_information = Thermal_information;
 Ocean_BG.Thermal_type = Thermal_TypeOcean;
 
