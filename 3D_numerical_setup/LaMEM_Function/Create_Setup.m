@@ -59,7 +59,7 @@ A.RandomNoise = logical(0);
 
 
 % PARAVIEW VISUALIZATION
-FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option
+FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option 'BINARY'
 
 % SAVE PARALLEL DATA (parallel)
 FDSTAGSaveMarkersParallelMatlab(A,Parallel_partition, Is64BIT);

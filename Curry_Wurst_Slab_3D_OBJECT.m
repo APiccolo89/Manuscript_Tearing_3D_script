@@ -79,7 +79,7 @@ C2=C2.Create_arc_circumference_margin(1000,'B',1200);
 
 Thermal_TypeTrench = Thermal_Type;
 Thermal_TypeTrench.Age = convert_Age_velocity(30,1); 
-Thermal_TypeTrench.vel = {[convert_Age_velocity(3,2),convert_Age_velocity(3,2)],'none'}; 
+Thermal_TypeTrench.vel = {[convert_Age_velocity(3,2),convert_Age_velocity(10,2)],'none'}; 
 Thermal_TypeTrench.Type = 'McKenzie';
 %
 Thermal_TypeOcean = Thermal_Type;
