@@ -26,9 +26,9 @@ classdef BoundsT
 
     properties
         name 
-        type (1,:){mustBeTextScalar} = 'Composite'; % elipses %circle %linear
-        W     {mustBeGreaterThan(W,0)} = 1.0      ; % W => can be the radius 
-        L      {mustBeGreaterThan(L,0)} = 1.0     ; % L=> can be the radius 
+        type  = 'Composite'; % elipses %circle %linear
+        W      = 1.0      ; % W => can be the radius 
+        L       = 1.0     ; % L=> can be the radius 
         x1     % x1 
         x2     % x2 
         y1     %

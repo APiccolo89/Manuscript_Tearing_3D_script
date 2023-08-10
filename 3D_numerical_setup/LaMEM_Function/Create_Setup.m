@@ -40,7 +40,7 @@ A.nump_x = npart(1);
 A.nump_y = npart(2);
 A.nump_z = npart(3);
 A.Phase  = double(Phase); clear Phase
-A.Temp   = double(Temp);  clear Temp
+A.Temp   = double(Temp);  %clear Temp
 A.Phase  = permute(A.Phase,[2 1 3]);
 A.Temp   = permute(A.Temp, [2 1 3]);
 
@@ -59,7 +59,7 @@ A.RandomNoise = logical(0);
 
 
 % PARAVIEW VISUALIZATION
-FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option 'BINARY'
+FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option
 
 % SAVE PARALLEL DATA (parallel)
 FDSTAGSaveMarkersParallelMatlab(A,Parallel_partition, Is64BIT);
