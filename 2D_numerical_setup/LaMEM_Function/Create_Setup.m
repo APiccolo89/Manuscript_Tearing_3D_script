@@ -14,7 +14,7 @@ for it =1:length(terranes_list)
     t = Terranes.(terranes_list{it});
     disp('=================================')
     [Phase,Temp] =  t.fill_terranes(A,Phase,Temp);
-    disp('=================================')
+     disp('=================================')
 end
 TB = cputime;
 disp('=================================TERRANES ARE FINISHED==============')

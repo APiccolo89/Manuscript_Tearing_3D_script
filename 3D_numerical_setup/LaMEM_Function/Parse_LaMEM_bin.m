@@ -3,8 +3,6 @@ function [A,Gr] = Parse_LaMEM_bin(Parallel_partition,Paraview_output,LaMEM_Paral
 % OUTPUT OPTIONS
 %==========================================================================
 % See model setup in Paraview 1-YES; 0-NO
-
-Parallel_partition     = 'ProcessorPartitioning_8cpu_4.1.2.bin';
 RandomNoise             =   logical(0);
 Is64BIT                 =   logical(0);
 %==========================================================================
