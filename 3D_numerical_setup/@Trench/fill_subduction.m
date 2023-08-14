@@ -4,7 +4,7 @@ boundary_list = obj.Boundaries_list;
 for ib = 1:numel(boundary_list)
     % Transform coordinate:
     % Transform  the coordinate of the system
-    [B] = obj.Boundary.transform_coordinate(A,obj.Boundaries_list{ib}); % transform the coordinate of the system
+    [B] = obj.Boundary.transform_coordinate(A,obj.Boundaries_list{ib},obj.theta{1}(1)); % transform the coordinate of the system
     B.Length_along = B.Xpart*nan; % I need this temporary variable
     % unavoidable
     if strcmp(boundary_list{ib},'A')||strcmp(boundary_list{ib},'C')
@@ -18,7 +18,7 @@ for ib = 1:numel(boundary_list)
     B.Length_along(B.Ypart>=ya & B.Ypart<=yb) = obj.Boundary.compute_arc_length_circle(B.Ypart(B.Ypart>=ya & B.Ypart<=yb),obj.Boundaries_list{ib});
 
     if strcmp(obj.theta{2},'none')
-        theta = obj.theta{1}(1);
+        theta = abs(obj.theta{1}(1));
         [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.Boundaries_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
     else
         % Place holder for a loop over y direction 

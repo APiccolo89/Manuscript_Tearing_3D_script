@@ -4,7 +4,10 @@ function [Size,CC] = modify_terrane_limits(obj,R,arc_length,Boundary,c)
 % R = radius of curvature
 % arc_length = the length of the curved slab
 %=========================================================================%
-theta_ = arc_length./(R);
+theta_ = arc_length/(R);
+if theta_ >= 270/pi
+    error('For the given terrane, this curvature is irrealistic')
+end
 xa     = c-R.*sin(theta_./2);
 xb     = c+R.*sin(theta_./2);
 Size = xb-xa;

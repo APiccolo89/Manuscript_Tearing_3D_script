@@ -1,4 +1,4 @@
-function [B] = transform_coordinate(obj,A,Boundary,thetaA)
+function [B] = transform_coordinate(obj,A,Boundary,theta=[])
 %==========================================================================
 % function to transform coordinate such that the curved boundary is
 % deflected back to linear.
@@ -7,11 +7,6 @@ function [B] = transform_coordinate(obj,A,Boundary,thetaA)
 % by the type of the boundary and correct this coordinate for filling up
 % the phase.
 %==========================================================================
-if nargin > 3
-  theta = thetaA;
-else
-  theta  = [];
-end
 data_boundary = obj.(Boundary);
 if strcmp(Boundary,'D')||strcmp(Boundary,'B')
     % local transformation of the variable name in the
