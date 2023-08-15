@@ -27,9 +27,9 @@ from Parser_File import *
 from Running_script_main_function import _run_script_visualization
 
 # Folder where the tests are contained
-Folder = r'C:\Users\Andrea Piccolo\Desktop\Test_python' 
+Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests/' 
 # Folder where the output must be saved
-ptsave1 = r'C:\Users\Andrea Piccolo\Desktop\Test_python\Output'
+ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/_output_new'
 
 #Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 
 #ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/Output'
