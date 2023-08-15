@@ -1,0 +1,22 @@
+
+function save_h5file_data(Terranes,A)
+%==========================================================================
+% Save the relevant information about a setup on h5 file that needs to be
+% read by a Python script later on. This function serves to prepare a
+% proper workflow for data post processing for the Current project: i.e.
+% effects of slab-break off on surface uplift, insights from 3D numerical
+% simulation. Do not expect high degree of generalisation, dear user, but
+% feel free to steal the idea for having an easy life. 
+%==========================================================================
+structure_fields = fieldnames(Terranes);
+number_terranes = numel(structure_fields);
+h5write("Test_Geometry_","/DS1",mydata)
+for it = 1:number_terranes
+
+
+
+
+
+end
+
+end

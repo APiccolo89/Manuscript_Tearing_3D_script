@@ -20,6 +20,7 @@ TB = cputime;
 disp('=================================TERRANES ARE FINISHED==============')
 disp(['The full operation took ', num2str(round((TB-TA)./60)), ' minutes'])
 disp('====================================================================')
+save_h5file_data(Terranes,Phase,Temp,A.Zpart)
 
 % Final correction 
 ind =   abs(Temp-TI.TP)<0.1 & A.Zpart<0.0; 
