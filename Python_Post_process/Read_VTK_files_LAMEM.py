@@ -717,11 +717,14 @@ class FS():
         self.vx = np.zeros((tx,nstep),dtype=float)
         self.vz = np.zeros((tx,nstep),dtype=float)
         self.vm = np.zeros((tx,nstep),dtype=float)
-        self.vx = np.zeros((tx,nstep),dtype=float)
         self.Topo = np.zeros((tx,nstep),dtype=float)
         self.Amplitude = np.zeros((tx,nstep),dtype=float)
+        self.dTopo    = np.zeros((tx,nstep),dtype=float)
+        self.dvz      = np.zeros((tx,nstep),dtype=float)
+        self._error_      = np.zeros((tx,nstep),dtype=float)
         
-    def _Update_(self,Filename_s,C,ipic):
+        
+    def _Update_(self,Filename_s,C,ipic,dt):
         
         ind_x = C.ind_x
         nx    = C.nx
@@ -731,7 +734,9 @@ class FS():
         self.vx[:,ipic],self.vz[:,ipic],self.vm[:,ipic] = self._Read_Field_Surf(Filename_s,"velocity [cm/yr]",ind_x,x,nx,ny)
         self.Topo[:,ipic]               = self._Read_Field_Surf(Filename_s,"topography [km]",ind_x,x,nx,ny)
         self.Amplitude[:,ipic]          = self._Read_Field_Surf(Filename_s,"amplitude [km]",ind_x,x,nx,ny) 
-    
+        self.dTopo[:,ipic]              = self.Compute_derivatives_time("Topo_dt",dt,ipic)
+        self.dvz[:,ipic]                = self.Compute_derivatives_time("vz_dt",dt,ipic)
+        self._error_[:,ipic]            = self.dTopo[:,ipic]-self.dvz[:,ipic]
     def _Read_Field_Surf(self, Filename_s,Field,ind_x,x,nx,ny):
     
         VTK_SET_s(Filename_s)
@@ -762,7 +767,66 @@ class FS():
             buf = buf[ind_x]
             
             return buf 
-    
+    def Compute_derivatives_time(self,var,dt,ipic):
+        if ipic >0:
+            if var == 'Topo_dt':
+                buf = self.Topo[:,ipic]-self.Topo[:,ipic-1]
+                buf = (buf/dt)*1e4/1e6 
+            elif var == 'vz_dt':
+                buf= (self.vz[:,ipic]+self.vz[:,ipic-1])/2
+        else:
+            buf = 0.0
+        return buf
+    def Plot_freesurface(self,C,t,ipic,ptsave,x_lim,y_lim):
+        # Plot free surface
+        #=========================================
+        # 
+        #
+        #===========================================
+        fna='Fig'+"{:03d}".format(ipic)+'.png'
+        ptsave_b = os.path.join(ptsave,'free_surface')
+        if not os.path.isdir(ptsave_b):
+            os.mkdir(ptsave_b)
+        
+        dic_val= {
+            "vx"       : r"$v_x$, $\frac{cm}{yrs}$",
+            "vz"       : r"$v_z$, $\frac{cm}{yrs}$",
+            "vm"        : r"$\mathbf{v}$, $\frac{cm}{yrs}$",
+            "Topo" : r"$H$, $km$",
+            "Amplitude"     : r"$H$, $km$",
+            "dvz"      : r"$\bar{v}_z$, $\frac{cm}{yrs}$",
+            "dTopo"     : r"$\frac{dH}{dt}$, $\frac{cm}{yrs}$",
+            "_error_": r"$\frac{dH}{dt}-\bar{v}_z$,  $\frac{cm}{yrs}$"}
+        
+        #fn = os.path.join(ptsave_c,fna)
+        for k in self.__dict__:
+            buf = eval(k,globals(),self.__dict__)
+            ptsave_c = os.path.join(ptsave_b,k)
+            if not os.path.isdir(ptsave_c):
+                os.mkdir(ptsave_c)
+            fn = os.path.join(ptsave_c,fna)
+            fg = figure()
+            ax0 = fg.gca()
+            ax0.plot(C.x,buf[:,ipic],linewidth=2,color = 'k')
+            ax0.xlim = x_lim
+            plt.grid(True)
+            f   = str(dic_val[k])
+            plt.xlabel('$x$ $km$')
+            plt.ylabel(f)
+            ax0.tick_params(axis='both', which='major', labelsize=5)
+            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+        ###############################################################       
+            plt.draw()    # necessary to render figure before saving
+            plt.show()
+            fg.savefig(fn,dpi=300,transparent=False)
+            fg.clear
+            plt.close()
+            
+            
+            
+        
+        
+        
     def ASCI_FILE(self,ipic,t_cur,Test_Name,ptsave,x):
         
         """

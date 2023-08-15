@@ -102,7 +102,13 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     ########################### Files and time stepping information############
         t1_start = perf_counter()
         fn=istp[1:istp.find('/')]
-        t_cur=time[ipic]        
+        t_cur=time[ipic]
+        if ipic == 0:
+           t_cur_p = 0.0
+           dt = 1.0 
+        else:
+            t_cur_p = time[ipic-1]
+            dt = t_cur-t_cur_p     
         Filename_dyn=os.path.join(Folder,Test_Name,fn,dyn)
         Filename_ph=os.path.join(Folder,Test_Name,fn,phase)
         Filename_s=os.path.join(Folder,Test_Name,fn,surf)
@@ -122,7 +128,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
 
         ###########################################################################
         t1= perf_counter()
-        FSurf._Update_(Filename_s,C,ipic)
+        FSurf._Update_(Filename_s,C,ipic,dt)
+        FSurf.Plot_freesurface(C,t_cur,ipic,ptsave,(-400, 400),(0,0))
         FSurf.ASCI_FILE(ipic,t_cur,Test_Name,ptsave,C.x)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
