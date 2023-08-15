@@ -30,7 +30,7 @@ for it = 1:number_terranes
     if isa(t,"Trench")
         ip = t.Stratigraphy_Oceanic.phases; 
         for ipt = 1:length(ip)
-            Phase(ip(ipt))=-1000; 
+            Phase(Phase==ip(ipt))=-1000; 
         end
         mean_TSlab = mean(Temp(Phase(:)==-1000 & Z(:)<=-100 & Z(:)>=-200));
         S_data.TS = mean_TSlab; 
