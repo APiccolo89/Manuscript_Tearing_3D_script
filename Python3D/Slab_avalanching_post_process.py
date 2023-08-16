@@ -61,7 +61,7 @@ for L in Test_Name:
         if not os.path.isdir(ptsave):
             os.mkdir(ptsave)
         #try:
-        mat_filename = os.path.join(l_,'Test_Data_Base.mat')
+        mat_filename = os.path.join(l_,'Test.mat')
         IG = Initial_Geometry(mat_filename)
         _run_script_visualization(ptsave,Folder,L,l_,vIC)
         #except:

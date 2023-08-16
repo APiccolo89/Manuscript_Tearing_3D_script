@@ -38,5 +38,5 @@ for it = 1:number_terranes
      TB.((structure_fields{it})) = struct(S_data); 
 end
 
-save('Test_Data_Base.mat',"TB")
+save('Test_Data_Base.mat','TB','-v7.3') % Short commit: the main issue is the following "" != '' in older version of Matlab. 
 end
