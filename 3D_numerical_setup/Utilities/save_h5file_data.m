@@ -38,5 +38,5 @@ for it = 1:number_terranes
      TB.((structure_fields{it})) = struct(S_data); 
 end
 
-save('Test_Data_Base.mat',"TB",'-v7')
+save('Test_Data_Base.mat',"TB")
 end
