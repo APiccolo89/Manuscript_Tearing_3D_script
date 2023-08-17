@@ -38,6 +38,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     dic_val= {
     "OP"       : "_Oceanic_Lit_ [ ]",
     "CC1"       : "_Continental_Crust_ [ ]",
+    "CC2"      : "_Continental_Crust_2 [ ]",
+    "Sed"      : "_Sediments_ [ ]",
     "T"        : "temperature [C]",
     "velocity" : "velocity [cm/yr]",
     "disp"     : "tot_displ [km]",
@@ -84,12 +86,13 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     fn=ts0[1:ts0.find('/')]
     Filename_0 = [os.path.join(Folder,Test_Name,fn,dyn),os.path.join(Folder,Test_Name,fn,phase)]
     folder_ = os.path.join(Folder,Test_Name)
-    C = Coordinate_System(Filename_0,ptsave,(-600.0,600.0),(-600.0,50.0))
+    IG       = Initial_Geometry(os.path.join(folder_,'Test_Data_Base.mat'))
+    C = Coordinate_System(Filename_0,ptsave,(-700.0,700.0),(-400,400),(-600.0,50.0))
     Phase_DB = Phase_Data_Base(folder_)
-    Initial_Condition = Initial_condition(Phase_DB.Phase_6_,Phase_DB.Phase_5_,vIC)
+    Initial_Condition = Initial_condition(Phase_DB.Phase_6_,Phase_DB.Phase_5_,IG)
     Initial_Condition.tc = Initial_Condition.tc/3.5
     ###############################################
-    FSurf = FS(C,len(time)) # Create the instance of free surface class 
+    FSurf = Free_S_Slab_break_off(C,len(time)) # Create the instance of free surface class 
     DYN   = VAL(C,dic_val)  # Create the instance of the .pvd file 
     Ph    = Phase(C,phase_dictionary) # Create the instance of the Phase field
     Slab  = SLAB(C,len(time))        # Create the instance of the Slab. 
@@ -103,6 +106,11 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         t1_start = perf_counter()
         fn=istp[1:istp.find('/')]
         t_cur=time[ipic]        
+        if ipic>0:
+            dt = time[ipic]-time[ipic-1]
+        else:
+            dt = 1.0 
+            
         Filename_dyn=os.path.join(Folder,Test_Name,fn,dyn)
         Filename_ph=os.path.join(Folder,Test_Name,fn,phase)
         Filename_s=os.path.join(Folder,Test_Name,fn,surf)
@@ -115,7 +123,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         print("Dynamic value took","{:02}".format(Values_time))
         ###########################################################################
         t1 = perf_counter()
-        Ph._update_phase(Filename_ph,C)  
+        #Ph._update_phase(Filename_ph,C)  
         t2 = perf_counter()    
         average_plot_time = t2-t1
         print("Phase_update","{:02}".format(average_plot_time))
@@ -123,24 +131,25 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         ###########################################################################
         t1= perf_counter()
         FSurf._Update_(Filename_s,C,ipic)
-        FSurf.ASCI_FILE(ipic,t_cur,Test_Name,ptsave,C.x)
+        FSurf._update_extra_variables(DYN,C,dt,ipic)
+        FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
 
         ###########################################################################
         t1 = perf_counter()
-        Slab. _update_C(C,DYN,ipic,time)
+        #Slab. _update_C(C,DYN,ipic,time)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################
         t1 = perf_counter()   
         if (ipic % 10 == 0):
             # Plot the field of interest of dynamic 
-            DYN._plot_maps_V(t_cur,C.z,C.x,ptsave,ipic)
+            #DYN._plot_maps_V(t_cur,C.z,C.x,ptsave,ipic)
             # Plot the phase plot 
-            Ph._plot_phase_field(C, DYN, ptsave, ipic, t_cur,FSurf,t_cur/Initial_Condition.td)
+            #Ph._plot_phase_field(C, DYN, ptsave, ipic, t_cur,FSurf,t_cur/Initial_Condition.td)
             # Plot the Slab averages 
-            Slab._plot_average_C(t_cur,C.z,ptsave,ipic)          
+            #Slab._plot_average_C(t_cur,C.z,ptsave,ipic)          
             t2 = perf_counter()
         plot_map_time = t2-t1
         ###########################################################################

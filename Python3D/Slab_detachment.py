@@ -469,9 +469,9 @@ class Initial_condition():
         ?) reading the python file to generate the initial setup (later on)
         """
         # Data that are input of the script 
-        self.D0,self.L0 = vIC[0],vIC[1]
-        self.T_av       = vIC[3]+273.15
-        self.TP         = vIC[4]+273.15
+        self.D0,self.L0 = vIC.Slab.D0*1e3,vIC.Slab.L0*1e3
+        self.T_av       = vIC.Slab.avTS+273.15
+        self.TP         = vIC.Slab.TP+273.15
         rho_slab         = Phase_Slab.Density.rho*(1-Phase_Slab.Density.alpha*(self.T_av-273.15))
         rho_mantle      = Phase_Mantle.Density.rho*(1-Phase_Slab.Density.alpha*(self.TP-273.15))
         # Reference Buoyancy force 
@@ -539,7 +539,7 @@ class Initial_condition():
         self.eta_ref_UM = eta_ref_UM # the effective viscosity of the upper mantle 
         self.Tc     = self.TP-self.T_av # Characteristic temperature
         self.T_av   = self.T_av-273.15
-        self.TP         = vIC[4]
+        self.TP         = self.TP-273.15
         self.eta_ref_S = eta_S_co 
 
         print("Reference viscosity diffusion creep of the slab is %f"%(np.log10(eta0D)))
@@ -780,12 +780,177 @@ class Trench(Terrane_Geo):
         self.theta = np.concatenate(np.array(mat[buf['theta'][0][0]]))
         self.continent_S = np.concatenate(np.array(mat[buf['length_continent'][0][0]]))
         self.avTS = np.array(buf['TS'])
+        self.TP   = np.array(buf['Thermal_information/TP'])
+        
+class Free_S_Slab_break_off(FS):
+    def __init__(self,C,nstep):
+        super().__init__(C,nstep)
+        tx  = np.sum(C.ind_x)
+        ty  = np.sum(C.ind_y)
+        self.dH          = np.zeros((ty,tx,nstep),dtype=float)
+        self.vz_M        = np.zeros((ty,tx,nstep),dtype=float)
+        self.mean_stress = np.zeros((ty,tx,nstep),dtype=float)
+        self.mean_eps = np.zeros((ty,tx,nstep),dtype=float)
+        self.mean_dx     = np.zeros((ty,tx,nstep),dtype=float)
+        self.mean_dy     = np.zeros((ty,tx,nstep),dtype=float)
+        self.mean_dz     = np.zeros((ty,tx,nstep),dtype=float)
         
         
+    def _update_extra_variables(self,V:VAL,C:Coordinate_System,dt,ipic):
+        self.dH[:,:,ipic]          = self._update_FS(dt,ipic,'dH')
+        self.vz_M[:,:,ipic]        = self._update_FS(dt,ipic,'vz_M')
+        self.mean_stress[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'tau')
+        self.mean_eps[:,:,ipic]    = self.update_Mean_CC(V,C,ipic,'eps')
+
+        self.mean_dx[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dx')
+        self.mean_dy[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dy')
+        self.mean_dz[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dz')
+        self.LGV = ['dH','vz_M','mean_stress','mean_eps','mean_dz','Amplitude']
+        self.Label  = ['dH','vz','tau','eps','dz','H']
+        self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.cork","cmc.oleron"]
+        self.Val         = [(-3,3),
+                            (-3,3),
+                            (0,"max"),
+                            (1e-16,"max"),
+                            ("min","max"),
+                            (-4.0,3.0)]
         
+        return self
+        
+        
+    def _update_FS(self,dt,ipic,name_field):
+        if name_field == 'dH':
+            if ipic > 0:
+                buf = (self.Topo[:,:,ipic]-self.Topo[:,:,ipic-1])/dt
+            else:
+                buf = self.dH[:,:,ipic]
+        else:
+            if ipic > 0:
+                buf = (self.vz[:,:,ipic]+self.vz[:,:,ipic-1])/2
+            else: 
+                buf = self.vz[:,:,ipic]
+        return buf 
+    
+    def update_Mean_CC(self,V:VAL,C:Coordinate_System,ipic,field_name):
+        # Compute the continental crust
+        Continental_crust                           = V.Sed+V.CC1+V.CC2 
+        Continental_crust[Continental_crust>=0.8]      = 1.0
+        Continental_crust[Continental_crust<0.8]    = np.nan
+        buf = 0.0*Continental_crust
+        buf = buf[0,:,:]
+        # loop over x,y. Select colum: compute mean of those that has high crustal fraction 
+        for i in range(len(C.y)-1):
+            for j in range(len(C.x)-1): 
+                column = eval(field_name,globals(),V.__dict__)[:,i,j]
+                crust  = Continental_crust[:,i,j]
+                if len(crust[crust==1]) == 0:
+                    buf[i,j]=np.nan 
+                else:
+                    buf[i,j] = np.mean(column[crust==1])
+        return buf 
+    def _plot_maps_FS(self,t_cur,y,x,ptsave,ipic):
+        import cmcrameri.cm as cmc
+        from matplotlib.colors import LogNorm
+        ptsave_b=os.path.join(ptsave,"WhMaps_FS")
+        
+        if not os.path.isdir(ptsave_b):
+            os.mkdir(ptsave_b)
+        
+        values = self.LGV 
+        index = self.Label
+        cmaps = self.Colormap 
+        LIM   = self.Val
+        
+        
+        time_sim = "{:.3f}".format(t_cur)
+      
+        ic = 0  
+        val = np.zeros((len(y),len(x)),dtype=float)
+        fg = figure()
+        ax0 = fg.gca()
+        fna='Fig'+"{:03d}".format(ipic)+'.png'       
+        cf =ax0.pcolormesh(x, y, val, shading='gouraud')
+        cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
+        cf0 = ax0.contour(x,y,self.Amplitude[:,:,ipic],levels = [-1000,500,0,500,1000],colors = "k",linewidths=0.75)
+        
+       
+        for name in values:
+        
+            cmap2 = eval(cmaps[ic])
+
+            val = eval(name,globals(),self.__dict__)
+            val = val[:,:,ipic]
+            log=0 
+            if (name == "eps" )|(name =="gamma"):
+                log = 1
                 
+            tick = r"t = %s [Myrs]" %(time_sim)
+            
+            ptsave_c=os.path.join(ptsave_b,name)
+            
+            if not os.path.isdir(ptsave_c):
+            
+                os.mkdir(ptsave_c)
+        
+            lm    = LIM[ic]
+            
+            
+            lim_m = lm[0]
+            lim_M = lm[1]
+            
+            val[abs(val) == np.inf] = np.nan
+            
+            if(lm[0]=="min"):
+            
+                lim_m = np.nanmin(val)
+
+            if (lm[1]=="max"):
+               
+                lim_M = np.nanmax(val)
+                
+                if lm[0] != "min":
+                     lim_m = lm[0]
+                     
+            if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
+                lim_m = 0.01
+                lim_M = +0.1
+                
+
+            fna='Fig'+"{:03d}".format(ipic)+'.png'
+            fn = os.path.join(ptsave_c,fna)
+           
+            cf.set_array(val.ravel())
+            cf.set_cmap(cmaps[ic])
+            if log == 1:
+                cf.norm = colors.LogNorm(vmin=lim_m, vmax=lim_M)
+            else: 
+                cf.norm=colors.Normalize(vmin=lim_m, vmax=lim_M)
+                
+            cf.set_clim([lim_m,lim_M])
+            cbar.vmin = lim_m 
+            cbar.vmax = lim_M
+            cbar.update_normal(cf)
+            ax0.tick_params(axis='both', which='major', labelsize=5)
+            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+            ax0.set_ylim(np.min(y),np.max(y))
+            ax0.set_xlim(np.min(x),np.max(x))
+            cbar.set_label(index[ic])
+            ax0.set_title(tick)
+
+            #plt.draw()    # necessary to render figure before saving
+            
+            fg.savefig(fn,dpi=300,transparent=False)
+            
+            
+            val = [] 
+
+            ic +=1 
+        fg.clear
+        plt.close()
+         
+        
     
-    
+
 
 
 

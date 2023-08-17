@@ -226,37 +226,41 @@ def _file_list(fname):
 
 
 class Coordinate_System():
-    def __init__(self,filename,ptsave,xlim = (0,0),zlim = (0,0)): #Private
+    def __init__(self,filename,ptsave,xlim = (0,0), ylim = (0,0),zlim = (0,0)): #Private
         
         self.xt,self.yt,self.zt,self.nx,self.ny,self.nz = self._Initial_Grid_(filename[0],0)
         
         self.xP,self.yP,self.zP,self.nxP,self.nyP,self.nzP = self._Initial_Grid_(filename[1],1) # _phase_grid
         
-        self.x,self.z,self.ind_x,self.ind_z = self.__zoom_grid_(xlim,zlim,0)
+        self.x,self.y,self.z,self.ind_x,self.ind_y,self.ind_z = self.__zoom_grid_(xlim,ylim,zlim,0)
         
-        self.xp,self.zp,self.ind_xp,self.ind_zp = self.__zoom_grid_(xlim,zlim,1)
+        self.xp,self.yp,self.zp,self.ind_xp,self.ind_yp,self.ind_zp = self.__zoom_grid_(xlim,ylim,zlim,1)
 
         
-    def __zoom_grid_(self,xlim,zlim,p): #Private
+    def __zoom_grid_(self,xlim,ylim,zlim,p): #Private
         """
         
         Parameters 
         -----------
         xlim = touple of x lim
+        ylim = touple of y lim 
         zlim = touple of z lim 
         
         Returns
         
-        x,z zoomed grid
+        x,y,z zoomed grid
         
         """
-        x = self.xt[0,:]
-        z = self.zt[:,0]
+        x = self.xt
+        y = self.yt
+        z = self.zt
         
         if p == 1:
-            x = self.xP[0,:]
-            z = self.zP[:,0]
+            x = self.xP
+            y = self.yP
+            z = self.zP
             x = (x[1:]+x[0:-1])/2
+            y = (y[1:]+y[0:-1])/2
             z = (z[1:]+z[0:-1])/2
         
         if(xlim[1]-xlim[0]>0.0):
@@ -267,6 +271,15 @@ class Coordinate_System():
         else:
             
             ind_x = []
+            
+        if(ylim[1]-ylim[0]>0.0):
+        
+            ind_y = (y>=ylim[0])&(y<=ylim[1])
+            y = y[ind_y]
+            
+        else:
+            
+            ind_y = []
             
         if(zlim[1]-zlim[0]>0.0):    
             
@@ -281,7 +294,7 @@ class Coordinate_System():
             
         
         
-        return x,z,ind_x,ind_z
+        return x,y,z,ind_x,ind_y,ind_z
     
     
     def _Initial_Grid_(self,Filename_0,p):
@@ -339,9 +352,9 @@ class Coordinate_System():
         yd = yd.reshape(nz,ny,nx)
         zd = zd.reshape(nz,ny,nx)
         
-        xd = xd[:,0,:]
-        yd = yd[:,0,:]
-        zd = zd[:,0,:]
+        xd = xd[0,0,:]
+        yd = yd[0,:,0]
+        zd = zd[:,0,0]
         
        
         
@@ -470,27 +483,30 @@ class VAL():
     def __init__(self,C,dictionary):
         
         ind_x = C.ind_x
+        ind_y = C.ind_y
         ind_z = C.ind_z
         tx    = np.sum(ind_x)
+        ty    = np.sum(ind_y)
         tz    = np.sum(ind_z)
         
         self.dict = dictionary
-        self.OP    = np.zeros([tz,tx],dtype=float)
-        self.C1    = np.zeros([tz,tx],dtype=float)
-        self.C2    = np.zeros([tz,tx],dtype=float)
-        self.CC1    = np.zeros([tz,tx],dtype=float)
-        self.CC2    = np.zeros([tz,tx],dtype=float)
-        self.T     = np.zeros([tz,tx],dtype=float)
-        self.vx, self.vz,self.vm = np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float)
-        self.dx, self.dz,self.dm = np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float)
-        self.tauxx,self.tauzz,self.tauxz = np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float)
-        self.epsxx,self.epszz,self.epsxz = np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float),np.zeros([tz,tx],dtype=float)
-        self.vis  = np.zeros([tz,tx],dtype=float)
-        self.nu   = np.zeros([tz,tx],dtype=float) 
-        self.eps = np.zeros([tz,tx],dtype=float)
-        self.tau =  np.zeros([tz,tx],dtype=float) 
-        self.Rho   =np.zeros([tz,tx],dtype=float)   
-        self.gamma   =np.zeros([tz,tx],dtype=float)   
+        self.OP    = np.zeros([tz,ty,tx],dtype=float)
+        self.C1    = np.zeros([tz,ty,tx],dtype=float)
+        self.C2    = np.zeros([tz,ty,tx],dtype=float)
+        self.CC1    = np.zeros([tz,ty,tx],dtype=float)
+        self.CC2    = np.zeros([tz,ty,tx],dtype=float)
+        self.Sed    = np.zeros([tz,ty,tx],dtype=float)
+        self.T     = np.zeros([tz,ty,tx],dtype=float)
+        self.vx,self.vy,self.vz,self.vm = np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float)
+        self.dx,self.dy, self.dz,self.dm = np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float)
+        self.tauxx,self.tauzz,self.tauxz = np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float)
+        self.epsxx,self.epszz,self.epsxz = np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float)
+        self.vis  = np.zeros([tz,ty,tx],dtype=float)
+        self.nu   = np.zeros([tz,ty,tx],dtype=float) 
+        self.eps = np.zeros([tz,ty,tx],dtype=float)
+        self.tau =  np.zeros([tz,ty,tx],dtype=float) 
+        self.Rho   =np.zeros([tz,ty,tx],dtype=float)   
+        self.gamma   =np.zeros([tz,ty,tx],dtype=float)   
         
         
         self.LGV         = ["tau","nu",'vz','vm',"gamma","eps","T"]
@@ -527,9 +543,9 @@ class VAL():
                 buf = buf/IC.epsc
             if((key == "velocity") | (key == "disp")):
                 if key == "velocity":
-                    self.vx,self.vz,self.vm = self.taylor_grid(C,key,buf)
+                    self.vx,self.vy,self.vz,self.vm = self.taylor_grid(C,key,buf)
                 else: 
-                    self.dx,self.dz,self.dm = self.taylor_grid(C,key,buf)
+                    self.dx,self.dy,self.dz,self.dm = self.taylor_grid(C,key,buf)
             elif((key == "stress_T") | (key == "eps_T")):
                
                if (key == "stress_T"):
@@ -537,7 +553,7 @@ class VAL():
                else:
                    self.epsxx,self.epszz,self.epsxz = self.taylor_grid(C,key,buf)
             else: 
-                eval(key,globals(),self.__dict__)[:,:] =self.taylor_grid(C,key,buf) 
+                eval(key,globals(),self.__dict__)[:,:,:] =self.taylor_grid(C,key,buf) 
             
         return self 
         
@@ -547,28 +563,40 @@ class VAL():
         ny = C.ny
         nz = C.nz
         ind_x = C.ind_x
+        ind_y = C.ind_y 
         ind_z = C.ind_z
         
         if ((key == "velocity") | (key == "disp")):
         
             t1,t2,t3= buf[:,0] , buf[:,1] , buf[:,2]
-            t1=t1.reshape([nz,ny,nx])
-            t3=t3.reshape([nz,ny,nx])
+            t1 = t1.reshape([nz,ny,nx])
+            t2 = t2.reshape([nz,ny,nx])
+            t3 = t3.reshape([nz,ny,nx])
             
-            tm=(t1**2+t3**2)**(0.5)
+            tm=(t1**2+t2**2+t3**2)**(0.5)
             
-            t1 = t1[:,0,:]
-            t3 = t3[:,0,:]
-            tm = tm[:,0,:]
+            t1= t1[ind_z,:,:]
+            t1= t1[:,ind_y,:]
+            t1= t1[:,:,ind_x]
+
             
-            t1= t1[ind_z,:]
-            t1 = t1[:,ind_x]
-            t3 = t3[ind_z,:]
-            t3 = t3[:,ind_x]
-            tm = tm[ind_z,:]
-            tm = tm[:,ind_x]
             
-            return t1,t3,tm
+            
+            t2 = t2[ind_z,:,:]
+            t2 = t2[:,ind_y,:]
+            t2 = t2[:,:,ind_x]
+            
+            
+            t3 = t3[ind_z,:,:]
+            t3 = t3[:,ind_y,:]
+            t3 = t3[:,:,ind_x]
+            
+            tm = tm[ind_z,:,:]
+            tm = tm[:,ind_y,:]
+            tm = tm[:,:,ind_x]
+
+            
+            return t1,t2,t3,tm
         
         elif((key == "eps_T") | (key == "stress_T")):
         
@@ -578,25 +606,29 @@ class VAL():
             tzz = tzz.reshape([nz,ny,nx])
             txz = txz.reshape([nz,ny,nx])
             
-            txx = txx[:,0,:]
-            tzz = tzz[:,0,:]
-            txz = txz[:,0,:]
             
-            txx = txx[ind_z,:]
-            txx = txx[:,ind_x]
-            tzz = tzz[ind_z,:]
-            tzz = tzz[:,ind_x]
+            txx = txx[ind_z,:,:]
+            txx = txx[:,ind_y,:]
+            txx = txx[:,:,ind_x]
+
+            tzz = tzz[ind_z,:,:]
+            tzz = tzz[:,ind_y,:]
+            tzz = tzz[:,:,ind_x]
+
             
-            txz = txz[ind_z,:]
-            txz = txz[:,ind_x]
+            txz = txz[ind_z,:,:]
+            txz = txz[:,ind_y,:]
+            txz = txz[:,:,ind_x]
+
             
             return txx,tzz,txz
         else:
             
             buf=buf.reshape([nz,ny,nx])
-            buf=buf[:,0,:]
-            buf = buf[ind_z,:]
-            buf = buf[:,ind_x]
+            buf = buf[ind_z,:,:]
+            buf = buf[:,ind_y,:]
+            buf = buf[:,:,ind_x]
+
             
             return buf 
         
@@ -713,26 +745,30 @@ class FS():
     def __init__(self,C,nstep):
     
         tx  = np.sum(C.ind_x)
+        ty  = np.sum(C.ind_y)
         
-        self.vx = np.zeros((tx,nstep),dtype=float)
-        self.vz = np.zeros((tx,nstep),dtype=float)
-        self.vm = np.zeros((tx,nstep),dtype=float)
-        self.vx = np.zeros((tx,nstep),dtype=float)
-        self.Topo = np.zeros((tx,nstep),dtype=float)
-        self.Amplitude = np.zeros((tx,nstep),dtype=float)
+        self.vx = np.zeros((ty,tx,nstep),dtype=float)
+        self.vy = np.zeros((ty,tx,nstep),dtype=float)
+        self.vz = np.zeros((ty,tx,nstep),dtype=float)
+        self.vm = np.zeros((ty,tx,nstep),dtype=float)
+        self.vx = np.zeros((ty,tx,nstep),dtype=float)
+        self.Topo = np.zeros((ty,tx,nstep),dtype=float)
+        self.Amplitude = np.zeros((ty,tx,nstep),dtype=float)
         
     def _Update_(self,Filename_s,C,ipic):
         
         ind_x = C.ind_x
+        ind_y = C.ind_y
         nx    = C.nx
         ny    = C.ny
         x     = C.x 
+        y     = C.y 
         
-        self.vx[:,ipic],self.vz[:,ipic],self.vm[:,ipic] = self._Read_Field_Surf(Filename_s,"velocity [cm/yr]",ind_x,x,nx,ny)
-        self.Topo[:,ipic]               = self._Read_Field_Surf(Filename_s,"topography [km]",ind_x,x,nx,ny)
-        self.Amplitude[:,ipic]          = self._Read_Field_Surf(Filename_s,"amplitude [km]",ind_x,x,nx,ny) 
+        self.vx[:,:,ipic],self.vy[:,:,ipic],self.vz[:,:,ipic],self.vm[:,:,ipic] = self._Read_Field_Surf(Filename_s,"velocity [cm/yr]",ind_x,ind_y,x,y,nx,ny)
+        self.Topo[:,:,ipic]               = self._Read_Field_Surf(Filename_s,"topography [km]",ind_x,ind_y,x,y,nx,ny)
+        self.Amplitude[:,:,ipic]          = self._Read_Field_Surf(Filename_s,"amplitude [km]",ind_x,ind_y,x,y,nx,ny)
     
-    def _Read_Field_Surf(self, Filename_s,Field,ind_x,x,nx,ny):
+    def _Read_Field_Surf(self, Filename_s,Field,ind_x,ind_y,x,y,nx,ny):
     
         VTK_SET_s(Filename_s)
         VTK_UPDATE_s()
@@ -746,24 +782,29 @@ class FS():
             vyS = buf[:,1] 
             vzS = buf[:,2]
             vxS = vxS.reshape([ny,nx])
+            vyS = vxS.reshape([ny,nx])
             vzS = vzS.reshape([ny,nx])
-            vxS = vxS[0,:]
-            vzS = vzS[0,:]
-            vxS = vxS[ind_x]
-            vzS = vzS[ind_x]
+            vxS = vxS[ind_y,:]
+            vxS = vxS[:,ind_x]
+
+            vyS = vyS[ind_y,:]
+            vyS = vyS[:,ind_x]
+            
+            vzS = vzS[ind_y,:]
+            vzS = vzS[:,ind_x]
             vmS = (vxS**2+vzS**2)**0.5
             
-            return vxS,vzS,vmS
+            return vxS,vyS,vzS,vmS
         
         else:
             
             buf =  buf.reshape([ny,nx])
-            buf = buf[0,:]
-            buf = buf[ind_x]
-            
+            buf = buf[ind_y,:]
+            buf = buf[:,ind_x]
+
             return buf 
     
-    def ASCI_FILE(self,ipic,t_cur,Test_Name,ptsave,x):
+    def ASCI_FILE(self,ipic,t_cur,Test_Name,ptsave,x,y):
         
         """
         Write a simple ascii file for the post processing of the free surface data
@@ -778,7 +819,7 @@ class FS():
         
         filename = os.path.join(ptsave_b,file_name)
     
-        S        = np.array([x,self.vx[:,ipic],self.vz[:,ipic],self.vm[:,ipic],self.Amplitude[:,ipic]])
+        S        = np.array([x,y,self.vx[:,ipic],self.vz,self.vz[:,ipic],self.vm[:,ipic],self.Amplitude[:,ipic]])
     
         if(os.path.isfile(filename)):
             os.remove(filename)

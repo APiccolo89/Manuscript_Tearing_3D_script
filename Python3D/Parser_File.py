@@ -661,7 +661,7 @@ class Phase_Data_Base:
             
         def __read_input(self,path):
             import os 
-            name = os.path.join(path,"Sausage_Model.dat")
+            name = os.path.join(path,"SSB_Nevena.dat")
             f = open(name, 'r')
             dd = f.readlines()
             f.close()
