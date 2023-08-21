@@ -87,15 +87,15 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     Filename_0 = [os.path.join(Folder,Test_Name,fn,dyn),os.path.join(Folder,Test_Name,fn,phase)]
     folder_ = os.path.join(Folder,Test_Name)
     IG       = Initial_Geometry(os.path.join(folder_,'Test_Data_Base.mat'))
-    C = Coordinate_System(Filename_0,ptsave,(-700.0,700.0),(-400,400),(-600.0,50.0))
+    C = Coordinate_System(Filename_0,ptsave,(-700.0,700.0),(-500,500),(-600.0,50.0))
     Phase_DB = Phase_Data_Base(folder_)
     Initial_Condition = Initial_condition(Phase_DB.Phase_6_,Phase_DB.Phase_5_,IG)
     Initial_Condition.tc = Initial_Condition.tc/3.5
     ###############################################
     FSurf = Free_S_Slab_break_off(C,len(time)) # Create the instance of free surface class 
     DYN   = VAL(C,dic_val)  # Create the instance of the .pvd file 
-    Ph    = Phase(C,phase_dictionary) # Create the instance of the Phase field
-    Slab  = SLAB(C,len(time))        # Create the instance of the Slab. 
+    Ph    = Phase_det(C,phase_dictionary) # Create the instance of the Phase field
+    Slab  = SLAB(C,IG,len(time))        # Create the instance of the Slab. 
     ################################################
     ###############################################################################
     # Read Information related to the initial condition
@@ -123,7 +123,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         print("Dynamic value took","{:02}".format(Values_time))
         ###########################################################################
         t1 = perf_counter()
-        #Ph._update_phase(Filename_ph,C)  
+        Ph._update_phase(Filename_ph,C)  
+        Ph._interpolate_dyn_phase(DYN,C)
         t2 = perf_counter()    
         average_plot_time = t2-t1
         print("Phase_update","{:02}".format(average_plot_time))
@@ -138,7 +139,9 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
 
         ###########################################################################
         t1 = perf_counter()
-        #Slab. _update_C(C,DYN,ipic,time)
+        Slab. _update_C(C,DYN,Ph,IG,ipic,time)
+        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic)          
+
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################

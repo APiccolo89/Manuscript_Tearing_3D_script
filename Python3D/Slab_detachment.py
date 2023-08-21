@@ -13,42 +13,47 @@ import argparse
 import matplotlib
 import numpy as np 
 import h5py 
-
+from numba import jit
+from numba import jitclass, types, typed, prange
 from Read_VTK_files_LAMEM import * #Read_VTK_files_LAMEM
 
 from Read_VTK_files_LAMEM import  _file_list
+from Read_VTK_files_LAMEM import findnodes
+from Read_VTK_files_LAMEM import bilinearinterpolation
+from Read_VTK_files_LAMEM import trilinearinterpolation
+from Read_VTK_files_LAMEM import linearinterpolation
+
 
 from Parser_File import * 
 
     
 
 class SLAB():
-    def __init__(self,C,nstep):
-        tz = np.sum(C.ind_z)
-        self.D     = np.ones((tz,nstep),dtype=float)*(-1.0)
-        self.T     = np.zeros((tz,nstep),dtype=float)
-        self.nu    = np.zeros((tz,nstep),dtype=float)
-        self.eps   = np.zeros((tz,nstep),dtype=float)
-        self.tau   = np.zeros((tz,nstep),dtype=float)
-        self.tau_min =np.zeros((tz,nstep),dtype=float)
-        self.tau_max =np.zeros((tz,nstep),dtype=float)
-        self.vz    = np.zeros((tz,nstep),dtype=float)
-        self.vx    = np.zeros((tz,nstep),dtype=float)
-        self.vis   = np.zeros((tz,nstep),dtype=float)
-        self.F_T   = np.zeros((tz,nstep),dtype=float)
-        self.F_B   = np.zeros((tz,nstep),dtype=float)
-        self.dRho  = np.zeros((tz,nstep),dtype=float)
-        self.vis_A    = np.zeros((tz,nstep),dtype=float)
-        self.nu_A    = np.zeros((tz,nstep),dtype=float)
-        self.det_vec =np.zeros(nstep)
-        self.tau_vec =np.zeros(nstep)
-        self.tau_d_min = np.zeros(nstep)
-        self.tau_d_max = np.zeros(nstep)
-        self.D_det   = np.zeros(nstep)
-        self.vz_S    = np.zeros(nstep)
+    def __init__(self,C,IG,nstep):
+        Slab_Geometry = IG.Slab
+        self.P1 = Slab_Geometry.Boundary_B[0][0]
+        self.P2 = Slab_Geometry.Boundary_B[0][2]
+        t= (C.xp>=self.P1)&(C.xp<=self.P2)
+        self.ind_boundary = np.where(t==True)
+        tx  = len(self.ind_boundary[0])
+
+        
+        tz = np.sum(C.ind_zp)
+        self.D     = np.ones((tx,tz,nstep),dtype=float)*(-1.0)
+        self.T     = np.zeros((tx,tz,nstep),dtype=float)
+        self.nu    = np.zeros((tx,tz,nstep),dtype=float)
+        self.eps   = np.zeros((tx,tz,nstep),dtype=float)
+        self.tau   = np.zeros((tx,tz,nstep),dtype=float)
+        self.vis   = np.zeros((tx,tz,nstep),dtype=float)
+        self.F_T   = np.zeros((tx,tz,nstep),dtype=float)
+        self.F_B   = np.zeros((tx,tz,nstep),dtype=float)
+        self.dRho  = np.zeros((tx,tz,nstep),dtype=float)
+        self.vis_A    = np.zeros((tx,tz,nstep),dtype=float)
+        self.nu_A    = np.zeros((tx,tz,nstep),dtype=float)
+        self.det_vec =np.zeros((tx,nstep),dtype=float)
         self.x1    = np.zeros(tz)
         self.x2    = np.zeros(tz)   
-        self.LGV         = ["D","T"]
+        self.LGV         = ["D","T","tau","F_B","F_T"]
         self.Label       = ["$\delta_{ap} [km]$",     
                             "T [$^{\circ}C$]",
                             "$log_{10}(\epsilon_{II}) [1/s]$",
@@ -79,15 +84,27 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","nu","vis","eps","tau","vz","vx","tau_max","tau_min"]        
+        self.CV = ["T","nu","vis","eps","tau"]       
 
 
-    def _update_C(self,C,Values,ipic,time):         
+    def _update_C(self,C,V,Ph,IG,ipic,time):
+        lay_ph = [Ph.Phase][0]
+        lay_ph = lay_ph.astype('float64')
+        ip = len(IG.Slab.Phases)
+        # For whatever reason the type has been change, and the 1000 is 232 in uint8
+        for ic in range(ip):
+            print(ic)
+            print(IG.Slab.Phases[ic])
+            lay_ph[lay_ph==IG.Slab.Phases[ic]]=(1000)
+        lay_ph[lay_ph<(1000)] = 0.0
+        lay_ph[lay_ph==(1000)] = 1.0 
         
-        self = self._Find_Slab_C(C,Values,ipic)
+        for i in range(len(self.ind_boundary[0])-1):
+            ix = self.ind_boundary[0][i]
+            self = self._Find_Slab_C(C,Ph,lay_ph,ipic,ix,i)
        
                 
-    def _Find_Slab_C(self,C,Values,ipic):
+    def _Find_Slab_C(self,C,Values,ph,ipic,ix,ix1):
         
             """
             Better writing a bit: Now, at the beginning I was tayloring too much the code 
@@ -120,20 +137,20 @@ class SLAB():
             """
         
         
-            tz    = np.sum(C.ind_z)
+            tz    = np.sum(C.ind_zp)
         
             self.x1    = np.zeros(tz)
             self.x2    = np.zeros(tz)
            
-            z     = C.z 
-            x     = C.x
+            z     = C.zp 
+            x     = C.yp
 
             for i in range(tz):
          
-                if(z[i]>-100):
+                if(z[i]>-80):
                     buf = -1.0
                 else:
-                    buf = Values.OP[i,:]+Values.C1[i,:]+Values.C2[i,:]
+                    buf = ph[i,:,ix]
                     buf[buf<0.95] = -1.0
                     if len(buf[buf ==-1.0]) == len(buf):
                         buf = -1.0 
@@ -144,71 +161,69 @@ class SLAB():
                     """
                     Compute the mean and standard deviation of certain value
                     """                    
-                    CV = ["T","nu","vis","eps","epsxx","epszz","epsxz","tau","vz","vx","tau_max","tau_min"]
                     for iv in self.CV:
-                        eval(iv,globals(),self.__dict__)[i,ipic] = np.nan 
+                        eval(iv,globals(),self.__dict__)[ix1,i,ipic] = np.nan 
                         
-                    self.nu_A[i,ipic] = np.nan
-                    self.vis_A[i,ipic] = np.nan
-                    self.dRho[i,ipic] = np.nan
-                    self.D[i,ipic] = np.nan
+                    self.nu_A[ix1,i,ipic] = np.nan
+                    self.vis_A[ix1,i,ipic] = np.nan
+                    self.dRho[ix1,i,ipic] = np.nan
+                    self.D[ix1,i,ipic] = np.nan
                     if ((np.size(buf) == 1)):
                         self.x2[i]=- float("inf")
                         self.x1[i]=- float("inf")
                         """
                         Compute the mean and standard deviation of certain value
                         """                    
-                        CV = ["T","nu","vis","eps","epsxx","epszz","epsxz","tau","tauxx","tauzz","tauxz","vz","vx"]
                         for iv in self.CV:
-                            eval(iv,globals(),self.__dict__)[i,ipic] = - float("inf") 
+                            eval(iv,globals(),self.__dict__)[ix1,i,ipic] = - float("inf") 
                             
-                        self.nu_A[i,ipic] = - float("inf")
-                        self.vis_A[i,ipic] = - float("inf")
-                        self.dRho[i,ipic] = - float("inf")
-                        self.D[i,ipic] = - float("inf")
+                        self.nu_A[ix1,i,ipic] = - float("inf")
+                        self.vis_A[ix1,i,ipic] = - float("inf")
+                        self.dRho[ix1,i,ipic] = - float("inf")
+                        self.D[ix1,i,ipic] = - float("inf")
                     
                 else:
                     self.x1[i]= x[ind[0][0]]
                     self.x2[i] = x[ind[0][-1]]
-                    self.D[i,ipic] = self.x2[i]-self.x1[i] 
-                    if(self.D[i,ipic] <8):
+                    self.D[ix1,i,ipic]= self.x2[i]-self.x1[i] 
+                    if(self.D[ix1,i,ipic] <8):
                         for iv in self.CV:
-                            eval(iv,globals(),self.__dict__)[i,ipic] = np.nan 
-                        self.nu_A[i,ipic] = np.nan
-                        self.vis_A[i,ipic] = np.nan
-                        self.dRho[i,ipic] = np.nan
-                        self.D[i,ipic] = np.nan
+                            if (iv != 'F_T') & (iv != 'F_B'):
+                                eval(iv,globals(),self.__dict__)[ix1,i,ipic] = np.nan 
+                        self.nu_A[ix1,i,ipic] = np.nan
+                        self.vis_A[ix1,i,ipic]= np.nan
+                        self.dRho[ix1,i,ipic] = np.nan
+                        self.D[ix1,i,ipic] = np.nan
                     else:
                         for iv in self.CV:
                             if iv == "tau_max":
-                                eval(iv,globals(),self.__dict__)[i,ipic] = np.max(Values.tau[i,ind])
+                                eval(iv,globals(),self.__dict__)[ix1,i,ipic] = np.max(Values.tau[i,ind,ix])
                             elif iv == "tau_min":
-                                eval(iv,globals(),self.__dict__)[i,ipic] = np.min(Values.tau[i,ind])
-                            else:    
-                                eval(iv,globals(),self.__dict__)[i,ipic] = np.mean(eval(iv,globals(),Values.__dict__)[i,ind])
+                                eval(iv,globals(),self.__dict__)[ix1,i,ipic] = np.min(Values.tau[i,ind,ix])
+                            else: 
+                                if (iv != 'F_T') & (iv != 'F_B'):
+                                    eval(iv,globals(),self.__dict__)[ix1,i,ipic] = np.mean(eval(iv,globals(),Values.__dict__)[i,ind,ix])
                             
                         ind_AA = (x>=self.x1[i]-60) & (x<self.x1[i])
                         ind_BB = ((x>self.x2[i]) & (x<=self.x2[i]+60))
                         ind_A   = np.where((ind_AA == True)| ind_BB == True)
-                        self.nu_A[i,ipic] = np.mean(Values.nu[i,ind_A])
-                        self.vis_A[i,ipic] = np.mean(Values.vis[i,ind_A])
+                        self.nu_A[ix1,i,ipic] = np.mean(Values.nu[i,ind_A])
+                        self.vis_A[ix1,i,ipic] = np.mean(Values.vis[i,ind_A])
                         ind2 = np.where(buf==0.0)
-                        Rho_AST = np.mean(Values.Rho[i,ind2])
-                        Rho_Slab = np.mean(Values.Rho[i,ind])
-                        self.dRho[i,ipic] = Rho_AST-Rho_Slab
+                        Rho_AST = np.mean(Values.Rho[i,ind2,ix])
+                        Rho_Slab = np.mean(Values.Rho[i,ind,ix])
+                        self.dRho[ix1,i,ipic] = 0.0#Rho_AST-Rho_Slab
                         
             L_id = np.where(np.isnan(self.x1)==False) 
             z_b  = z[L_id[0][0]]
-            self.vz_S[ipic] = np.nanmean(Values.vz[Values.OP>0.9])
-
-            dRho = -np.nanmean(self.dRho[:,ipic])
-            self.F_T[:,ipic] = 2*self.tau[:,ipic]*self.D[:,ipic]*1e9
-            self.F_B[:,ipic] = dRho*9.81*self.D[:,ipic]*(z-z_b)*1e6                
+            dRho = -np.nanmean(self.dRho[ix1,:,ipic])
+            self.F_T[ix1,:,ipic] = 2*self.tau[ix1,:,ipic]*self.D[ix1,:,ipic]*1e9
+            self.F_B[ix1,:,ipic] = dRho*9.81*self.D[ix1,:,ipic]*(z-z_b)*1e6                
             return self 
     
-    def  _plot_average_C(self,t_cur,z,ptsave,ipic): 
+    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic): 
 
-        
+        x = x[self.ind_boundary]        
         time_sim = "{:.3f}".format(t_cur)
         
         ic  = 0
@@ -221,6 +236,7 @@ class SLAB():
        
         var =self.LGV
         index = self.Label 
+        zz,xx = np.meshgrid(z,x)
 
         for values in var: 
 
@@ -236,13 +252,21 @@ class SLAB():
             fn = os.path.join(ptsave_c,fna)
 
             ax0 = fg.gca()
-            if(values == "dF"):
-                ax0.plot(self.F_T[:,ipic]/self.F_B[:,ipic],z, lw=1.2,c='k',ls='-')
+            if values == 'D':
+                cor = 1/80
+                lim = (0.1,0.9)
             else:
-                ax0.plot(eval(values,globals(),self.__dict__)[:,ipic],z, lw=1.2,c='k',ls='-')
+                cor = 1.0
+                lim = (np.min(eval(values,globals(),self.__dict__)[:,:,ipic]),np.max(eval(values,globals(),self.__dict__)[:,:,ipic]))
+           
             plt.grid(True)
             if((values == "eps") | (values == "epsxx") | (values == "epszz")| (values == "epsxz")):
-                ax0.set_xscale("log")
+                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao')
+            else:
+                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao',vmin=lim[0],vmax=lim[1])
+            
+            cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
+
             ax0.set_title(tick)
             ax0.tick_params(axis='both', which='major', labelsize=5)
             ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
@@ -871,7 +895,7 @@ class Free_S_Slab_break_off(FS):
         fna='Fig'+"{:03d}".format(ipic)+'.png'       
         cf =ax0.pcolormesh(x, y, val, shading='gouraud')
         cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
-        cf0 = ax0.contour(x,y,self.Amplitude[:,:,ipic],levels = [-1000,500,0,500,1000],colors = "k",linewidths=0.75)
+        cf0 = ax0.contour(x,y,self.Amplitude[:,:,ipic],levels = [-1000,-500,0,500,1000],colors = "k",linewidths=0.75)
         
        
         for name in values:
@@ -948,14 +972,61 @@ class Free_S_Slab_break_off(FS):
         fg.clear
         plt.close()
          
+class Phase_det(Phase):
+    def __init__(self,C,Phase_dic):
+        super().__init__(C,Phase_dic)
+        ind_x = C.ind_xp
+        ind_y = C.ind_yp
+        ind_z = C.ind_zp
+        tx    = np.sum(ind_x)
+        ty    = np.sum(ind_y)
+        tz    = np.sum(ind_z)
+        self.tau   = np.zeros([tz,ty,tx],dtype = float)
+        self.eps   = np.zeros([tz,ty,tx],dtype = float)
+        self.T     = np.zeros([tz,ty,tx],dtype = float)
+        self.nu    = np.zeros([tz,ty,tx],dtype = float)
+        self.vis   = np.zeros([tz,ty,tx],dtype = float)
+        self.Rho   = np.zeros([tz,ty,tx],dtype = float)
+    def _interpolate_dyn_phase(self,V,C):
+        # prepare the variables
+        xp = C.xp
+        yp = C.yp
+        zp = C.zp
+        x  = C.x
+        y  = C.y
+        z  = C.z 
+        t1= perf_counter()
+        val_ = ['tau','eps','T','nu','vis','Rho']
+        for v in val_: 
+            buf = eval(v,globals(),V.__dict__)
+            buf2 = np.zeros([len(zp),len(yp),len(xp)],dtype = float)
+            buf2 = function_interpolate(xp,yp,zp,x,y,z,buf,buf2)
+            eval(v,globals(),self.__dict__)[:,:,:]=buf2 
+            
+        t2= perf_counter()
+        print('time interpolation',"{:02}".format(t2-t1), 's')
+        return self 
         
+@jit(nopython=True,parallel=True)
+def function_interpolate(xp,yp,zp,x,y,z,buf,buf2):
+    for k in prange(len(zp)-1):
+            for j in prange(len(yp)-1):
+                for i in prange(len(xp)-1):
+                    xx = xp[i]
+                    yy = yp[j]
+                    zz = zp[k]
+                    ix = find1Dnodes(x,xx,len(x)-1)
+                    iy = find1Dnodes(y,yy,len(y)-1)
+                    iz = find1Dnodes(z,zz,len(z)-1)
+                    x1 = x[ix]
+                    x2 = x[ix+1]
+                    y1 = y[iy]
+                    y2 = y[iy+1]
+                    z1 = z[iz]
+                    z2 = z[iz+1]
+                    intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8 = findnodes(buf,ix,iy,iz)
+                    buf2[k,j,i]=trilinearinterpolation(xx,yy,zz,x1,x2,y1,y2,z1,z2,intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8)
+    return buf2
     
-
-
-
-
-
-
-
-
-
+    
+    

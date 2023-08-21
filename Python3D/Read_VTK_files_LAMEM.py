@@ -24,6 +24,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from numpy.ma import masked_array
 import matplotlib.cbook as cbook
 from Parser_File import * 
+from numba import jit
+from numba import jitclass, types, typed
 
 
 ######################vtk utilities###########################################
@@ -234,7 +236,10 @@ class Coordinate_System():
         
         self.x,self.y,self.z,self.ind_x,self.ind_y,self.ind_z = self.__zoom_grid_(xlim,ylim,zlim,0)
         
-        self.xp,self.yp,self.zp,self.ind_xp,self.ind_yp,self.ind_zp = self.__zoom_grid_(xlim,ylim,zlim,1)
+        xlim_new = (np.min(self.x),np.max(self.x))
+        ylim_new = (np.min(self.y),np.max(self.y))
+        zlim_new = (np.min(self.z),np.max(self.z))
+        self.xp,self.yp,self.zp,self.ind_xp,self.ind_yp,self.ind_zp = self.__zoom_grid_(xlim_new,ylim_new,zlim_new,1)
 
         
     def __zoom_grid_(self,xlim,ylim,zlim,p): #Private
@@ -373,10 +378,12 @@ class PTT_path :
 class Phase():
     def __init__(self,C,Phase_dic):
         ind_x = C.ind_xp
+        ind_y = C.ind_yp
         ind_z = C.ind_zp
         tx    = np.sum(ind_x)
+        ty    = np.sum(ind_y)
         tz    = np.sum(ind_z)
-        self.Phase = np.zeros([tz,tx],dtype = int)
+        self.Phase = np.zeros([tz,ty,tx],dtype = int)
         self.Phase_dic = Phase_dic
     def _update_phase(self,fileph,C):
         VTK_SET_ph(fileph)
@@ -385,14 +392,20 @@ class Phase():
         ph = vtk_to_numpy(P_vtk)
         ph=ph.reshape(C.nzP-1,C.nyP-1,C.nxP-1) # The grid needs the node, but phases value are "cell" whise data (i.e. elementwise)
         ind_x = C.ind_xp
+        ind_y = C.ind_yp
         ind_z = C.ind_zp
-        ph = ph[:,1,:]
-        ph = ph[ind_z,:]
-        ph = ph[:,ind_x]
+        ph = ph[:,ind_y,:]
+        ph = ph[ind_z,:,:]
+        ph = ph[:,:,ind_x]
         
         self.Phase = ph 
         
         return self 
+    
+    #def interpolate_dynamic_properties(self,V,C):
+        
+    
+    
     def _plot_phase_field(self,C,Val,ptsave,ipic,t_cur,FS,tdimen):
                 
         ptsave_b=os.path.join(ptsave,'phase')
@@ -536,11 +549,11 @@ class VAL():
             buf=reader.GetOutput().GetPointData().GetArray(f)
             buf=vtk_to_numpy(buf)
             if(key == "tau"):
-                buf = buf/(IC.tau0/1e6)
+                buf = buf#/(IC.tau0/1e6)
             if(key == "T"):
-                buf = (buf-IC.T_av)/(IC.Tc)
+                buf = (buf)#-IC.T_av)/(IC.Tc)
             if(key == 'eps'):
-                buf = buf/IC.epsc
+                buf = buf#/IC.epsc
             if((key == "velocity") | (key == "disp")):
                 if key == "velocity":
                     self.vx,self.vy,self.vz,self.vm = self.taylor_grid(C,key,buf)
@@ -861,26 +874,55 @@ def ReadPassive(Filename_ptr,Field):
         return buf_ptt
 
 
-    
+@jit(nopython=True)   
 def find1Dnodes(cord,cordm,number):
     for index in range(number):
         if cordm-cord[index]<=0:
             break 
     return index    
     
-def bilinearinterpolation(xx,yy,x1,x2,y1,y2):
+@jit(nopython=True)
+def findnodes(GrID,ix,iy,iz):
+    intp1=GrID[iz,iy,ix]
+    intp2=GrID[iz,iy,ix+1]
+    intp3=GrID[iz,iy+1,ix+1]
+    intp4=GrID[iz,iy+1,ix]
+    intp5=GrID[iz+1,iy,ix]
+    intp6=GrID[iz+1,iy,ix+1]
+    intp7=GrID[iz+1,iy+1,ix+1]
+    intp8=GrID[iz+1,iy+1,ix]
+    return intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8
+
+@jit(nopython=True)
+def linearinterpolation(xx,x1,x2,intp1,intp2):
+    wx=(xx-x1)/(x2-x1)
+
+    R=intp1*(1-wx)+intp2*wx
+
+    return R
+
+@jit(nopython=True)
+def bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4):
     wx=(xx-x1)/(x2-x1)
     wy=(yy-y1)/(y2-y1)
-    if wx < 0.0 :
-        wx = 0
-    elif wx > 1.0:
-        wx = 1.0 
-        
-    if wy < 0.0 :
-        wy = 0.0
-    elif wy > 1.0:
-        wy = 1.0 
-        
+    R=intp1*(1-wx)*(1-wy)+intp2*wx*(1-wy)+intp3*wx*wy+intp4*wy*(1-wy)
 
-    return wx,wy       
-  
+    return R    
+
+@jit(nopython=True)
+def trilinearinterpolation(xx,yy,zz,x1,x2,y1,y2,z1,z2,intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8):
+    wx=(xx-x1)/(x2-x1)
+    wy=(yy-y1)/(y2-y1)
+    wz=(zz-z1)/(z2-z1)
+    
+    i1=bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4)
+    i2=bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp5,intp6,intp7,intp8)
+    R=linearinterpolation(zz,z1,z2,i1,i2)
+    return R    
+
+
+
+
+
+
+
