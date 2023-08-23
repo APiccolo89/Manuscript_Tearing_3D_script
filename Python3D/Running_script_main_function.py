@@ -31,7 +31,7 @@ from Slab_detachment import *
 from Slab_detachment import _plot_D_D0
 from Slab_detachment import _plot_time_map_surface
 
-def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
+def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
     t_INIZIO = perf_counter()
 
     
@@ -101,7 +101,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
     # Read Information related to the initial condition
     ###############################################################################
     ipic= 0 
-    for istp in Flist:
+    for istp in Flist:#[4:]:
     ########################### Files and time stepping information############
         t1_start = perf_counter()
         fn=istp[1:istp.find('/')]
@@ -110,6 +110,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
             dt = time[ipic]-time[ipic-1]
         else:
             dt = 1.0 
+        print('Timestep n', str(ipic))
             
         Filename_dyn=os.path.join(Folder,Test_Name,fn,dyn)
         Filename_ph=os.path.join(Folder,Test_Name,fn,phase)
@@ -140,7 +141,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         ###########################################################################
         t1 = perf_counter()
         Slab. _update_C(C,DYN,Ph,IG,ipic,time)
-        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic)          
+        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab)          
 
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
@@ -169,9 +170,9 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,vIC):
         
         
         
-        t_FINE = perf_counter()      
+              
         
-        minutes, seconds = divmod(t_FINE-t_INIZIO, 60)
+        minutes, seconds = divmod(tstep_time_pr, 60)
         print("===========================================")
         
         print("||Script took ","{:02}".format(int(minutes)),"minutes and","{:05.2f}".format(seconds),' seconds ||' )

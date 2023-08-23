@@ -46,7 +46,6 @@ Test_Name =['T1_AV0_v3_10000']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)
-vIC = [80e3,300e3,90,800,1350]
 # Loop of test
 for L in Test_Name:
     # Which test is going to be post process
@@ -61,7 +60,7 @@ for L in Test_Name:
         if not os.path.isdir(ptsave):
             os.mkdir(ptsave)
         #try:
-        _run_script_visualization(ptsave,Folder,L,l_,vIC)
+        _run_script_visualization(ptsave,Folder,L,l_)
         #except:
         #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
     else: 

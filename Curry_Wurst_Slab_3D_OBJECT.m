@@ -69,7 +69,7 @@ C2 = BoundsT;
 C2.c = [0.0,-250];
 C2.W = 500.0;
 C2.L = 500.0;
-C2=C2.Create_arc_circumference_margin(1000,'B',1200);
+C2=C2.Create_arc_circumference_margin(10000,'B',1200);
 % Trench => ~ night mare, but let's try
 % Rift background oceanic terranes
 

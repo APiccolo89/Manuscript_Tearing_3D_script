@@ -876,10 +876,13 @@ def ReadPassive(Filename_ptr,Field):
 
 @jit(nopython=True)   
 def find1Dnodes(cord,cordm,number):
+    # I was fucking up a few stuff:
+    #buf = cordm-cord 
+    #min = np.min(np.abs(buf))
     for index in range(number):
-        if cordm-cord[index]<=0:
+        if (cord[index]>cordm):
             break 
-    return index    
+    return index-1    
     
 @jit(nopython=True)
 def findnodes(GrID,ix,iy,iz):
@@ -896,7 +899,6 @@ def findnodes(GrID,ix,iy,iz):
 @jit(nopython=True)
 def linearinterpolation(xx,x1,x2,intp1,intp2):
     wx=(xx-x1)/(x2-x1)
-
     R=intp1*(1-wx)+intp2*wx
 
     return R
@@ -905,7 +907,9 @@ def linearinterpolation(xx,x1,x2,intp1,intp2):
 def bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4):
     wx=(xx-x1)/(x2-x1)
     wy=(yy-y1)/(y2-y1)
-    R=intp1*(1-wx)*(1-wy)+intp2*wx*(1-wy)+intp3*wx*wy+intp4*wy*(1-wy)
+
+    # FUCKING BUG: intp4 -> 1-x*intp4
+    R=intp1*(1-wx)*(1-wy)+intp2*wx*(1-wy)+intp3*wx*wy+intp4*wy*(1-wx)
 
     return R    
 
@@ -913,11 +917,11 @@ def bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4):
 def trilinearinterpolation(xx,yy,zz,x1,x2,y1,y2,z1,z2,intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8):
     wx=(xx-x1)/(x2-x1)
     wy=(yy-y1)/(y2-y1)
-    wz=(zz-z1)/(z2-z1)
-    
+    wz=(zz-z1)/(z2-z1)    
     i1=bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4)
     i2=bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp5,intp6,intp7,intp8)
     R=linearinterpolation(zz,z1,z2,i1,i2)
+
     return R    
 
 

@@ -38,7 +38,7 @@ class SLAB():
         tx  = len(self.ind_boundary[0])
 
         
-        tz = np.sum(C.ind_zp)
+        tz = len(C.zp)
         self.D     = np.ones((tx,tz,nstep),dtype=float)*(-1.0)
         self.T     = np.zeros((tx,tz,nstep),dtype=float)
         self.nu    = np.zeros((tx,tz,nstep),dtype=float)
@@ -47,13 +47,13 @@ class SLAB():
         self.vis   = np.zeros((tx,tz,nstep),dtype=float)
         self.F_T   = np.zeros((tx,tz,nstep),dtype=float)
         self.F_B   = np.zeros((tx,tz,nstep),dtype=float)
-        self.dRho  = np.zeros((tx,tz,nstep),dtype=float)
-        self.vis_A    = np.zeros((tx,tz,nstep),dtype=float)
-        self.nu_A    = np.zeros((tx,tz,nstep),dtype=float)
+        self.Rho  = np.zeros((tx,tz,nstep),dtype=float)
+        self.Psi = np.zeros((tx,tz,nstep),dtype=float)
+        self.L   = np.zeros((tx,tz,nstep),dtype=float)
         self.det_vec =np.zeros((tx,nstep),dtype=float)
-        self.x1    = np.zeros(tz)
-        self.x2    = np.zeros(tz)   
-        self.LGV         = ["D","T","tau","F_B","F_T"]
+        self.x1    = np.zeros((tx,tz,nstep),dtype=float)
+        self.x2    = np.zeros((tx,tz,nstep),dtype=float)   
+        self.LGV         = ["D","T","tau","F_B","F_T",'eps']
         self.Label       = ["$\delta_{ap} [km]$",     
                             "T [$^{\circ}C$]",
                             "$log_{10}(\epsilon_{II}) [1/s]$",
@@ -68,12 +68,12 @@ class SLAB():
                             r"F($\tau_{zz}$) [N/m]"
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
-        self.Val         = [("0.1","1.0"),
+        self.Val         = [("0.1","0.85"),
                             ("400","1200"),
-                            ("min","max"),
-                            ("min","max"),
-                            ("min","max"),
-                            ("min","max"),
+                            ("10","200"),
+                            ("1e12","1e13"),
+                            ("1e12","1e13"),
+                            (-16,-12),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
@@ -84,7 +84,7 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","nu","vis","eps","tau"]       
+        self.CV = ["T","nu","vis","eps","tau",'Rho']       
 
 
     def _update_C(self,C,V,Ph,IG,ipic,time):
@@ -93,16 +93,31 @@ class SLAB():
         ip = len(IG.Slab.Phases)
         # For whatever reason the type has been change, and the 1000 is 232 in uint8
         for ic in range(ip):
-            print(ic)
-            print(IG.Slab.Phases[ic])
             lay_ph[lay_ph==IG.Slab.Phases[ic]]=(1000)
-        lay_ph[lay_ph<(1000)] = 0.0
-        lay_ph[lay_ph==(1000)] = 1.0 
-        
-        for i in range(len(self.ind_boundary[0])-1):
+        lay_ph[lay_ph<(1000)] = -1.0
+        lay_ph[lay_ph==(1000)] = 10.0 
+        t1 = perf_counter()
+        for i in range(len(self.ind_boundary[0])):
             ix = self.ind_boundary[0][i]
-            self = self._Find_Slab_C(C,Ph,lay_ph,ipic,ix,i)
-       
+            for iv in self.CV:
+                buf_var_ph = eval(iv,globals(),Ph.__dict__)[:,:,ix]
+                D     = np.zeros((np.sum(C.ind_zp)),dtype=float)
+                buf_var   = np.zeros(np.sum(C.ind_zp),dtype=float)
+                z_bottom   = np.zeros(np.sum(C.ind_zp),dtype=float)
+                x1    = np.zeros(np.sum(C.ind_zp))
+                x2    = np.zeros(np.sum(C.ind_zp))
+                D,L0,buf_var,x1,x2 = _Find_Slab_PERFORM_C(C.yp,C.zp,buf_var_ph,lay_ph[:,:,ix],np.sum(C.ind_zp),ix,D,buf_var,x1,x2,z_bottom)
+                self.D[i,:,ipic] = D
+                self.L[i,:,ipic] =L0
+                eval(iv,globals(),self.__dict__)[i,:,ipic] = buf_var
+                self.x1[i,:,ipic] = x1
+                self.x2[i,:,ipic] =x2
+            self.F_T[i,:,ipic] = 2*self.D[i,:,ipic]*1e3*self.tau[i,:,ipic]*1e6
+            self.F_B[i,:,ipic] = self.D[i,:,ipic]*1e3*self.L[i,:,ipic]*(self.Rho[i,:,ipic]-3300*(1-3e-5*1325))*9.81
+        t2 =perf_counter()    
+             
+        print('time find_slab',"{:02}".format(t2-t1), 's')
+
                 
     def _Find_Slab_C(self,C,Values,ph,ipic,ix,ix1):
         
@@ -209,24 +224,46 @@ class SLAB():
                         ind_A   = np.where((ind_AA == True)| ind_BB == True)
                         self.nu_A[ix1,i,ipic] = np.mean(Values.nu[i,ind_A])
                         self.vis_A[ix1,i,ipic] = np.mean(Values.vis[i,ind_A])
-                        ind2 = np.where(buf==0.0)
-                        Rho_AST = np.mean(Values.Rho[i,ind2,ix])
+                        Rho_AST = np.mean(Values.Rho[i,ind_A,ix])
                         Rho_Slab = np.mean(Values.Rho[i,ind,ix])
-                        self.dRho[ix1,i,ipic] = 0.0#Rho_AST-Rho_Slab
+                        self.dRho[ix1,i,ipic] = Rho_AST-Rho_Slab
                         
             L_id = np.where(np.isnan(self.x1)==False) 
             z_b  = z[L_id[0][0]]
-            dRho = -np.nanmean(self.dRho[ix1,:,ipic])
+            temporary_drho = [self.dRho[ix1,:,ipic]][0]
+            temporary_drho[temporary_drho==-np.inf]=np.nan
+            dRho = -np.nanmean(temporary_drho)
             self.F_T[ix1,:,ipic] = 2*self.tau[ix1,:,ipic]*self.D[ix1,:,ipic]*1e9
             self.F_B[ix1,:,ipic] = dRho*9.81*self.D[ix1,:,ipic]*(z-z_b)*1e6                
             return self 
     
-    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic): 
+    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic,Slab_Geo): 
 
-        x = x[self.ind_boundary]        
+        x = x[self.ind_boundary]
+        # Compute the arclength as a function of x
+        boundary_geometry = Slab_Geo.Boundary_B[2]
+        x_a = Slab_Geo.Boundary_B[0][0]
+        y_a = Slab_Geo.Boundary_B[0][1]
+        c   = boundary_geometry[0]
+        cy  = boundary_geometry[1]
+        R   = boundary_geometry[2]
+        c_  = (x_a-c)**2-R**2+y_a**2
+        b_ = 2.*y_a
+        delta = np.sqrt(b_**2-4*c_)
+        center_y = [(b_-delta)/2,(b_+delta)/2]
+        y_c = np.min(center_y)
+        y = (R**2-(x-c)**2)**(0.5)+y_c
+        d = np.sqrt((x-x_a)**2+(y-y_a)**2)
+        theta = 2*np.arcsin(d/(2*R))
+        x_s = R*theta; 
+
+        # => compute y with the data of the boundary
+        # => compute the arc-length 
+        # => create new vector 
+        
+                
         time_sim = "{:.3f}".format(t_cur)
         
-        ic  = 0
         
         fna='Fig'+str(ipic)+'.png'
         ptsave_b=os.path.join(ptsave,'Averages')
@@ -236,14 +273,14 @@ class SLAB():
        
         var =self.LGV
         index = self.Label 
-        zz,xx = np.meshgrid(z,x)
-
+        zz,xx = np.meshgrid(z,x_s)
+        it = 0 
         for values in var: 
 
        
             fg = figure()
     
-            tick='%s Time = %s Myrs' %(index[ic],time_sim)
+            tick='%s Time = %s Myrs' %(index[it],time_sim)
 
             ptsave_c=os.path.join(ptsave_b,values)
             if not os.path.isdir(ptsave_c):
@@ -254,16 +291,14 @@ class SLAB():
             ax0 = fg.gca()
             if values == 'D':
                 cor = 1/80
-                lim = (0.1,0.9)
             else:
                 cor = 1.0
-                lim = (np.min(eval(values,globals(),self.__dict__)[:,:,ipic]),np.max(eval(values,globals(),self.__dict__)[:,:,ipic]))
-           
+            lm    = self.Val[it]
             plt.grid(True)
             if((values == "eps") | (values == "epsxx") | (values == "epszz")| (values == "epsxz")):
-                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao')
+                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao',vmin=lm[0],vmax=lm[1])
             else:
-                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao',vmin=lim[0],vmax=lim[1])
+                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao',vmin=lm[0],vmax=lm[1])
             
             cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
 
@@ -273,7 +308,7 @@ class SLAB():
             plt.draw()    # necessary to render figure before saving
             fg.savefig(fn,dpi=300)
             ax0.plot()
-            ic += 1
+            it += 1
             val = [] 
             
             plt.close()
@@ -863,8 +898,8 @@ class Free_S_Slab_break_off(FS):
         buf = 0.0*Continental_crust
         buf = buf[0,:,:]
         # loop over x,y. Select colum: compute mean of those that has high crustal fraction 
-        for i in range(len(C.y)-1):
-            for j in range(len(C.x)-1): 
+        for i in range(len(C.y)):
+            for j in range(len(C.x)): 
                 column = eval(field_name,globals(),V.__dict__)[:,i,j]
                 crust  = Continental_crust[:,i,j]
                 if len(crust[crust==1]) == 0:
@@ -975,12 +1010,9 @@ class Free_S_Slab_break_off(FS):
 class Phase_det(Phase):
     def __init__(self,C,Phase_dic):
         super().__init__(C,Phase_dic)
-        ind_x = C.ind_xp
-        ind_y = C.ind_yp
-        ind_z = C.ind_zp
-        tx    = np.sum(ind_x)
-        ty    = np.sum(ind_y)
-        tz    = np.sum(ind_z)
+        tx    = len(C.xp)
+        ty    = len(C.yp)
+        tz    = len(C.zp)
         self.tau   = np.zeros([tz,ty,tx],dtype = float)
         self.eps   = np.zeros([tz,ty,tx],dtype = float)
         self.T     = np.zeros([tz,ty,tx],dtype = float)
@@ -996,7 +1028,7 @@ class Phase_det(Phase):
         y  = C.y
         z  = C.z 
         t1= perf_counter()
-        val_ = ['tau','eps','T','nu','vis','Rho']
+        val_ = ['T','nu','vis','Rho','tau','eps',]
         for v in val_: 
             buf = eval(v,globals(),V.__dict__)
             buf2 = np.zeros([len(zp),len(yp),len(xp)],dtype = float)
@@ -1009,15 +1041,15 @@ class Phase_det(Phase):
         
 @jit(nopython=True,parallel=True)
 def function_interpolate(xp,yp,zp,x,y,z,buf,buf2):
-    for k in prange(len(zp)-1):
-            for j in prange(len(yp)-1):
-                for i in prange(len(xp)-1):
+    for k in prange(len(zp)):
+            for j in prange(len(yp)):
+                for i in prange(len(xp)):
                     xx = xp[i]
                     yy = yp[j]
                     zz = zp[k]
-                    ix = find1Dnodes(x,xx,len(x)-1)
-                    iy = find1Dnodes(y,yy,len(y)-1)
-                    iz = find1Dnodes(z,zz,len(z)-1)
+                    ix = find1Dnodes(x,xx,len(x))
+                    iy = find1Dnodes(y,yy,len(y))
+                    iz = find1Dnodes(z,zz,len(z))
                     x1 = x[ix]
                     x2 = x[ix+1]
                     y1 = y[iy]
@@ -1025,8 +1057,127 @@ def function_interpolate(xp,yp,zp,x,y,z,buf,buf2):
                     z1 = z[iz]
                     z2 = z[iz+1]
                     intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8 = findnodes(buf,ix,iy,iz)
-                    buf2[k,j,i]=trilinearinterpolation(xx,yy,zz,x1,x2,y1,y2,z1,z2,intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8)
+                    val_ = trilinearinterpolation(xx,yy,zz,x1,x2,y1,y2,z1,z2,intp1,intp2,intp3,intp4,intp5,intp6,intp7,intp8)
+                    buf2[k,j,i]=val_
     return buf2
+
+@jit(nopython=True,parallel=True)
+def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom):    #(self,C,Values,ph,ipic,ix,ix1):
+
+    for i in prange(tz):
+        if i == 528:
+            bla = 0 
+        buf = ph[i,:]
+        buf2 = buf_var_ph[i,:]
+        condition = 0.0
+        z_bottom[i]=1e6
+        if(z[i]>-80):
+            condition = 1.0
+        else:
+            """
+            This is simply an highlight: i´m idiot. i failed to see a fucking error in the index. 8 hours wasted, and I should be punished for my cursed mind
+            """
+            counter=0
+            for i_a in range(len(buf)):
+                if buf[i_a]==-1:
+                    counter +=1
+            
+            if counter == len(buf):
+                condition = 2.0        
+        if(condition>0.0):
+            x2[i]=np.nan
+            x1[i]=np.nan
+            D[i] = np.nan
+
+            """
+            Compute the mean and standard deviation of certain value
+            """                    
+            buf_var[i] = np.nan
+            if (condition==1.0):
+                x2[i]=-np.inf
+                x1[i]=-np.inf
+                """
+                Compute the mean and standard deviation of certain value
+                """                    
+                buf_var[i] = -np.inf
+                D[i] = -np.inf
+            
+        else:
+            z_bottom[i]=z[i]
+            i1 = 0
+            i2 = -np.inf
+            i1,i2 = _find_index(buf,i1,i2)
+            x1[i]= x[i1]
+            x2[i] = x[np.int(i2)]
+            D[i]= x2[i]-x1[i] 
+            if(x2[i]-x1[i] <8.0):
+                buf_var[i] = np.nan
+                D[i]=np.nan               
+            else:
+                buf_var[i] = _mean_numba(buf,buf2)
     
     
+    L0  =z-np.min(z_bottom)
     
+    return D,L0,buf_var,x1,x2
+    
+@jit(nopython=True)  
+def _mean_numba(buf,buf2):
+    mean = 0.0
+    len_ = np.int(0)
+    for i in range(len(buf)):
+        if buf[i]>0.95:
+            mean+= buf2[i]
+            len_ += np.int(1)
+    mean = mean/len_
+    
+    return mean
+
+@jit(nopython=True)  
+def _find_index(buf,i1,i2):
+    """_summary_
+
+    Args:
+        buf (float64): buffer of the phase layout
+        i1 (_type_): index 1 
+        i2 (_type_): index2
+
+    Returns:
+        _type_: index 1 and index2 update. 
+        Short disclaimer: I was using break for interrupting the 
+        search for the i2. However, it appears that time to time there might 
+        be [not valid, valid, not valid]. One solution is to do a moving average 
+        for smothening the phase boundaries. Or, to keep looking. This might create 
+        artifacts. So, I will try to introduce the moving average approach
+        1. Discrete field -> [not valid, valid, not valid, valid:10,not valid] (i2) is 1 
+    """
+    # Thanks Arne for the tip. 
+    for ib in range(len(buf)):
+        if (buf[ib]>0.95) & (i1 == 0):
+            c1 = ib+1
+            c2 = ib+2
+            if c1 >len(buf)-1:
+                c1 = len(buf)-1
+                c2 = len(buf)-1
+            if(buf[ib+1]==-1)|(buf[ib+2]==-1):
+                i1 == 0 
+            else:
+                i1 = ib
+                i2 = 0
+                break 
+
+    for ib in range(len(buf),-1,-1):
+        if (buf[ib]>0.95) & (i2 == 0):
+            c1 = ib-1
+            c2 = ib-2
+            if c1 <0:
+                c1 = 0
+                c2 = 0
+            
+            if(buf[c1]==-1)|(buf[c2]==-1):
+                i2 == 0 
+            else:
+                i2 = ib
+                break 
+        
+    return i1,i2
