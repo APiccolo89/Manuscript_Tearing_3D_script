@@ -48,7 +48,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
     "eps"      : "j2_strain_rate [1/s]",
     "tau"      : "j2_dev_stress [MPa]",
     "Rho"      : "density [kg/m^3]",
-    "gamma"    : "plast_strain [ ]"}
+    "gamma"    : "plast_strain [ ]",
+    "Psi"      : "plast_dissip [W/m^3]"}
     
     phase_dictionary={
      "0" : ["Air","white"],
@@ -134,14 +135,16 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
         t1= perf_counter()
         FSurf._Update_(Filename_s,C,ipic)
         FSurf._update_extra_variables(DYN,C,dt,ipic)
-        FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic)
+        FSurf._compute_relevant_information_topography(C,IG.Slab,ipic)
+        FSurf._plot_1D_plots_Free_surface(ipic,ptsave)
+        #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
 
         ###########################################################################
         t1 = perf_counter()
-        Slab. _update_C(C,DYN,Ph,IG,ipic,time)
-        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab)          
+        Slab. _update_C(C,FSurf,Ph,IG,ipic,time)
+        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition)          
 
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))

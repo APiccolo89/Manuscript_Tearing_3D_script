@@ -53,27 +53,22 @@ class SLAB():
         self.det_vec =np.zeros((tx,nstep),dtype=float)
         self.x1    = np.zeros((tx,tz,nstep),dtype=float)
         self.x2    = np.zeros((tx,tz,nstep),dtype=float)   
-        self.LGV         = ["D","T","tau","F_B","F_T",'eps']
-        self.Label       = ["$\delta_{ap} [km]$",     
+        self.LGV         = ["D","T","tau","F_B","F_T",'eps','Psi']
+        self.Label       = ["$D^{\dagger} []$",     
                             "T [$^{\circ}C$]",
-                            "$log_{10}(\epsilon_{II}) [1/s]$",
-                            "$\tau_{II} [MPa]$",
-                            "$v_x [cm/yrs]$",
-                            "$v_z [cm/yrs]$",
-                            "$\eta_{vep} [Pa\cdot s]$",
-                            "$\eta_{creep} [Pa\cdot s]$",
-                            "\u0394 \u03C1 $[kg/m^3]$",
-                            "$\dot{\epsilon_{zz}} [1/s]$",
-                            r"$\tau_{zz} [MPa]$",
-                            r"F($\tau_{zz}$) [N/m]"
+                            "$\\tau^{\dagger}_{II} []$$",
+                            "$F_B [\\frac{N}{m}]$",
+                            "$2 \cdot D \\tau [\\frac{N}{m}]$",
+                            "$\dot{\epsilon}^{\dagger}_{II} []$",
+                            "$\Psi [\\frac{W}{m^3}]$"
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
-        self.Val         = [("0.1","0.85"),
-                            ("400","1200"),
-                            ("10","200"),
-                            ("1e12","1e13"),
-                            ("1e12","1e13"),
-                            (-16,-12),
+        self.Val         = [(0.1,0.85),
+                            (700,1200),
+                            ("min","max"),
+                            (5e12,1e13),
+                            (5e12,1e13),
+                            ("min","max"),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
@@ -84,36 +79,47 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","nu","vis","eps","tau",'Rho']       
+        self.CV = ["T","nu","vis","eps","tau",'Rho','Psi']       
 
 
-    def _update_C(self,C,V,Ph,IG,ipic,time):
+    def _update_C(self,C,FS,Ph,IG,ipic,time):
+        # Create an array and select the phase that belongs to slab
         lay_ph = [Ph.Phase][0]
-        lay_ph = lay_ph.astype('float64')
+        lay_ph = lay_ph.astype('float64') # convert the type (phase field is uint8)
         ip = len(IG.Slab.Phases)
         # For whatever reason the type has been change, and the 1000 is 232 in uint8
+        # Loop over the phases that belongs to slab and change the value
         for ic in range(ip):
             lay_ph[lay_ph==IG.Slab.Phases[ic]]=(1000)
+        # Create the array to identify the slab
         lay_ph[lay_ph<(1000)] = -1.0
-        lay_ph[lay_ph==(1000)] = 10.0 
+        lay_ph[lay_ph==(1000)] = 1.0 
         t1 = perf_counter()
+        # loop over the x nodes of the margin
         for i in range(len(self.ind_boundary[0])):
+            # Select the the actual node within x array Ph[k,j,ix],where ix node that belongs to interval xa-xb
             ix = self.ind_boundary[0][i]
+            # Loop over the variable that you want to see in 2D plot of the slab
             for iv in self.CV:
+                # Prepare buffer variable to fill with the new one
                 buf_var_ph = eval(iv,globals(),Ph.__dict__)[:,:,ix]
                 D     = np.zeros((np.sum(C.ind_zp)),dtype=float)
                 buf_var   = np.zeros(np.sum(C.ind_zp),dtype=float)
                 z_bottom   = np.zeros(np.sum(C.ind_zp),dtype=float)
                 x1    = np.zeros(np.sum(C.ind_zp))
                 x2    = np.zeros(np.sum(C.ind_zp))
+                # Run the function 
                 D,L0,buf_var,x1,x2 = _Find_Slab_PERFORM_C(C.yp,C.zp,buf_var_ph,lay_ph[:,:,ix],np.sum(C.ind_zp),ix,D,buf_var,x1,x2,z_bottom)
+                # update the class 
                 self.D[i,:,ipic] = D
                 self.L[i,:,ipic] =L0
                 eval(iv,globals(),self.__dict__)[i,:,ipic] = buf_var
                 self.x1[i,:,ipic] = x1
                 self.x2[i,:,ipic] =x2
+            # Compute the additional variable (i.e. F_T = 2*D*tau), F_B
             self.F_T[i,:,ipic] = 2*self.D[i,:,ipic]*1e3*self.tau[i,:,ipic]*1e6
             self.F_B[i,:,ipic] = self.D[i,:,ipic]*1e3*self.L[i,:,ipic]*(self.Rho[i,:,ipic]-3300*(1-3e-5*1325))*9.81
+            
         t2 =perf_counter()    
              
         print('time find_slab',"{:02}".format(t2-t1), 's')
@@ -237,7 +243,7 @@ class SLAB():
             self.F_B[ix1,:,ipic] = dRho*9.81*self.D[ix1,:,ipic]*(z-z_b)*1e6                
             return self 
     
-    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic,Slab_Geo): 
+    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic,Slab_Geo,IC): 
 
         x = x[self.ind_boundary]
         # Compute the arclength as a function of x
@@ -261,8 +267,9 @@ class SLAB():
         # => compute the arc-length 
         # => create new vector 
         
-                
+        t_dim_less =  t_cur/(IC.tc/3.5) 
         time_sim = "{:.3f}".format(t_cur)
+        time_dimen = "{:.3f}".format(t_dim_less[0][0])
         
         
         fna='Fig'+str(ipic)+'.png'
@@ -280,7 +287,7 @@ class SLAB():
        
             fg = figure()
     
-            tick='%s Time = %s Myrs' %(index[it],time_sim)
+            tick=r'%s Time = %s Myrs, $t^{\dagger}$ = %s' %(index[it],time_sim,time_dimen)
 
             ptsave_c=os.path.join(ptsave_b,values)
             if not os.path.isdir(ptsave_c):
@@ -290,17 +297,34 @@ class SLAB():
 
             ax0 = fg.gca()
             if values == 'D':
-                cor = 1/80
+                cor = 1/(IC.D0[0][0]/1e3)
+            elif values =='tau':
+                cor = 1/(IC.tau0[0][0]/1e6)
+            elif values == 'eps':
+                cor = 1/IC.epsc[0][0]
             else:
                 cor = 1.0
+            buf = eval(values,globals(),self.__dict__)[:,:,ipic]*cor
+            buf[buf == -np.inf]=np.nan
             lm    = self.Val[it]
-            plt.grid(True)
-            if((values == "eps") | (values == "epsxx") | (values == "epszz")| (values == "epsxz")):
-                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao',vmin=lm[0],vmax=lm[1])
+            if lm[0]=="min":
+                lm1=np.nanmin(buf)
             else:
-                cf=ax0.pcolormesh(xx,zz,eval(values,globals(),self.__dict__)[:,:,ipic]*cor,cmap='cmc.bilbao',vmin=lm[0],vmax=lm[1])
+                lm1 = lm[0]
+            if lm[1]=="max":
+                lm2=np.nanmax(buf)
+            else:
+                lm2 = lm[1]
+            plt.grid(True)
+
+            if((values == "eps") | (values == "Psi")):
+                cf=ax0.pcolormesh(xx,zz,np.log10(buf),cmap='inferno',vmin=np.log10(lm1),vmax=np.log10(lm2))
+                cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
+            else:
+                cf=ax0.pcolormesh(xx,zz,buf,cmap='inferno',vmin=lm1,vmax=lm2)
+                cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
+
             
-            cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
 
             ax0.set_title(tick)
             ax0.tick_params(axis='both', which='major', labelsize=5)
@@ -458,7 +482,6 @@ class SLAB():
             depth   = z[iz]                     #save the depth
             idt     = np.where(time==TD)        #save the time
             idT     = idt[0][0]                 #save the the index
-             
             time_ = time[idT-1]                 #save time step before of the detachment, and relative value
             
             tau_  = self.tau[iz,idT-1]
@@ -476,8 +499,6 @@ class SLAB():
             iz= []
             buf2 =[]
             buf3 = []
-        
-               
         return det_vec, iz,buf2,buf3 
     
     def _save_txt_DATABASE(self,det_vec,TestName,ptsave):
@@ -489,8 +510,6 @@ class SLAB():
         """
         Write csv data files with the detachment vector 
         """
-       
-    
         filename = os.path.join(ptsave,file_name)
         if(os.path.isfile(filename)==False):
             header = ["TestName", "timedet","Depth","timets","effectiveviscosity","creepviscosity","tauII","tauxx","tauzz","tauxz","epsII","epsxx","epszz","epsxz","F_T","F_B","Temp","viscoeffAst","viscocreepAst"]
@@ -853,6 +872,22 @@ class Free_S_Slab_break_off(FS):
         self.mean_dx     = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_dy     = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_dz     = np.zeros((ty,tx,nstep),dtype=float)
+        self.HB           = np.ones((tx,nstep),dtype=float)*np.nan # topography boundary plates
+        self.HBy          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
+        self.HBx          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
+        self.HMax         =np.ones((tx,nstep),dtype=float)*np.nan # maximum topography within +/-200 km boundary
+        self.HMaxy        = np.ones((tx,nstep),dtype=float)*np.nan # coordinate maximum topography
+        self.Hmin       = np.ones((tx,nstep),dtype=float)*np.nan # minimum frontal topography
+        self.Hminy      = np.ones((tx,nstep),dtype=float)*np.nan # coordinate
+        self.v_z_M       = np.ones((tx,nstep),dtype=float)*np.nan # maximum velocity
+        self.v_z_m       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+        self.v_z_mean    = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+        self.HMean       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+        self.Hmeang       = np.ones((nstep),dtype=float)*np.nan #minimum velocity
+
+        self.x_s         = np.ones(tx)*np.nan
+        self.ind_boundary = np.zeros(tx)*np.nan
+        
         
         
     def _update_extra_variables(self,V:VAL,C:Coordinate_System,dt,ipic):
@@ -864,6 +899,10 @@ class Free_S_Slab_break_off(FS):
         self.mean_dx[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dx')
         self.mean_dy[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dy')
         self.mean_dz[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dz')
+        
+        
+        
+        
         self.LGV = ['dH','vz_M','mean_stress','mean_eps','mean_dz','Amplitude']
         self.Label  = ['dH','vz','tau','eps','dz','H']
         self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.cork","cmc.oleron"]
@@ -1006,7 +1045,155 @@ class Free_S_Slab_break_off(FS):
             ic +=1 
         fg.clear
         plt.close()
-         
+
+    def _compute_relevant_information_topography(self,C: Coordinate_System,Slab_GEO:Trench,ipic:int):
+        # Compute the plate boundary using the data of the boundary 
+            """
+            Approach: compute x-y of the boundary of the terrane
+            -> interpolate topography at the boundary of the terrane and other variables
+            -> loop over the nodes of the point of the margin:
+                -> select the area between p(B)-200,p(B)+200 
+                    -> find the maximum topography (store its node)
+                    -> find the minimum topography:
+                        -> behind and in front the maximum topography 
+                    -> compute the averages, the wavelength (i.e. distance between the two minima)
+            """
+            # Extract information boundary and select x belongs to xa-xb 
+            boundary_geometry = Slab_GEO.Boundary_B
+            xa = boundary_geometry[0][0]
+            xb = boundary_geometry[0][2]
+            ind_boundary = (C.x>=xa) & (C.x<xb)
+            x_B = C.x[ind_boundary]
+            # Compute the boundary 
+            y_B,x_s =_compute_length_coordinatesCB(ind_boundary,boundary_geometry,C.x)
+            # function to retrieve the data. 
+            vz = self.vz_M[:,:,ipic]
+            H  = self.Amplitude[:,:,ipic]
+            self.HBx[ind_boundary==True,ipic]=x_B[:]
+            self.HBy[ind_boundary,ipic]=y_B[:]
+            self.x_s = x_s
+
+            
+            """
+            HB     topography of plate boundary  
+            HBc    coordinate of the plate boundary
+            HMax   topography of the maximum   
+            HMaxc  coordinate maximum
+            HminF  topography frontal minumum
+            HminFc topography frontal minimum coordinates
+            HminB  topography back minimum
+            Hminc  coordinate topography back mininum
+            v_z_M  max velocity     [HBc+/-200]
+            v_z_m  minumum velocity [HBc+/-200]
+            x_s    length from left to right 
+            """
+            ix_b = np.sum(ind_boundary)
+            ix_ch = np.where(ind_boundary==True)
+            for i_x in range(ix_b):
+                i = ix_ch[0][i_x]
+                yy = y_B[i_x] # 
+                iy = find1Dnodes(C.y,yy,len(C.y))
+                y1 = C.y[iy]
+                y2 = C.y[iy+1]
+                intp1 = H[iy,i]
+                intp2 = H[iy,i]
+                self.HB[i,ipic] = linearinterpolation(yy,y1,y2,intp1,intp2)
+                # find area of interest: 
+                ind_area = np.where((C.y<=self.HBy[i,ipic]+200)&(C.y>=self.HBy[i,ipic]-200))
+                # find_maximum
+                self.HMax[i,ipic] = np.max(H[ind_area,i])
+                ind_max   = np.where(H[:,i]==self.HMax[i,ipic])
+                # find_coordinate
+                if C.y[ind_max[0][0]]<self.HBy[i,ipic]-200:
+                    self.HMaxy[i,ipic]=np.nan
+                else:
+                    self.HMaxy[i,ipic]=C.y[ind_max[0][0]]
+                self.Hmeang[ipic] = np.mean(H[ind_area[0][0],ind_boundary==True])
+                # find_minimum_front
+                if self.HMaxy[:,ipic].all() == False:
+                    self.Hmin[i,ipic]  = np.min(H[ind_area,i])
+                    self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
+                    self.Hminy[i,ipic] = C.y[H[:,i]==np.min(H[ind_area,i])]
+                    self.v_z_M[i,ipic] = np.max(vz[ind_area,i])
+                    self.v_z_m[i,ipic] = np.min(vz[ind_area,i])
+                    self.v_z_mean[i,ipic] = np.mean(vz[ind_area,i])
+
+                else:
+                    self.Hmin[i,ipic]   = np.nan
+                    self.Hminy[i,ipic]  = np.nan
+                    self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
+                    self.v_z_M[i,ipic]   = np.nan
+                    self.v_z_m[i,ipic]   = np.nan
+                    self.v_z_mean[i,ipic] = np.nan
+            self.ind_boundary=ind_boundary
+            return self 
+    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave):
+        val = ['HMax','v_z','Maps']
+        ptsave=os.path.join(ptsave,'1D_surfaces')
+        if not os.path.isdir(ptsave):
+            os.mkdir(ptsave)
+        ib = self.ind_boundary
+        for v in val:
+            ptsave_b=os.path.join(ptsave,v)
+            if not os.path.isdir(ptsave_b):
+                os.mkdir(ptsave_b)
+            fig = plt.figure()
+            ax2 = fig.gca()
+            fna='Fig'+str(ipic)+'.png'
+            fn=os.path.join(ptsave_b,fna)
+            if v=='HB':
+                for ip in range(10):
+                    it = ipic - ip
+                    alpha_v= 0.8-ip*(1/12)
+                    if ip == 0: 
+                        cc = 'r'
+                    else:
+                        cc = 'b'
+                    if (it == 0) & (ip == 0) :
+                        ax2.plot(self.x_s, self.HB[ib==True,0]-self.Hmean[0],c = cc,alpha = alpha_v,linewidth=alpha_v)
+                        break
+                    if (ip >0 ) & (it == 0 ):
+                        ax2.plot(self.x_s, self.HB[ib==True,it]-self.Hmean[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+                        break 
+                    else: 
+                        ax2.plot(self.x_s, self.HB[ib==True,it]-self.Hmean[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+                ax2.plot(self.x_s, self.HB[ib==True,ipic]-self.Hmean[ipic],c = 'r',alpha = 1.0,linewidth=1.2)
+                plt.xlabel('x, [km]')
+                plt.ylabel('H, [km]')
+                plt.xlim(0,1200)
+
+            elif v == 'v_z':
+                p1=ax2.plot(self.x_s,self.v_z_M[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
+                p2=ax2.plot(self.x_s,self.v_z_m[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
+                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_m[ib==True,ipic],color='blue',alpha=0.4)
+                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
+                plt.xlabel('x, [km]')
+                plt.ylabel('$v_z$, $[\frac{cm}{yrs}]$')
+                plt.xlim(0,1200)
+
+            elif v == 'HMax':
+                p1=ax2.plot(self.x_s,self.HMax[ib==True,ipic]-self.Hmeang[ipic],c = 'r',alpha = 1.0,linewidth=1.0,linestyle=':')
+                p2=ax2.plot(self.x_s,self.Hmin[ib==True,ipic]-self.Hmeang[ipic],c = 'b',alpha = 1.0,linewidth=1.2)
+                plt.xlabel('x_s, [km]')
+                plt.ylabel('H, [km]')
+                plt.xlim(0,1200)
+            elif v == 'Maps':
+                p1=ax2.fill_between(self.HBx[ib==True,ipic], self.Hminy[ib==True,ipic],self.HMaxy[ib==True,ipic],color='blue',alpha=0.4)
+                p3=ax2.plot(self.HBx[ib==True,ipic],self.HBy[ib==True,ipic],c = 'k',alpha = 1.0,linewidth=0.8,linestyle=':')
+                plt.xlabel('x, [km]')
+                plt.ylabel('y, [km]')
+                
+            plt.grid(True)
+            plt.xlabel('x, [km]')
+            plt.ylabel('H, [km]')
+            ax2.tick_params(axis='both', which='major', labelsize=5)
+            ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+        ###############################################################       
+            plt.draw()    # necessary to render figure before saving
+            fig.savefig(fn,dpi=300,transparent=False)
+            fig.clear()
+            plt.close()
+
 class Phase_det(Phase):
     def __init__(self,C,Phase_dic):
         super().__init__(C,Phase_dic)
@@ -1019,6 +1206,7 @@ class Phase_det(Phase):
         self.nu    = np.zeros([tz,ty,tx],dtype = float)
         self.vis   = np.zeros([tz,ty,tx],dtype = float)
         self.Rho   = np.zeros([tz,ty,tx],dtype = float)
+        self.Psi   = np.zeros([tz,ty,tx],dtype = float)
     def _interpolate_dyn_phase(self,V,C):
         # prepare the variables
         xp = C.xp
@@ -1028,7 +1216,7 @@ class Phase_det(Phase):
         y  = C.y
         z  = C.z 
         t1= perf_counter()
-        val_ = ['T','nu','vis','Rho','tau','eps',]
+        val_ = ['T','nu','vis','Rho','tau','eps','Psi']
         for v in val_: 
             buf = eval(v,globals(),V.__dict__)
             buf2 = np.zeros([len(zp),len(yp),len(xp)],dtype = float)
@@ -1065,8 +1253,6 @@ def function_interpolate(xp,yp,zp,x,y,z,buf,buf2):
 def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom):    #(self,C,Values,ph,ipic,ix,ix1):
 
     for i in prange(tz):
-        if i == 528:
-            bla = 0 
         buf = ph[i,:]
         buf2 = buf_var_ph[i,:]
         condition = 0.0
@@ -1087,18 +1273,11 @@ def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom):    #
         if(condition>0.0):
             x2[i]=np.nan
             x1[i]=np.nan
-            D[i] = np.nan
-
-            """
-            Compute the mean and standard deviation of certain value
-            """                    
+            D[i] = np.nan                
             buf_var[i] = np.nan
             if (condition==1.0):
                 x2[i]=-np.inf
                 x1[i]=-np.inf
-                """
-                Compute the mean and standard deviation of certain value
-                """                    
                 buf_var[i] = -np.inf
                 D[i] = -np.inf
             
@@ -1115,10 +1294,7 @@ def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom):    #
                 D[i]=np.nan               
             else:
                 buf_var[i] = _mean_numba(buf,buf2)
-    
-    
     L0  =z-np.min(z_bottom)
-    
     return D,L0,buf_var,x1,x2
     
 @jit(nopython=True)  
@@ -1181,3 +1357,23 @@ def _find_index(buf,i1,i2):
                 break 
         
     return i1,i2
+
+#@jit(nopython=True)  
+def _compute_length_coordinatesCB(ind_boundary,boundary_geometry,x):
+    x = x[ind_boundary]
+    # Compute the arclength as a function of x
+    x_a = boundary_geometry[0][0]
+    y_a = boundary_geometry[0][1]
+    c   = boundary_geometry[2][0]
+    cy  = boundary_geometry[2][1]
+    R   = boundary_geometry[2][2]
+    c_  = (x_a-c)**2-R**2+y_a**2
+    b_ = 2.*y_a
+    delta = np.sqrt(b_**2-4*c_)
+    center_y = [(b_-delta)/2,(b_+delta)/2]
+    y_c = np.min(center_y)
+    y = (R**2-(x-c)**2)**(0.5)+y_c
+    d = np.sqrt((x-x_a)**2+(y-y_a)**2)
+    theta = 2*np.arcsin(d/(2*R))
+    x_s = R*theta; 
+    return y,x_s 
