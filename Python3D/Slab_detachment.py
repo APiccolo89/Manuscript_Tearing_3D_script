@@ -50,9 +50,15 @@ class SLAB():
         self.Rho  = np.zeros((tx,tz,nstep),dtype=float)
         self.Psi = np.zeros((tx,tz,nstep),dtype=float)
         self.L   = np.zeros((tx,tz,nstep),dtype=float)
-        self.det_vec =np.zeros((tx,nstep),dtype=float)
+        self.det_vec =np.ones((tx),dtype=float)*np.nan
+        self.y_vec =np.ones((tx),dtype=float)*np.nan
+        self.x_vec =np.ones((tx),dtype=float)*np.nan
         self.x1    = np.zeros((tx,tz,nstep),dtype=float)
-        self.x2    = np.zeros((tx,tz,nstep),dtype=float)   
+        self.x2    = np.zeros((tx,tz,nstep),dtype=float)
+        self.W    = np.zeros((tz,nstep),dtype = float)
+        self.tau_vec = np.ones((tx),dtype=float)*np.nan
+        self.T_vec = np.ones((tx),dtype=float)*np.nan
+        self.depth_vec = np.ones((tx),dtype=float)*np.nan
         self.LGV         = ["D","T","tau","F_B","F_T",'eps','Psi']
         self.Label       = ["$D^{\dagger} []$",     
                             "T [$^{\circ}C$]",
@@ -82,7 +88,7 @@ class SLAB():
         self.CV = ["T","nu","vis","eps","tau",'Rho','Psi']       
 
 
-    def _update_C(self,C,FS,Ph,IG,ipic,time):
+    def _update_C(self,C,FS,Ph,IG,ipic,tcur):
         # Create an array and select the phase that belongs to slab
         lay_ph = [Ph.Phase][0]
         lay_ph = lay_ph.astype('float64') # convert the type (phase field is uint8)
@@ -119,10 +125,31 @@ class SLAB():
             # Compute the additional variable (i.e. F_T = 2*D*tau), F_B
             self.F_T[i,:,ipic] = 2*self.D[i,:,ipic]*1e3*self.tau[i,:,ipic]*1e6
             self.F_B[i,:,ipic] = self.D[i,:,ipic]*1e3*self.L[i,:,ipic]*(self.Rho[i,:,ipic]-3300*(1-3e-5*1325))*9.81
+        # detect_slab_detachment
+        ix1 = np.zeros((len(C.zp)),dtype=int)
+        ix2 = np.zeros((len(C.zp)),dtype=int)
+        
+        ix1,ix2,self.W[:,ipic]=compute_W_slab(self.D[:,:,ipic],C.xp[self.ind_boundary[0]],C.zp,self.W[:,ipic],ix1,ix2)
+        self.det_vec,self.depth_vec,self.T_vec,self.tau_vec =detect_slab_detachment(self.D[:,:,ipic],
+                                                                                    C.xp[self.ind_boundary[0]],
+                                                                                    C.zp,
+                                                                                    tcur,
+                                                                                    ipic,
+                                                                                    self.det_vec,
+                                                                                    self.tau_vec,
+                                                                                    self.depth_vec,
+                                                                                    self.T_vec,
+                                                                                    self.T,
+                                                                                    self.tau,
+                                                                                    ix1,ix2,
+                                                                                    self.x1,
+                                                                                    self.y_vec,
+                                                                                    self.x_vec)
             
         t2 =perf_counter()    
-             
         print('time find_slab',"{:02}".format(t2-t1), 's')
+    
+
 
                 
     def _Find_Slab_C(self,C,Values,ph,ipic,ix,ix1):
@@ -294,8 +321,27 @@ class SLAB():
                 os.mkdir(ptsave_c)
         
             fn = os.path.join(ptsave_c,fna)
+            ax1 = fg.add_axes([0.1, 0.6, 0.8, 0.2],
+                               xticklabels=[])
+            ax0 = fg.add_axes([0.1, 0.1, 0.8, 0.5])   
+            if values == 'T':
+                buf_1D = self.T_vec
+            elif values == 'tau':
+                buf_1D = self.tau_vec
+            else: 
+                buf_1D = self.det_vec           
+            ax1.plot(x_s,buf_1D,color='r',linewidth=1.2)
+            ax1.set_title(tick)
+            ax1.tick_params(axis='both', which='major', labelsize=5)
+            ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+            plt.grid(True)
+            try:
+                ax1.set_ylim(np.nanmean(buf_1D)-0.25*np.nanmean(buf_1D),np.nanmean(buf_1D)+0.25*np.nanmean(buf_1D))
+            except:
+                ax1.set_ylim(np.nanmean(1)-0.25*np.nanmean(1),np.nanmean(1)+0.25*np.nanmean(1))
 
-            ax0 = fg.gca()
+            ax1.set_xlim(0,1200)            
+            
             if values == 'D':
                 cor = 1/(IC.D0[0][0]/1e3)
             elif values =='tau':
@@ -326,7 +372,6 @@ class SLAB():
 
             
 
-            ax0.set_title(tick)
             ax0.tick_params(axis='both', which='major', labelsize=5)
             ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
             plt.draw()    # necessary to render figure before saving
@@ -337,198 +382,7 @@ class SLAB():
             
             plt.close()
         
-    def  _plot_slab_time(self,time,z,ptsave,TestName,Data_BASE_F,t_lim,IC): 
 
-        import cmcrameri.cm as cmc
-
-        
-        ic  = 0
-        
-        ptsave_b=os.path.join(ptsave,'Averages')
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-
-        var =self.LGV
-        index = self.Label   
-        cmaps = self.Colormap
-        LIM = self.Val
-        self.det_vec, ind_z,TT,ZZ = self._find_detachment_age(time,z)
-        self.tau_vec = self.tau[ind_z,:]
-        self.D_det   = self.D[ind_z,:]
-        self.tau_d_min = self.tau_min[ind_z,:]
-        self.tau_d_max = self.tau_max[ind_z,:]
-        if len(self.det_vec) >0:
-            self._save_txt_DATABASE(self.det_vec,TestName,Data_BASE_F)
-        
-
-        for values in var: 
-            print(values)
-            fna='Fig%s.png' %values
-            if(values == "dF"):
-                val = self.F_T/self.F_B
-            else:
-                val = eval(values,globals(),self.__dict__)
-
-            
-            if values == "D":
-                val = val/80 
-    #        if values == "T":
-     #           val = (val-IC.T_av)/IC.Tc
-
-            
-            cmap2 = eval(cmaps[ic])
-            lm    = LIM[ic]
-            if len(self.det_vec)>0:
-                buf = val[ind_z,:]
-                buf[buf==0.0] = np.nan
-                lim_m = np.nanmin(buf)
-                lim_M = np.nanmax(buf)
-                buf =[]
-            elif((lm[0]=="min") & len(self.det_vec)==0):
-                lim_m = np.nanmin(val)
-                lim_M = np.nanmax(val)
-            else:
-                lim_m = lm[0]
-                lim_M = lm[1]
-            LCont = np.linspace(lim_m,lim_M,num=5)
-
-            if((values == "eps")| (values == "Psi")):
-                val = np.log10(val)
-                lim_m = np.log10(lim_m)
-                lim_M = np.log10(lim_M)
-            fg = figure()
-            lim_m = 0.1
-            lim_M = 1.0
-            print(lim_m)
-            print(lim_M)
-            tick='%s' %(index[ic])
-
-            ptsave_c=os.path.join(ptsave_b,values)
-            if not os.path.isdir(ptsave_c):
-                os.mkdir(ptsave_c)
-        
-            fn = os.path.join(ptsave_c,fna)
-
-            ax0 = fg.gca()
-
-            levels = np.linspace(lim_m,lim_M,num=10)
-
-            cf=ax0.contourf(time,z,val, cmap=cmap2,levels = levels)
-            if len(self.det_vec)>0:
-                ax0.scatter(self.det_vec[0],self.det_vec[1],s = 50,marker ="X",color = "r")
-                ax0.plot(TT,ZZ,lw=1.2,c='k',ls='--')
-           
-            ax0.set_ylim(-600,-100)
-            ax0.set_xlim(0,t_lim)
-            plt.grid(True)
-            cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal')
-            cbar.set_label(index[ic])
-            plt.xlabel('$time, [Myrs]$')
-            plt.ylabel('$Depth, [km]$')
- 
-            ax0.set_title(tick)
-            ax0.tick_params(axis='both', which='major', labelsize=5)
-            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-            plt.draw()    # necessary to render figure before saving
-            fg.savefig(fn,dpi=300)
-            ax0.plot()
-            ic += 1
-            val = [] 
-            
-            plt.close()
-        return ind_z
-    def _find_detachment_age(self,time,z):
-        
-        """
-        Long story short: I start the loop from the top to the bottom, 
-        the first occurence of nan is defined as effective detachment, 
-        this value has a bit of error attacched, but i figure out, one day
-        a better cut off. 
-        I select all the point along the time vector that fullfill the detachment
-        condition and i took the lowest one and the associated depth and i save
-        the detachment depth, the detachment time, and the value that are associated 
-        with the previous time step avaiable. Took allmost 6 hrs to find out, better to 
-        associated this part of the script with a lot of shame and terrible comment on my
-        self. 
-        ALG: 
-            start loop from the last element 
-            find where D is NAN and save time and space coordinate per each 
-            append the indexes 
-            
-        check if exist any element in the vector created before
-        if yes, check what is the minimum time in which nan appear 
-        then save time, save the depth 
-        retrieve the 1D vector for each of the value that have been computed during the post processing
-        """
-            
-        det_vec =[]                             #Vector that collects the the value at detachment time
-        ind_z = []                              #empty vector for ind_z
-        lz = len(z)                             #length vector lz
-        chos_x = []                             #index of the chosen 
-        chos_T = []
-        for i in range(lz-1,0,-1):              #Loop starting from the top to the bottom 
-            buf = self.D[i,:]                   #1D(z) vector of D 
-            if (z[i] <-100) & (z[i]>-350):      #Constraining better the area of research
-                ind_T = np.where(np.isnan(buf)) #find where in buf (1D vec D) is nan
-                if np.size(ind_T)>0:            #if the vector has a size
-                    chos_x.append(i)            #append the index i 
-                    chos_T.append(ind_T[0][0])  #append the index associated with the first nan (left->right)
-        if len(chos_T) > 0:                     #AFTER LOOP. check chos_T, if chos_T has a at least one element
-            TD = np.min(time[chos_T])           #Time of the detachment is the min within the time in which is detected detachment
-            buf2 = time[chos_T]                 #collect all the time points associated time 
-            buf3 = z[chos_x]                    #collect the z vector to produce t-z path of the detachment 
-            i_buf   = np.where(buf2==TD)        #find the point of the detachment
-            iz      = chos_x[i_buf[0][0]]       #find the point z of the detachment
-            depth   = z[iz]                     #save the depth
-            idt     = np.where(time==TD)        #save the time
-            idT     = idt[0][0]                 #save the the index
-            time_ = time[idT-1]                 #save time step before of the detachment, and relative value
-            
-            tau_  = self.tau[iz,idT-1]
-            eps_  = self.eps[iz,idT-1]
-            T_    = self.T[iz,idT-1]
-            vis_  = self.vis[iz,idT-1]
-            nu_   = self.nu[iz,idT-1]
-            F_B   = self.F_B[iz,idT-1]
-            F_T   = self.F_T[iz,idT-1]
-            nu_A  = self.nu_A[iz,idT-1]
-            vis_A = self.vis_A[iz,idT-1]
-            det_vec = [TD, depth,time_,vis_,nu_,tau_,eps_,F_T,F_B,T_,vis_A,nu_A]
-        else: 
-            det_vec=[]
-            iz= []
-            buf2 =[]
-            buf3 = []
-        return det_vec, iz,buf2,buf3 
-    
-    def _save_txt_DATABASE(self,det_vec,TestName,ptsave):
-        
-        import csv 
-        
-        file_name = "Test_Detachment_Data_BASE.csv"
-        
-        """
-        Write csv data files with the detachment vector 
-        """
-        filename = os.path.join(ptsave,file_name)
-        if(os.path.isfile(filename)==False):
-            header = ["TestName", "timedet","Depth","timets","effectiveviscosity","creepviscosity","tauII","tauxx","tauzz","tauxz","epsII","epsxx","epszz","epsxz","F_T","F_B","Temp","viscoeffAst","viscocreepAst"]
-            f = open(filename, 'a')
-            writer = csv.writer(f)
-
-            writer.writerow(header) 
-            f.close()
-        f = open(filename, 'a')
-        writer = csv.writer(f)
-        row    = [TestName]
-        for i in range(len(det_vec)):
-            row.append(det_vec[i])
-            
-        writer.writerow(row)
-
-        # close the file
-        f.close()
-        
 class Initial_condition(): 
     def __init__(self,Phase_Slab,Phase_Mantle,vIC): 
         """
@@ -886,6 +740,8 @@ class Free_S_Slab_break_off(FS):
         self.Hmeang       = np.ones((nstep),dtype=float)*np.nan #minimum velocity
 
         self.x_s         = np.ones(tx)*np.nan
+        self.x_sp         = []
+
         self.ind_boundary = np.zeros(tx)*np.nan
         
         
@@ -906,12 +762,12 @@ class Free_S_Slab_break_off(FS):
         self.LGV = ['dH','vz_M','mean_stress','mean_eps','mean_dz','Amplitude']
         self.Label  = ['dH','vz','tau','eps','dz','H']
         self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.cork","cmc.oleron"]
-        self.Val         = [(-3,3),
-                            (-3,3),
-                            (0,"max"),
+        self.Val         = [("min","max"),
+                            ("min","max"),
+                            ("min","max"),
                             (1e-16,"max"),
                             ("min","max"),
-                            (-4.0,3.0)]
+                            ("min","max")]
         
         return self
         
@@ -946,7 +802,7 @@ class Free_S_Slab_break_off(FS):
                 else:
                     buf[i,j] = np.mean(column[crust==1])
         return buf 
-    def _plot_maps_FS(self,t_cur,y,x,ptsave,ipic):
+    def _plot_maps_FS(self,t_cur,y,x,ptsave,ipic,S):
         import cmcrameri.cm as cmc
         from matplotlib.colors import LogNorm
         ptsave_b=os.path.join(ptsave,"WhMaps_FS")
@@ -969,7 +825,20 @@ class Free_S_Slab_break_off(FS):
         fna='Fig'+"{:03d}".format(ipic)+'.png'       
         cf =ax0.pcolormesh(x, y, val, shading='gouraud')
         cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
-        cf0 = ax0.contour(x,y,self.Amplitude[:,:,ipic],levels = [-1000,-500,0,500,1000],colors = "k",linewidths=0.75)
+        cf0 = ax0.scatter(S.x_vec,S.y_vec,20,S.det_vec,cmap = "inferno",marker='^')
+        cf1 = ax0.plot(S.x_vec,S.y_vec,c='r',linewidth=1.2,linestyle='-.')
+        try: 
+            lim1_m = np.nanmin(S.det_vec)
+            lim2_m = np.nanmax(S.det_vec)
+        except: 
+            lim1_m = 0
+            lim2_m = 1
+        cbar2 = fg.colorbar(cf0, ax=ax0,orientation='vertical',extend="both")
+        cf0.set_clim([lim1_m,lim2_m])
+        cbar2.vmin = lim1_m 
+        cbar2.vmax = lim2_m
+ 
+        
         
        
         for name in values:
@@ -1072,7 +941,10 @@ class Free_S_Slab_break_off(FS):
             self.HBx[ind_boundary==True,ipic]=x_B[:]
             self.HBy[ind_boundary,ipic]=y_B[:]
             self.x_s = x_s
-
+            ind_boundary_p = (C.xp>=xa) & (C.xp<xb)
+            x_p = C.xp[ind_boundary_p]
+            y_Bp,x_sp =_compute_length_coordinatesCB(ind_boundary_p,boundary_geometry,C.xp)
+            self.x_sp = x_sp
             
             """
             HB     topography of plate boundary  
@@ -1114,20 +986,18 @@ class Free_S_Slab_break_off(FS):
                     self.Hmin[i,ipic]  = np.min(H[ind_area,i])
                     self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
                     self.Hminy[i,ipic] = C.y[H[:,i]==np.min(H[ind_area,i])]
-                    self.v_z_M[i,ipic] = np.max(vz[ind_area,i])
-                    self.v_z_m[i,ipic] = np.min(vz[ind_area,i])
-                    self.v_z_mean[i,ipic] = np.mean(vz[ind_area,i])
-
                 else:
                     self.Hmin[i,ipic]   = np.nan
                     self.Hminy[i,ipic]  = np.nan
                     self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
-                    self.v_z_M[i,ipic]   = np.nan
-                    self.v_z_m[i,ipic]   = np.nan
-                    self.v_z_mean[i,ipic] = np.nan
+                
+                self.v_z_M[i,ipic] = np.max(vz[ind_area,i])
+                self.v_z_m[i,ipic] = np.min(vz[ind_area,i])
+                self.v_z_mean[i,ipic] = np.mean(vz[ind_area,i])
+ 
             self.ind_boundary=ind_boundary
             return self 
-    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave):
+    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB):
         val = ['HMax','v_z','Maps']
         ptsave=os.path.join(ptsave,'1D_surfaces')
         if not os.path.isdir(ptsave):
@@ -1377,3 +1247,95 @@ def _compute_length_coordinatesCB(ind_boundary,boundary_geometry,x):
     theta = 2*np.arcsin(d/(2*R))
     x_s = R*theta; 
     return y,x_s 
+
+@jit(nopython=True)  
+def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau,ind1,ind2,x1,yvec,xvec):
+        
+        """
+        Input:
+        =============================================================================================
+        D => D[ix,iz,ipic] the thickness of the slab of the current timestep.{float}
+        x => x[] the x vector{float}
+        z => z vector {float}
+        t_cur => current time {float}
+        ipic => actual timestep 
+        det_vec => vector containing the position w.r.t the vector x, and time of the first detachment
+        tau_vec => vector containing the stress associated with the previous timestep
+        depth_vector => vector that contains the depth of the first occurence of detachment for a given x 
+        T_vec => vector containing the temperature shortly before the detachment 
+        T=> T[ix,iz,ipic] => temperature saved from the detection of the slab
+        tau=> "" => tau saved from the detection of the slab
+        ind1 => lateral boundary of the slab 
+        ind2 => lateral boundary of the slab of the current timestep
+        ==================================================================================================
+        Output: (vector that are used to update the information within the class of slab detachment)
+        det_vec
+        taz_vec
+        depth_vec
+        T_vec
+        """
+        #ind_z = []                              #empty vector for ind_z
+        #lz = len(z)                             #length vector lz
+        #chos_x = []                             #index of the chosen 
+        #chos_T = []
+        for ix in range(len(x)):
+            for i in range(len(z)-1,-1,-1):              #Loop starting from the top to the bottom 
+                buf = D[ix,i]                   #1D(z) vector of D 
+                if (z[i] <-80) & (z[i]>-500):      #Constraining better the area of research
+                    if (np.isnan(buf)) & (ix > ind1[i]) &  (ix < ind2[i]) & (np.isnan(det_vec[ix])):
+                        det_vec[ix] = tcur
+                        depth_vec[ix]=z[i]
+                        T_vec[ix]    =T[ix,i,ipic-1]
+                        tau_vec[ix]  = tau[ix,i,ipic-1]
+                        xvec[ix]    = x[ix]
+                        yvec[ix]    = x1[ix,i,ipic-1]
+                        
+            
+
+        return det_vec,depth_vec,T_vec,tau_vec
+    
+    
+@jit(nopython=True)  
+def compute_W_slab(D,x,z,W,ix1,ix2):
+    """
+    _summary_: function that compute the Width of the slab, and collects the indeces where to look after the detachment
+    D = current thicnkess x(y)-z
+    x,z = coordinate
+    W the width vector (initialize to be zero)
+    ix1,ix2 indexes. 
+    The algorithm has been co-ideated with Arne (i.e., he gave me the right tip to make it efficient)
+    """
+    for iz in range(len(z)):
+        ix1[iz] = -1
+        x1   = np.nan
+        buf = D[:,iz]
+        for ix in range(len(x)):
+            if (np.isnan(buf[ix])== False) & (buf[ix] != -1.0) & (buf[ix]!=-np.inf) :
+                ix1[iz] = ix
+                x1  = x[ix]
+                break
+            if ix == (len(x)):
+                ix1[iz]=-int(1)
+                x1 = np.nan
+        ix2[iz] = -1
+        x2   = np.nan
+        if x1 != np.nan:
+            for ixb in range(len(x)-1,-1,-1):
+                if (np.isnan(buf[ixb])== False) & (buf[ixb] != -1.0) & (buf[ixb]!=-np.inf) :
+                    ix2[iz] = ixb
+                    x2  = x[ixb]
+                    break
+        else:
+            ix2[iz] = -int(1)
+            x2   = np.nan
+        W[iz] = x2-x1
+    """
+    Short comments: most of the time that I spent for writing this function, was literally
+    to find idiotic mistake, that I could have spotted if I stopped to think about them. 
+    I had to introduce several indeces, I discovered that x = np.nan is not always working, and that could
+    create future issue. Moreover, I needed to try the effects of range (yet again) to avoid additional future problem.
+    Just a paragraph to self-punish me, and avoid that people that read this code consider me a worthwile asset. 
+    """
+    return ix1,ix2,W
+            
+            
