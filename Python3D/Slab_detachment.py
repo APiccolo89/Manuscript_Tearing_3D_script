@@ -36,6 +36,7 @@ class SLAB():
         t= (C.xp>=self.P1)&(C.xp<=self.P2)
         self.ind_boundary = np.where(t==True)
         tx  = len(self.ind_boundary[0])
+        self.y_b,self.x_s =_compute_length_coordinatesCB(self.ind_boundary,Slab_Geometry.Boundary_B,C.xp)
 
         
         tz = len(C.zp)
@@ -58,7 +59,9 @@ class SLAB():
         self.W    = np.zeros((tz,nstep),dtype = float)
         self.tau_vec = np.ones((tx),dtype=float)*np.nan
         self.T_vec = np.ones((tx),dtype=float)*np.nan
-        self.depth_vec = np.ones((tx),dtype=float)*np.nan
+        self.depth_vec = np.zeros((tx),dtype=float)
+        self.nodes_tearing_=np.ones(nstep,dtype=int)*np.nan
+        self.average_tearing_velocity=np.ones((3,nstep),dtype=float)*np.nan
         self.LGV         = ["D","T","tau","F_B","F_T",'eps','Psi']
         self.Label       = ["$D^{\dagger} []$",     
                             "T [$^{\circ}C$]",
@@ -88,7 +91,7 @@ class SLAB():
         self.CV = ["T","nu","vis","eps","tau",'Rho','Psi']       
 
 
-    def _update_C(self,C,FS,Ph,IG,ipic,tcur):
+    def _update_C(self,C,FS,Ph,IG,ipic,tcur,dt):
         # Create an array and select the phase that belongs to slab
         lay_ph = [Ph.Phase][0]
         lay_ph = lay_ph.astype('float64') # convert the type (phase field is uint8)
@@ -145,7 +148,32 @@ class SLAB():
                                                                                     self.x1,
                                                                                     self.y_vec,
                                                                                     self.x_vec)
-            
+        # deep copy the detachment vector (variables space = pointer space, it means that if i do not deep copy a variable, it modifies it and screw up everything)
+        det_buf = np.copy(self.det_vec)
+        tearing_ = np.isnan(det_buf)==False
+        nodes_   = np.sum(tearing_)
+        self.nodes_tearing_[ipic] = nodes_-1
+        if ipic == 0:
+            self.average_tearing_velocity[0,ipic] = 0.0
+            self.average_tearing_velocity[1,ipic] = 0.0
+            self.average_tearing_velocity[2,ipic] = 0.0
+
+        else:
+            dx_s = np.diff(self.x_s)
+            dx_s_m = np.min(dx_s)
+            dx_s_av = np.mean(dx_s)
+            dx_s_M = np.max(dx_s)
+            self.average_tearing_velocity[0,ipic] = ((self.nodes_tearing_[ipic]-self.nodes_tearing_[ipic-1])/dt)*dx_s_m
+            self.average_tearing_velocity[1,ipic] = ((self.nodes_tearing_[ipic]-self.nodes_tearing_[ipic-1])/dt)*dx_s_av
+            self.average_tearing_velocity[2,ipic] = ((self.nodes_tearing_[ipic]-self.nodes_tearing_[ipic-1])/dt)*dx_s_M
+            print('minumum tearing velocity is:', "{:03}".format(self.average_tearing_velocity[0,ipic]), 'km/Myrs' )
+            print('average tearing velocity is:', "{:03}".format(self.average_tearing_velocity[1,ipic]), 'km/Myrs' )
+            print('maximum tearing velocity is:', "{:03}".format(self.average_tearing_velocity[2,ipic]), 'km/Myrs' )
+
+
+
+        
+        
         t2 =perf_counter()    
         print('time find_slab',"{:02}".format(t2-t1), 's')
     
@@ -270,7 +298,7 @@ class SLAB():
             self.F_B[ix1,:,ipic] = dRho*9.81*self.D[ix1,:,ipic]*(z-z_b)*1e6                
             return self 
     
-    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic,Slab_Geo,IC): 
+    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic,Slab_Geo,IC,time): 
 
         x = x[self.ind_boundary]
         # Compute the arclength as a function of x
@@ -321,26 +349,23 @@ class SLAB():
                 os.mkdir(ptsave_c)
         
             fn = os.path.join(ptsave_c,fna)
-            ax1 = fg.add_axes([0.1, 0.6, 0.8, 0.2],
-                               xticklabels=[])
-            ax0 = fg.add_axes([0.1, 0.1, 0.8, 0.5])   
-            if values == 'T':
-                buf_1D = self.T_vec
-            elif values == 'tau':
-                buf_1D = self.tau_vec
-            else: 
-                buf_1D = self.det_vec           
-            ax1.plot(x_s,buf_1D,color='r',linewidth=1.2)
+            ax1 = fg.add_axes([0.1, 0.6, 0.8, 0.2])
+            ax0 = fg.add_axes([0.1, 0.05, 0.8, 0.5])   
+            cfactor = (1e3*100)/1e6
+                
+            ax1.plot(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),color='b',linewidth=0.8)
+            ax1.plot(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[1,0:ipic]*cfactor),color='r',linewidth=1.2)
+            ax1.plot(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),color='b',linewidth=0.8)
+            ax1.fill(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),c='b',alpha=0.3)
+
+
             ax1.set_title(tick)
             ax1.tick_params(axis='both', which='major', labelsize=5)
             ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
             plt.grid(True)
-            try:
-                ax1.set_ylim(np.nanmean(buf_1D)-0.25*np.nanmean(buf_1D),np.nanmean(buf_1D)+0.25*np.nanmean(buf_1D))
-            except:
-                ax1.set_ylim(np.nanmean(1)-0.25*np.nanmean(1),np.nanmean(1)+0.25*np.nanmean(1))
+            
 
-            ax1.set_xlim(0,1200)            
+            ax1.set_xlim(0, np.log10(np.round(np.max(time))))            
             
             if values == 'D':
                 cor = 1/(IC.D0[0][0]/1e3)
@@ -402,6 +427,7 @@ class Initial_condition():
         """
         # Data that are input of the script 
         self.D0,self.L0 = vIC.Slab.D0*1e3,vIC.Slab.L0*1e3
+        self.RB         = vIC.Slab.Boundary_B[2][2]
         self.T_av       = vIC.Slab.avTS+273.15
         self.TP         = vIC.Slab.TP+273.15
         rho_slab         = Phase_Slab.Density.rho*(1-Phase_Slab.Density.alpha*(self.T_av-273.15))
@@ -690,12 +716,16 @@ class Terrane_Geo():
          ind = np.array(A)[0][0]
          B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0],np.array(mat[ind])[3][0]]))
          ind =  np.array(A)[1][0]
-         B_A.append(''.join((str(np.string_(i))[2]) for i in np.array(mat[ind])[:]))
-         if B_A[1] == 'none':
-             B_A.append([])
+         B_A_Buff = (''.join((str(np.string_(i))[2]) for i in np.array(mat[ind])[:]))
+         if B_A_Buff == 'none':
+            B_A.append([])
+            B_A.append(np.array([np.array(0),np.array(0),np.array(0)]))
+
          else:
+             B_A.append([1])
              ind = np.array(A)[2][0]
              B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0]]))
+             B_A = np.array(B_A)
             
          return B_A
     
@@ -817,7 +847,7 @@ class Free_S_Slab_break_off(FS):
         
         
         time_sim = "{:.3f}".format(t_cur)
-      
+
         ic = 0  
         val = np.zeros((len(y),len(x)),dtype=float)
         fg = figure()
@@ -997,13 +1027,15 @@ class Free_S_Slab_break_off(FS):
  
             self.ind_boundary=ind_boundary
             return self 
-    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB):
-        val = ['HMax','v_z','Maps']
+    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB,t_cur):
+        val = ['HMax','v_z']
         ptsave=os.path.join(ptsave,'1D_surfaces')
         if not os.path.isdir(ptsave):
             os.mkdir(ptsave)
         ib = self.ind_boundary
         for v in val:
+            time_sim = "{:.3f}".format(t_cur)
+            tick = r"t = %s [Myrs]" %(time_sim)
             ptsave_b=os.path.join(ptsave,v)
             if not os.path.isdir(ptsave_b):
                 os.mkdir(ptsave_b)
@@ -1020,13 +1052,13 @@ class Free_S_Slab_break_off(FS):
                     else:
                         cc = 'b'
                     if (it == 0) & (ip == 0) :
-                        ax2.plot(self.x_s, self.HB[ib==True,0]-self.Hmean[0],c = cc,alpha = alpha_v,linewidth=alpha_v)
+                        ax2.plot(self.x_s, self.HMax[ib==True,0]-self.Hmeang[0],c = cc,alpha = alpha_v,linewidth=alpha_v)
                         break
                     if (ip >0 ) & (it == 0 ):
-                        ax2.plot(self.x_s, self.HB[ib==True,it]-self.Hmean[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+                        ax2.plot(self.x_s, self.HMax[ib==True,it]-self.Hmeang[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
                         break 
                     else: 
-                        ax2.plot(self.x_s, self.HB[ib==True,it]-self.Hmean[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+                        ax2.plot(self.x_s, self.HMax[ib==True,it]-self.Hmeang[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
                 ax2.plot(self.x_s, self.HB[ib==True,ipic]-self.Hmean[ipic],c = 'r',alpha = 1.0,linewidth=1.2)
                 plt.xlabel('x, [km]')
                 plt.ylabel('H, [km]')
@@ -1035,8 +1067,8 @@ class Free_S_Slab_break_off(FS):
             elif v == 'v_z':
                 p1=ax2.plot(self.x_s,self.v_z_M[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
                 p2=ax2.plot(self.x_s,self.v_z_m[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
-                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_m[ib==True,ipic],color='blue',alpha=0.4)
-                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
+                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_M[ib==True,ipic],color='blue',alpha=0.4)
+                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'r',alpha = 1.0,linewidth=0.8)
                 plt.xlabel('x, [km]')
                 plt.ylabel('$v_z$, $[\frac{cm}{yrs}]$')
                 plt.xlim(0,1200)
@@ -1052,7 +1084,19 @@ class Free_S_Slab_break_off(FS):
                 p3=ax2.plot(self.HBx[ib==True,ipic],self.HBy[ib==True,ipic],c = 'k',alpha = 1.0,linewidth=0.8,linestyle=':')
                 plt.xlabel('x, [km]')
                 plt.ylabel('y, [km]')
-                
+            p5 = ax2.scatter(S.x_vec,np.zeros(len(S.x_vec)),10,S.det_vec,cmap='inferno')
+            try: 
+                lim1_m = np.nanmin(S.det_vec)
+                lim2_m = np.nanmax(S.det_vec)
+            except: 
+                lim1_m = 0
+                lim2_m = 1
+            cbar2 = fig.colorbar(p5, ax=ax2,orientation='horizontal',extend="both")
+            p5.set_clim([lim1_m,lim2_m])
+            cbar2.vmin = lim1_m 
+            cbar2.vmax = lim2_m
+            ax2.set_title(tick)
+
             plt.grid(True)
             plt.xlabel('x, [km]')
             plt.ylabel('H, [km]')
@@ -1228,7 +1272,6 @@ def _find_index(buf,i1,i2):
         
     return i1,i2
 
-#@jit(nopython=True)  
 def _compute_length_coordinatesCB(ind_boundary,boundary_geometry,x):
     x = x[ind_boundary]
     # Compute the arclength as a function of x
@@ -1248,7 +1291,7 @@ def _compute_length_coordinatesCB(ind_boundary,boundary_geometry,x):
     x_s = R*theta; 
     return y,x_s 
 
-@jit(nopython=True)  
+@jit(nopython=True,parallel=True)
 def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau,ind1,ind2,x1,yvec,xvec):
         
         """
@@ -1278,7 +1321,7 @@ def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau
         #lz = len(z)                             #length vector lz
         #chos_x = []                             #index of the chosen 
         #chos_T = []
-        for ix in range(len(x)):
+        for ix in prange(len(x)):
             for i in range(len(z)-1,-1,-1):              #Loop starting from the top to the bottom 
                 buf = D[ix,i]                   #1D(z) vector of D 
                 if (z[i] <-80) & (z[i]>-500):      #Constraining better the area of research

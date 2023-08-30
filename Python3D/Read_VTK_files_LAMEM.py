@@ -519,10 +519,9 @@ class VAL():
         self.eps = np.zeros([tz,ty,tx],dtype=float)
         self.tau =  np.zeros([tz,ty,tx],dtype=float) 
         self.Rho   =np.zeros([tz,ty,tx],dtype=float)   
-        self.gamma   =np.zeros([tz,ty,tx],dtype=float)   
-        
-        
-        self.LGV         = ["tau","nu",'vz','vm',"gamma","eps","T"]
+        self.gamma   =np.zeros([tz,ty,tx],dtype=float)
+        self.Psi   =np.zeros([tz,ty,tx],dtype=float)           
+        self.LGV         = ["tau","nu",'vz','vm',"gamma","eps","T","Psi"]
         self.Label       = [ r"$\tau^{\dagger}_{II} []$", r"$\Psi []$",r'$v_z [cm/yr]$',r'$v_m [cm/yr]$',"$\gamma [n.d.]$","$log_{10}(\dot{\epsilon^{\dagger}}_{II})$ $[]$","$T^{\dagger} []$"]
         self.Colormap    = ["cmc.bilbao","cmc.devon","cmc.broc","cmc.bilbao","cmc.nuuk","cmc.lapaz","cmc.lapaz","cmc.turku","cmc.cork","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
         self.Val         = [(0.5,6.0),

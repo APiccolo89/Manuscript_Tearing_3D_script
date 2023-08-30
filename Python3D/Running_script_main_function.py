@@ -16,7 +16,7 @@ import numpy as np
 from time import perf_counter 
 import getopt
 import argparse
-
+from Save_Data_Base import _write_h5_database
     
 
 """
@@ -31,7 +31,7 @@ from Slab_detachment import *
 from Slab_detachment import _plot_D_D0
 from Slab_detachment import _plot_time_map_surface
 
-def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
+def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
     t_INIZIO = perf_counter()
 
     
@@ -102,7 +102,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
     # Read Information related to the initial condition
     ###############################################################################
     ipic= 0 
-    for istp in Flist:#[4:]:
+    for istp in Flist[-1:]:#[19:]:
     ########################### Files and time stepping information############
         t1_start = perf_counter()
         fn=istp[1:istp.find('/')]
@@ -136,28 +136,19 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
         FSurf._Update_(Filename_s,C,ipic)
         FSurf._update_extra_variables(DYN,C,dt,ipic)
         FSurf._compute_relevant_information_topography(C,IG.Slab,ipic)
-        FSurf._plot_1D_plots_Free_surface(ipic,ptsave)
-        #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
 
         ###########################################################################
         t1 = perf_counter()
-        Slab. _update_C(C,FSurf,Ph,IG,ipic,time)
-        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition)          
-
+        Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
+        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
+        FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
+        FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################
         t1 = perf_counter()   
-        if (ipic % 10 == 0):
-            # Plot the field of interest of dynamic 
-            #DYN._plot_maps_V(t_cur,C.z,C.x,ptsave,ipic)
-            # Plot the phase plot 
-            #Ph._plot_phase_field(C, DYN, ptsave, ipic, t_cur,FSurf,t_cur/Initial_Condition.td)
-            # Plot the Slab averages 
-            #Slab._plot_average_C(t_cur,C.z,ptsave,ipic)          
-            t2 = perf_counter()
         plot_map_time = t2-t1
         ###########################################################################
         #  Free Surface 
@@ -170,35 +161,10 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path):
           
         ipic +=1 
         
-        
-        
-        
-              
-        
         minutes, seconds = divmod(tstep_time_pr, 60)
         print("===========================================")
         
         print("||Script took ","{:02}".format(int(minutes)),"minutes and","{:05.2f}".format(seconds),' seconds ||' )
         
         print("===========================================")
-    
-    ind_z_t = Slab._plot_slab_time(time/Initial_Condition.td,C.z,ptsave,Test_Name,ptsave,30,Initial_Condition)
-    _plot_D_D0(Slab,Initial_Condition,ptsave,time,Test_Name,np.round(Slab.det_vec[0]+1)-0.5)
-   
-    cmap = 'cmc.oleron'
-    clim = [-2,2]
-    _plot_time_map_surface(C.x,time,FSurf.Amplitude,'Amplitude',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
-
-    cmap = 'cmc.bam'
-    clim = [-1.5,1.5]
-    _plot_time_map_surface(C.x,time,FSurf.vx*10,'vx',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
-
-    cmap = 'cmc.bam'
-    clim = [-1.5,1.5]
-    _plot_time_map_surface(C.x,time,FSurf.vz*10,'vz',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
-    
-    cmap = 'cmc.hawaii'
-    clim = [0,3.0]
-    _plot_time_map_surface(C.x,time,FSurf.vm*10,'vm',Test_Name,cmap,ptsave,clim,(np.round(Slab.det_vec[0]+1)+2)*Initial_Condition.td)
-
-
+    _write_h5_database(Data_Base_path,'No_Shear_Heating',Test_Name,Slab,Initial_Condition,IG,C,FSurf,Phase_DB,time)

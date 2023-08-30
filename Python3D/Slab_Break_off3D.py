@@ -60,7 +60,10 @@ for L in Test_Name:
         if not os.path.isdir(ptsave):
             os.mkdir(ptsave)
         #try:
-        _run_script_visualization(ptsave,Folder,L,l_)
+        ptsave_DB = os.path.join(ptsave1,'Data_Base')
+        if not os.path.isdir(ptsave_DB):
+            os.mkdir(ptsave_DB)
+        _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB)
         #except:
         #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
     else: 
