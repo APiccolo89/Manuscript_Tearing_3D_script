@@ -28,6 +28,7 @@ Temp(ind)   = TI.TP;
 ind = isnan(Phase) & A.Zpart>0.0;
 Temp(ind)   = TI.TS;
 Phase(ind)  = TI.Ph_Air;
+save_h5file_data(Terranes,Phase,Temp,A.Zpart)
 
 
 A.Xpart  =  permute(A.Xpart,[2 1 3]);
