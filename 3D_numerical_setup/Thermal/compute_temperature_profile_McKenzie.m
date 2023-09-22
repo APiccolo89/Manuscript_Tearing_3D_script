@@ -28,7 +28,6 @@ end
 
 
 % Compute the Thermal Reynolds number
-Re    = (obj.Thermal_information.rho*obj.Thermal_information.Cp.*vl.*obj.D0.*1000)./2./k;
 % Compute the lenght of the slab starting from the trench
 % make dimensionless d and l;
 l = obj.l_slab(:)./obj.D0;
