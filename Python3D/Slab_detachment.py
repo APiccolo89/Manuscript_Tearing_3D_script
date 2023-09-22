@@ -42,12 +42,10 @@ class SLAB():
         tz = len(C.zp)
         self.D     = np.ones((tx,tz,nstep),dtype=float)*(-1.0)
         self.T     = np.zeros((tx,tz,nstep),dtype=float)
-        self.nu    = np.zeros((tx,tz,nstep),dtype=float)
         self.eps   = np.zeros((tx,tz,nstep),dtype=float)
         self.tau   = np.zeros((tx,tz,nstep),dtype=float)
         self.vis   = np.zeros((tx,tz,nstep),dtype=float)
         self.F_T   = np.zeros((tx,tz,nstep),dtype=float)
-        self.F_B   = np.zeros((tx,tz,nstep),dtype=float)
         self.Rho  = np.zeros((tx,tz,nstep),dtype=float)
         self.Psi = np.zeros((tx,tz,nstep),dtype=float)
         self.L   = np.zeros((tx,tz,nstep),dtype=float)
@@ -62,7 +60,7 @@ class SLAB():
         self.depth_vec = np.zeros((tx),dtype=float)
         self.nodes_tearing_=np.ones(nstep,dtype=int)*np.nan
         self.average_tearing_velocity=np.ones((3,nstep),dtype=float)*np.nan
-        self.LGV         = ["D","T","tau","F_B","F_T",'eps','Psi']
+        self.LGV         = ["D","T","tau","F_T",'eps','Psi']
         self.Label       = ["$D^{\dagger} []$",     
                             "T [$^{\circ}C$]",
                             "$\\tau^{\dagger}_{II} []$$",
@@ -73,7 +71,7 @@ class SLAB():
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
         self.Val         = [(0.1,0.85),
-                            (700,1200),
+                            (900,1200),
                             ("min","max"),
                             (5e12,1e13),
                             (5e12,1e13),
@@ -88,7 +86,7 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","nu","vis","eps","tau",'Rho','Psi']       
+        self.CV = ["T","eps","tau",'Rho','Psi','vis']       
 
 
     def _update_C(self,C,FS,Ph,IG,ipic,tcur,dt):
@@ -127,7 +125,6 @@ class SLAB():
                 self.x2[i,:,ipic] =x2
             # Compute the additional variable (i.e. F_T = 2*D*tau), F_B
             self.F_T[i,:,ipic] = 2*self.D[i,:,ipic]*1e3*self.tau[i,:,ipic]*1e6
-            self.F_B[i,:,ipic] = self.D[i,:,ipic]*1e3*self.L[i,:,ipic]*(self.Rho[i,:,ipic]-3300*(1-3e-5*1325))*9.81
         # detect_slab_detachment
         ix1 = np.zeros((len(C.zp)),dtype=int)
         ix2 = np.zeros((len(C.zp)),dtype=int)
@@ -353,11 +350,10 @@ class SLAB():
             ax0 = fg.add_axes([0.1, 0.05, 0.8, 0.5])   
             cfactor = (1e3*100)/1e6
                 
-            ax1.plot(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),color='b',linewidth=0.8)
-            ax1.plot(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[1,0:ipic]*cfactor),color='r',linewidth=1.2)
-            ax1.plot(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),color='b',linewidth=0.8)
-            ax1.fill(np.log10(time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),c='b',alpha=0.3)
-
+            #ax1.plot((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),color='b',linewidth=0.8)
+            ax1.plot((time[0:ipic]),(self.average_tearing_velocity[1,0:ipic]*cfactor),color='r',linewidth=1.2)
+            #ax1.plot((time[0:ipic]),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),color='b',linewidth=0.8)
+            #ax1.fill((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),c='b',alpha=0.3)
 
             ax1.set_title(tick)
             ax1.tick_params(axis='both', which='major', labelsize=5)
@@ -365,7 +361,7 @@ class SLAB():
             plt.grid(True)
             
 
-            ax1.set_xlim(0, np.log10(np.round(np.max(time))))            
+            ax1.set_xlim(0, (np.max(time)))           
             
             if values == 'D':
                 cor = 1/(IC.D0[0][0]/1e3)
@@ -386,13 +382,19 @@ class SLAB():
                 lm2=np.nanmax(buf)
             else:
                 lm2 = lm[1]
+            
+            levels = np.linspace(np.round(lm1), np.round(lm2), num=10, endpoint=True, retstep=False, dtype=float)
             plt.grid(True)
 
             if((values == "eps") | (values == "Psi")):
-                cf=ax0.pcolormesh(xx,zz,np.log10(buf),cmap='inferno',vmin=np.log10(lm1),vmax=np.log10(lm2))
+                if ((lm2)<0) & (lm1 <0) :
+                    lm1 = 1
+                    lm2 = 10 
+                cf=ax0.pcolormesh(xx,zz,np.log10((buf)),cmap='inferno',vmin = lm1, vmax=lm2)
+                    
                 cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
             else:
-                cf=ax0.pcolormesh(xx,zz,buf,cmap='inferno',vmin=lm1,vmax=lm2)
+                cf=ax0.pcolormesh(xx,zz,buf,cmap='inferno',vmin = lm1, vmax=lm2)
                 cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
 
             
@@ -766,6 +768,7 @@ class Free_S_Slab_break_off(FS):
         self.v_z_M       = np.ones((tx,nstep),dtype=float)*np.nan # maximum velocity
         self.v_z_m       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
         self.v_z_mean    = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+        self.mean_stress_1D = np.ones((tx,nstep),dtype=float)*np.nan #average crustal stress 
         self.HMean       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
         self.Hmeang       = np.ones((nstep),dtype=float)*np.nan #minimum velocity
 
@@ -967,6 +970,7 @@ class Free_S_Slab_break_off(FS):
             y_B,x_s =_compute_length_coordinatesCB(ind_boundary,boundary_geometry,C.x)
             # function to retrieve the data. 
             vz = self.vz_M[:,:,ipic]
+            tau_C = self.mean_stress[:,:,ipic] 
             H  = self.Amplitude[:,:,ipic]
             self.HBx[ind_boundary==True,ipic]=x_B[:]
             self.HBy[ind_boundary,ipic]=y_B[:]
@@ -1024,7 +1028,7 @@ class Free_S_Slab_break_off(FS):
                 self.v_z_M[i,ipic] = np.max(vz[ind_area,i])
                 self.v_z_m[i,ipic] = np.min(vz[ind_area,i])
                 self.v_z_mean[i,ipic] = np.mean(vz[ind_area,i])
- 
+                self.mean_stress_1D[i,ipic] = np.mean(tau_C[ind_area,i])
             self.ind_boundary=ind_boundary
             return self 
     def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB,t_cur):

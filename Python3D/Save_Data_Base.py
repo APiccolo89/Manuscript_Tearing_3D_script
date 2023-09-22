@@ -84,11 +84,8 @@ def save_test_data(f,path_DB,Type_DATA):
                                 for iv1 in key_level1:
                                     buf_name1 = buf_name+"/"+iv1
                                     buf_cl1  = eval(iv1,globals(),buf_cl.__dict__)
-                                    if iv1 == 'Exist':
-                                        print('')
-                                    else: 
-                                        key_level2 = buf_cl1.__dict__.keys()
-
+                                    if iv1 != 'Exist':
+                                        key_level2 = buf_cl1.__dict__.keys() 
                                         if iv1 == 'Rheology':
                                             for iv2 in key_level2:
                                                 buf_name2 = buf_name1+"/"+iv2

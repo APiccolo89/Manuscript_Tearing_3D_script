@@ -31,7 +31,7 @@ from Slab_detachment import *
 from Slab_detachment import _plot_D_D0
 from Slab_detachment import _plot_time_map_surface
 
-def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
+def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Group):
     t_INIZIO = perf_counter()
 
     
@@ -43,12 +43,11 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
     "T"        : "temperature [C]",
     "velocity" : "velocity [cm/yr]",
     "disp"     : "tot_displ [km]",
-    "vis"      : "visc_total [Pa*s]",
-    "nu"       : "visc_creep [Pa*s]",
+    "vis"      : "visc_creep [Pa*s]",
+    "nu"       : "visc_total [Pa*s]",
     "eps"      : "j2_strain_rate [1/s]",
     "tau"      : "j2_dev_stress [MPa]",
     "Rho"      : "density [kg/m^3]",
-    "gamma"    : "plast_strain [ ]",
     "Psi"      : "plast_dissip [W/m^3]"}
     
     phase_dictionary={
@@ -82,6 +81,11 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
     fname2 = fname+".pvd"
     fname=os.path.join(Folder,Test_Name,fname2)
     time, Flist, n_tim_step =_file_list(fname)    # Retrive the file list and the time step information
+    
+    #nstp = 41
+    #time = time[0:nstp]
+    #Flist = Flist[0:nstp]
+    
     ##############################################
     ts0 = Flist[0]
     fn=ts0[1:ts0.find('/')]
@@ -102,7 +106,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
     # Read Information related to the initial condition
     ###############################################################################
     ipic= 0 
-    for istp in Flist[-1:]:#[19:]:
+    for istp in Flist:#[19:]:
     ########################### Files and time stepping information############
         t1_start = perf_counter()
         fn=istp[1:istp.find('/')]
@@ -143,7 +147,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
         t1 = perf_counter()
         Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
         Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
-        FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
+        #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
         FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
@@ -153,18 +157,13 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path):
         ###########################################################################
         #  Free Surface 
         #######################################################################
-          
         FS_time = t2-t1
         t1_end = perf_counter()
         tstep_time_pr = t1_end-t1_start
         minutes, seconds = divmod(t1_end-t1_start, 60)
-          
         ipic +=1 
-        
         minutes, seconds = divmod(tstep_time_pr, 60)
         print("===========================================")
-        
         print("||Script took ","{:02}".format(int(minutes)),"minutes and","{:05.2f}".format(seconds),' seconds ||' )
-        
         print("===========================================")
-    _write_h5_database(Data_Base_path,'No_Shear_Heating',Test_Name,Slab,Initial_Condition,IG,C,FSurf,Phase_DB,time)
+    _write_h5_database(Data_Base_path,Group,Test_Name,Slab,Initial_Condition,IG,C,FSurf,Phase_DB,time)
