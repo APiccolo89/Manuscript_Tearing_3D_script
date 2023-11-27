@@ -1,0 +1,119 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+modile: Command not found.
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'inteloneapi/mpi/2022.0.1'
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+Loading mpi version 2021.5.0
+Loading mkl version 2022.0.1
+Loading compiler-rt version 2022.0.1
+Loading tbb version 2021.5.0
+modile: Command not found.
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'inteloneapi/mpi/2022.0.1'
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+Loading mpi version 2021.5.0
+Loading mkl version 2022.0.1
+Loading compiler-rt version 2022.0.1
+Loading tbb version 2021.5.0
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'apps/Matlab/2022a'
+modile: Command not found.
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'inteloneapi/mpi/2022.0.1'
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+Loading mpi version 2021.5.0
+Loading mkl version 2022.0.1
+Loading compiler-rt version 2022.0.1
+Loading tbb version 2021.5.0
+
+Sat Sep 16 21:19:02 CEST 2023
+
+Job id: 518131.mgmt01
+
+Directory: /scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D
+2023-09-16 22:41:42.252 (4949.983s) [        9D48B740]vtkXMLGenericDataObject:153    ERR| vtkXMLGenericDataObjectReader (0x562048d14bd0): could not load /scratch/bt307806/3D_Numerical_suites/T1_AV1_v10_10000/Timestep_00000000_0.00000000e+00/SDet.pvtr
+2023-09-16 22:41:42.326 (4950.057s) [        9D48B740]       vtkExecutive.cxx:752    ERR| vtkCompositeDataPipeline (0x562048ed88b0): Algorithm vtkXMLGenericDataObjectReader(0x562048d14bd0) returned failure for request: vtkInformation (0x562048eae930)
+  Debug: Off
+  Modified Time: 156
+  Reference Count: 1
+  Registered Events: (none)
+  Request: REQUEST_DATA_OBJECT
+  ALGORITHM_AFTER_FORWARD: 1
+  FORWARD_DIRECTION: 0
+
+
+2023-09-17 01:31:23.634 (15131.365s) [        9D48B740]vtkXMLGenericDataObject:153    ERR| vtkXMLGenericDataObjectReader (0x562048d14bd0): could not load /scratch/bt307806/3D_Numerical_suites/T1_AV2_v10_10000/Timestep_00000000_0.00000000e+00/SDet.pvtr
+2023-09-17 01:31:23.698 (15131.429s) [        9D48B740]       vtkExecutive.cxx:752    ERR| vtkCompositeDataPipeline (0x562048ed88b0): Algorithm vtkXMLGenericDataObjectReader(0x562048d14bd0) returned failure for request: vtkInformation (0x562048eae930)
+  Debug: Off
+  Modified Time: 156
+  Reference Count: 1
+  Registered Events: (none)
+  Request: REQUEST_DATA_OBJECT
+  ALGORITHM_AFTER_FORWARD: 1
+  FORWARD_DIRECTION: 0
+
+
+
+================================
+  START btrzx2 EPILOGUE SCRIPT
+================================
+
+User is 
+
+Epilogue Args (normal):
+
+Job ID:              518131.mgmt01
+User ID:             bt307806
+Group ID:            vo_bgi
+Job name:            SBO
+Session ID:          13007
+Resourse list:       neednodes=1:ppn=16:compute8,nodes=1:ppn=16:compute8,walltime=100:00:00
+Resource used:       cput=14:00:03,mem=18044224kb,vmem=21283552kb,walltime=04:12:32
+Queue name:          long
+Account string:      
+Exit code:           518131.mgmt010
+
+Epilogue session ID: 24057
+
+Hostlist:            r03n27 
+
+#Nodes:              1
+
+-------------------
+Single node section
+-------------------
+
+Remaining user PIDs
+PID TTY TIME CMD
+PIDs forked from session leader_
+
+ => No remaining processes to clean up
+ => Drop buffers
+
+================================
+   END btrzx2 EPILOGUE SCRIPT
+================================

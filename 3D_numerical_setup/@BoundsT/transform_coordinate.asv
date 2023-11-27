@@ -1,7 +1,4 @@
 function [B] = transform_coordinate(obj,A,Boundary,theta)
-if nargin == 3
-    theta = 1; 
-end
 %==========================================================================
 % function to transform coordinate such that the curved boundary is
 % deflected back to linear.

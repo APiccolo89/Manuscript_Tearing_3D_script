@@ -76,7 +76,7 @@ end
 
     for i = 1:length(x)
         for j=1:length(y)
-            rho= nanmean(rho_ij(i,j,:));
+            rho
             if i == 1 && j==1
                 rho_0 = rho;
             end
@@ -89,22 +89,31 @@ end
     end
     end
 
+    function [rho] = phase_density(ph,Ph)
+    field  = fieldnames(ph);
+
+    for is = 1:numel(field)
+        A=ph.(field{is});
+        if A(1)==Ph
+            rho = A(2);
+            break
+        end
+    end
+    end
 
 
     function [string] = save_topography(A,topo_M,Gr)
 
 
     dX = (max(Gr.x_g)-min(Gr.x_g))/1500;
-    dY = (max(Gr.y_g)-min(Gr.y_g))/1500;
     x_t = min(Gr.x_g):dX:max(Gr.x_g);
-    y_t = min(Gr.y_g):dX:max(Gr.y_g);
-    topo_t=interp2(squeeze(A.Ypart(1,:,1)),squeeze(A.Xpart(:,1,1)),topo_M,y_t,x_t,'nearest','extrap');
+    topo_t=interp1(squeeze(A.Xpart(:,1,1)),topo_M,x_t,'nearest','extrap');
 
-    Topo = zeros(length(x_t),length(y_t));
+    Topo = zeros(length(x_t),length(Gr.y_g));
     Topo(:,1)        = topo_t;
     Topo(:,2)        = topo_t;
     Easting     = x_t;
-    Northing    = y_t;
+    Northing    = Gr.y_g;
 
     % compute grid spacing
     dx = (max(Easting) - min(Easting))/(length(Easting)-1);
@@ -120,8 +129,6 @@ end
     PetscBinaryWrite('topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
     string = 'Isostatic balance finished, and the resulted topography has been saved in Topo.dat';
     end
-
-
     function [rho_ij] = Compute_density(A,ph)
         rho_ij = A.Xpart.*0.0; 
         
@@ -130,7 +137,7 @@ end
         ip = numel(field_names); 
         for i = 1:ip 
             % Select Phase
-            current_phase = ph.(field_names{i});
+            current_phase = ph.(field_manes{i});
             % 
             % Extract unrelevant information such as the reference density 
             Density_ref = current_phase(2); 
