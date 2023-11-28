@@ -1,5 +1,9 @@
-function Create_Setup(Terranes,ph,TI,A,npart,Gr,Parallel_partition)
-
+function Create_Setup(Terranes,ph,TI,A,npart,Gr,Parallel_partition,Save_Test_Benchmark)
+%=========================================================================
+% Benchmark {Since waiting for 30 minutes everytime I fucked up something,
+% I will save A,ph,Gr, in benchmark3D.m}
+%==========================================================================
+if nargin ~= 0 
 RandomNoise             =   logical(0);
 Is64BIT                 =   logical(0);
 Phase = 0.0.*((A.Xpart));
@@ -51,7 +55,17 @@ z = squeeze(A.Zpart(1,1,:));
 A.x      =  double(x(:));
 A.y      =  double(y(:));
 A.z      =  double(z(:));
-
+if Save_Test_Benchmark == 1
+    save('Benchmark3D.mat',"A","Gr","ph","TI")
+end
+else
+    clear all;
+    close all;
+    A_time = cputime;
+    load('Benchmark3D.mat');
+    B_time = cputime; 
+    disp(['Benchmark3D took',num2str(B_time-A_time,3) ,' s, to load']); 
+end
 [A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
 
 

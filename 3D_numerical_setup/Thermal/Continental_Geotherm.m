@@ -21,7 +21,7 @@ lith_mant = @(x) linear_gradient(Moho,gr2,x);
 ind_crust = D(:)>=depth & D(:)< 0.0 & ind==1;
 ind_lithosphere = D(:)<depth & D(:)>= T_tk(2) & ind==1;
 ind_ast         = D(:)<T_tk(2); 
-if isa(obj,"Passive_Margin")
+if isa(obj,'Passive_Margin')
         gr2 = (TP-Moho)./(obj.Tk_X-depth);
         ind_lithosphere = D(:)<depth & D(:)>=obj.Tk_X;
 

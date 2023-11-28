@@ -47,7 +47,7 @@ for ib = 1:numel(boundary_list)
     [Phase] = fill_stratigraphy(obj,B,Phase,[]);
     [Phase] = obj.generate_accretion_prism(B,Phase,boundary_list{ib});
     [obj,Phase,Temp] = obj.find_slab_(B,'Weak',Phase,Temp,boundary_list{ib},theta);
-    [Phase] = obj.fill_weak_zone(Phase);
+    [Phase] = obj.fill_weak_zone(Phase,A.Zpart);
     B_time = cputime;
     disp(['   Phase field of the slab, prism weakzone  took ', num2str(B_time-A_time,3), ' seconds'])
 end

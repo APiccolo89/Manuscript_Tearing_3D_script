@@ -28,24 +28,40 @@ function [A,surf] = displace_phase_isostasy(ph,A,Gr,TI)
 % A = update structure of particles
 %==========================================================================
 [rho_ij] = Compute_density(A,ph);
-[topo,~] = compute_topography_(A,ph);
+[topo,~] = compute_topography_(A,rho_ij);
+%==========================================================================
+% Compute the length scale of the moving average using a slab of 90 km as
+% reference. 
+%==========================================================================
+x  = squeeze(A.Xpart(:,:,1));
+y  = squeeze(A.Ypart(:,:,1));
+% My bad and ignorance: I apply moving average along x, and y, with a
+% number of nodes that grossly is equivalent to 200 km (two times more or
+% less a typical slab). 
 
-Ph = squeeze(A.Phase(:,1,:));
-T  = squeeze(A.Temp(:,1,:));
-Z  = squeeze(A.Zpart(:,1,:));
-x  = squeeze(A.Xpart(:,1,:));
-y  = squeeze(A.Ypart(:,1,:));
+dx = diff(x(:,1));
+dy = diff(y(1,:));
+dx_MV = floor(200./mean(dx));
+dy_MV = floor(200./mean(dy));
+topo_M = movmean(topo,dx_MV,2);
+topo_M = movmean(topo_M,dy_MV,1);
+topo_M = topo_M-median(topo_M,"all");
+
+Ph = squeeze(A.Phase(:,:,:));
+T  = squeeze(A.Temp(:,:,:));
+Z  = squeeze(A.Zpart(:,:,:));
+%x  = squeeze(A.Xpart(:,1,:));
+%y  = squeeze(A.Ypart(:,1,:));
 ilx = length(x(:,1));
 ily = length(y(1,:));
 Ph2 = 0.*Ph;
 T2  = 0.*Ph;
-topo_M = movmean(topo,500);
 
 for i = 1:ilx
     for j =1:ily
-        z = Z(i,j)+topo_M(i,j);
-        Ph2(i,j)=interp1(z,Ph(i,j),Z(i,j),'nearest');
-        T2(i,j)=interp1(z,T(i,j),Z(i,j),'nearest');
+        z = Z(j,i,:)+topo_M(j,i);
+        Ph2(j,i,:)=interp1(z,squeeze(Ph(j,i,:)),squeeze(Z(i,j,:)),'nearest');
+        T2(j,i,:)=interp1(z,squeeze(T(j,i,:)),squeeze(Z(j,i,:)),'nearest');
         z = [];
     end
 end
@@ -53,7 +69,7 @@ end
     Ph2(isnan(Ph2)& Z <0.0)=ph.Ph_UM(1);
     T2(isnan(T2) & Z >0.0)=TI.TS;
     T2(isnan(T2)& Z <0.0)=TI.TP;
-
+    
     % for iy = 1:ily
     %     A.Phase(:,iy,:) = Ph2;
     %     A.Temp(:,iy,:) = T2;
@@ -76,7 +92,7 @@ end
 
     for i = 1:length(x)
         for j=1:length(y)
-            rho
+            rho= nanmean(rho_ij(i,j,:));
             if i == 1 && j==1
                 rho_0 = rho;
             end
@@ -89,31 +105,22 @@ end
     end
     end
 
-    function [rho] = phase_density(ph,Ph)
-    field  = fieldnames(ph);
-
-    for is = 1:numel(field)
-        A=ph.(field{is});
-        if A(1)==Ph
-            rho = A(2);
-            break
-        end
-    end
-    end
 
 
     function [string] = save_topography(A,topo_M,Gr)
 
 
     dX = (max(Gr.x_g)-min(Gr.x_g))/1500;
+    dY = (max(Gr.y_g)-min(Gr.y_g))/1500;
     x_t = min(Gr.x_g):dX:max(Gr.x_g);
-    topo_t=interp1(squeeze(A.Xpart(:,1,1)),topo_M,x_t,'nearest','extrap');
+    y_t = min(Gr.y_g):dX:max(Gr.y_g);
+    topo_t=interp2(squeeze(A.Ypart(1,:,1)),squeeze(A.Xpart(:,1,1)),topo_M,y_t,x_t,'nearest','extrap');
 
-    Topo = zeros(length(x_t),length(Gr.y_g));
+    Topo = zeros(length(x_t),length(y_t));
     Topo(:,1)        = topo_t;
     Topo(:,2)        = topo_t;
     Easting     = x_t;
-    Northing    = Gr.y_g;
+    Northing    = y_t;
 
     % compute grid spacing
     dx = (max(Easting) - min(Easting))/(length(Easting)-1);
@@ -129,6 +136,8 @@ end
     PetscBinaryWrite('topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
     string = 'Isostatic balance finished, and the resulted topography has been saved in Topo.dat';
     end
+
+
     function [rho_ij] = Compute_density(A,ph)
         rho_ij = A.Xpart.*0.0; 
         
@@ -136,23 +145,27 @@ end
         field_names = fields(ph);
         ip = numel(field_names); 
         for i = 1:ip 
+            CPU_A = cputime;
             % Select Phase
-            current_phase = ph.(field_manes{i});
-            % 
+            current_phase = ph.(field_names{i});
             % Extract unrelevant information such as the reference density 
             Density_ref = current_phase(2); 
             % Compute the density as a function of the temperature 
             if current_phase(1) ~=0
                 rho_ij(A.Phase==current_phase(1)) = density_node(Density_ref,A.Temp(A.Phase==current_phase(1)));
             else
-                disp('Air does not deserve to be computed, but, as a quick reminder, do not set 0 friction angle or cohesion to air, you will not notice my help, but believe me, KSP solver will be grateful and gives candy')
+                rho_ij(A.Phase==current_phase(1))=Density_ref;
+                disp('Air does not deserve to be computed, but, as a quick reminder:'); disp('do not set 0 friction angle or cohesion to air, you will not notice my help.');disp(' But believe me KSP solver will be grateful and gives candy')
             end
+            % Just random information for losing time on Monday, when I am
+            % supposed to take care of myself. 
+            CPU_B = cputime; 
+            
+            disp(['Phase nr. ', num2str(current_phase(1)),' has been processed in ',num2str(CPU_B-CPU_A,2), 'seconds']); 
         end
-        
-
-
-
-
+        disp('Additional note: density is computed assuming a thermal expansion of:');
+        disp('3e-5 [1/K], if you want to change, just go to function density node, in displace_isostasy.m');
+       
     end
 
     function [rho_n] = density_node(Density_ref,T)

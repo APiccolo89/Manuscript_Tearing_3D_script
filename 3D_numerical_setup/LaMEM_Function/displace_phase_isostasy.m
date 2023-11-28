@@ -28,24 +28,44 @@ function [A,surf] = displace_phase_isostasy(ph,A,Gr,TI)
 % A = update structure of particles
 %==========================================================================
 [rho_ij] = Compute_density(A,ph);
-[topo,~] = compute_topography_(A,ph);
+[topo,~] = compute_topography_(A,rho_ij);
+%==========================================================================
+% Compute the length scale of the moving average using a slab of 90 km as
+% reference. 
+%==========================================================================
+x  = squeeze(A.Xpart(:,:,1));
+y  = squeeze(A.Ypart(:,:,1));
+% My bad and ignorance: I apply moving average along x, and y, with a
+% number of nodes that grossly is equivalent to 200 km (two times more or
+% less a typical slab). 
 
-Ph = squeeze(A.Phase(:,1,:));
-T  = squeeze(A.Temp(:,1,:));
-Z  = squeeze(A.Zpart(:,1,:));
-x  = squeeze(A.Xpart(:,1,:));
-y  = squeeze(A.Ypart(:,1,:));
+dx = diff(x(:,1));
+dy = diff(y(1,:));
+dx_MV = floor(200./mean(dx));
+dy_MV = floor(200./mean(dy));
+topo_M = movmean(topo,dx_MV,2);
+topo_M = movmean(topo_M,dy_MV,1);
+% Substract the median of the topography: 
+% Here I would like to open a philosophical discussion on the significance
+% of the base level and how to conceive a continental lithosphere. Atm, the
+% average continental topography is above the sea level. One cool thing is
+% adding the water to LaMEM solving the main issue with this matter. 
+topo_M = topo_M-median(topo_M,"all");
+Ph = squeeze(A.Phase(:,:,:));
+T  = squeeze(A.Temp(:,:,:));
+Z  = squeeze(A.Zpart(:,:,:));
+%x  = squeeze(A.Xpart(:,1,:));
+%y  = squeeze(A.Ypart(:,1,:));
 ilx = length(x(:,1));
 ily = length(y(1,:));
 Ph2 = 0.*Ph;
 T2  = 0.*Ph;
-topo_M = movmean(topo,500);
-
+% loop over the 2D nodes, interpolate along z 
 for i = 1:ilx
     for j =1:ily
-        z = Z(i,j)+topo_M(i,j);
-        Ph2(i,j)=interp1(z,Ph(i,j),Z(i,j),'nearest');
-        T2(i,j)=interp1(z,T(i,j),Z(i,j),'nearest');
+        z = squeeze(Z(j,i,:))+topo_M(j,i);
+        Ph2(j,i,:)=interp1(z,squeeze(Ph(j,i,:)),squeeze(Z(i,j,:)),'nearest');
+        T2(j,i,:)=interp1(z,squeeze(T(j,i,:)),squeeze(Z(j,i,:)),'nearest');
         z = [];
     end
 end
@@ -53,7 +73,9 @@ end
     Ph2(isnan(Ph2)& Z <0.0)=ph.Ph_UM(1);
     T2(isnan(T2) & Z >0.0)=TI.TS;
     T2(isnan(T2)& Z <0.0)=TI.TP;
-
+    % = plot several section of the setup: temperature, phase and
+    % topography and the new update topography 
+    
     % for iy = 1:ily
     %     A.Phase(:,iy,:) = Ph2;
     %     A.Temp(:,iy,:) = T2;
@@ -129,23 +151,27 @@ end
         field_names = fields(ph);
         ip = numel(field_names); 
         for i = 1:ip 
+            CPU_A = cputime;
             % Select Phase
             current_phase = ph.(field_names{i});
-            % 
             % Extract unrelevant information such as the reference density 
             Density_ref = current_phase(2); 
             % Compute the density as a function of the temperature 
             if current_phase(1) ~=0
                 rho_ij(A.Phase==current_phase(1)) = density_node(Density_ref,A.Temp(A.Phase==current_phase(1)));
             else
-                disp('Air does not deserve to be computed, but, as a quick reminder, do not set 0 friction angle or cohesion to air, you will not notice my help, but believe me, KSP solver will be grateful and gives candy')
+                rho_ij(A.Phase==current_phase(1))=Density_ref;
+                disp('Air does not deserve to be computed, but, as a quick reminder:'); disp('do not set 0 friction angle or cohesion to air, you will not notice my help.');disp(' But believe me KSP solver will be grateful and gives candy')
             end
+            % Just random information for losing time on Monday, when I am
+            % supposed to take care of myself. 
+            CPU_B = cputime; 
+            
+            disp(['Phase nr. ', num2str(current_phase(1)),' has been processed in ',num2str(CPU_B-CPU_A,2), 'seconds']); 
         end
-        
-
-
-
-
+        disp('Additional note: density is computed assuming a thermal expansion of:');
+        disp('3e-5 [1/K], if you want to change, just go to function density node, in displace_isostasy.m');
+       
     end
 
     function [rho_n] = density_node(Density_ref,T)

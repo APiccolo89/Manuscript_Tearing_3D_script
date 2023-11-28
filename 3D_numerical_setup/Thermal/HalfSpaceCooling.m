@@ -10,9 +10,9 @@ function [Temp] = HalfSpaceCooling(obj,D,ind,Temp)
 % vel_spread -> Velocity at which the ocean spread {To do in the future}
 % =============================
 % OUTPUT:updated temperature field.
-if isa(obj,"Trench")
+if isa(obj,'Trench')
     T_tk = [0.0, -obj.D0]; % Stratigraphy of the object
-elseif isa(obj,"Terrane") || isa(obj,"Passive_Margin")
+elseif isa(obj,'Terrane') || isa(obj,'Passive_Margin')
     T_tk = [0.0, obj.Stratigraphy.Tk(end)]; % Stratigraphy of the object
 end
 kappa  = obj.Thermal_information.kappa; %Thermal conductivity of the object 
