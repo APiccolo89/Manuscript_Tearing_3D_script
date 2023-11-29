@@ -16,7 +16,7 @@ import h5py
 from numba import jit
 from numba import jitclass, types, typed, prange
 from Read_VTK_files_LAMEM import * #Read_VTK_files_LAMEM
-
+import scipy.ndimage as ndi
 from Read_VTK_files_LAMEM import  _file_list
 from Read_VTK_files_LAMEM import findnodes
 from Read_VTK_files_LAMEM import bilinearinterpolation
@@ -42,6 +42,7 @@ class SLAB():
         tz = len(C.zp)
         self.D     = np.ones((tx,tz,nstep),dtype=float)*(-1.0)
         self.T     = np.zeros((tx,tz,nstep),dtype=float)
+        self.dDdt  = np.zeros((tx,tz,nstep),dtype=float)
         self.eps   = np.zeros((tx,tz,nstep),dtype=float)
         self.tau   = np.zeros((tx,tz,nstep),dtype=float)
         self.vis   = np.zeros((tx,tz,nstep),dtype=float)
@@ -58,23 +59,25 @@ class SLAB():
         self.tau_vec = np.ones((tx),dtype=float)*np.nan
         self.T_vec = np.ones((tx),dtype=float)*np.nan
         self.depth_vec = np.zeros((tx),dtype=float)
+        self.dDdt_vec =  np.zeros((tx,nstep),dtype=float)
         self.nodes_tearing_=np.ones(nstep,dtype=int)*np.nan
         self.average_tearing_velocity=np.ones((3,nstep),dtype=float)*np.nan
-        self.LGV         = ["D","T","tau","F_T",'eps','Psi']
+        self.LGV         = ["D","T","tau","dDdt"]
         self.Label       = ["$D^{\dagger} []$",     
                             "T [$^{\circ}C$]",
-                            "$\\tau^{\dagger}_{II} []$$",
+                            r"$\\tau^{\dagger}_{II} []$$",
                             "$F_B [\\frac{N}{m}]$",
-                            "$2 \cdot D \\tau [\\frac{N}{m}]$",
+                            r"$2 \cdot D \\tau [\\frac{N}{m}]$",
                             "$\dot{\epsilon}^{\dagger}_{II} []$",
-                            "$\Psi [\\frac{W}{m^3}]$"
+                            "$\Psi [\\frac{W}{m^3}]$",
+                            r"$\frac{dD}{dt}$,[$cm/yrs$]"
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
         self.Val         = [(0.1,0.85),
                             (900,1200),
                             ("min","max"),
                             (5e12,1e13),
-                            (5e12,1e13),
+                            (1e-15,1e-12),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
@@ -86,7 +89,7 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","eps","tau",'Rho','Psi','vis']       
+        self.CV = ["T","eps","tau",'Rho','Psi',"dDdt"]       
 
 
     def _update_C(self,C,FS,Ph,IG,ipic,tcur,dt):
@@ -109,20 +112,28 @@ class SLAB():
             # Loop over the variable that you want to see in 2D plot of the slab
             for iv in self.CV:
                 # Prepare buffer variable to fill with the new one
-                buf_var_ph = eval(iv,globals(),Ph.__dict__)[:,:,ix]
-                D     = np.zeros((np.sum(C.ind_zp)),dtype=float)
-                buf_var   = np.zeros(np.sum(C.ind_zp),dtype=float)
-                z_bottom   = np.zeros(np.sum(C.ind_zp),dtype=float)
-                x1    = np.zeros(np.sum(C.ind_zp))
-                x2    = np.zeros(np.sum(C.ind_zp))
-                # Run the function 
-                D,L0,buf_var,x1,x2 = _Find_Slab_PERFORM_C(C.yp,C.zp,buf_var_ph,lay_ph[:,:,ix],np.sum(C.ind_zp),ix,D,buf_var,x1,x2,z_bottom)
-                # update the class 
-                self.D[i,:,ipic] = D
-                self.L[i,:,ipic] =L0
-                eval(iv,globals(),self.__dict__)[i,:,ipic] = buf_var
+                if iv != 'dDdt':
+                    buf_var_ph = eval(iv,globals(),Ph.__dict__)[:,:,ix]
+                    D     = np.zeros((np.sum(C.ind_zp)),dtype=float)
+                    buf_var   = np.zeros(np.sum(C.ind_zp),dtype=float)
+                    z_bottom   = np.zeros(np.sum(C.ind_zp),dtype=float)
+                    x1    = np.zeros(np.sum(C.ind_zp))
+                    x2    = np.zeros(np.sum(C.ind_zp))
+                    # Run the function 
+                    D,L0,buf_var,x1,x2 = _Find_Slab_PERFORM_C(C.yp,C.zp,buf_var_ph,lay_ph[:,:,ix],np.sum(C.ind_zp),ix,D,buf_var,x1,x2,z_bottom)
+                    # update the class 
+                    self.D[i,:,ipic] = D
+                    self.L[i,:,ipic] =L0
+                if iv == 'dDdt':
+                    if ipic == 0:
+                        self.dDdt[i,:,ipic]=D*0.0
+                    else:
+                        self.dDdt[i,:,ipic] = ((self.D[i,:,ipic]-self.D[i,:,ipic-1])*1e3*1e2)/(dt*1e6)
+                else:
+                    eval(iv,globals(),self.__dict__)[i,:,ipic] = buf_var
+                
                 self.x1[i,:,ipic] = x1
-                self.x2[i,:,ipic] =x2
+                self.x2[i,:,ipic] = x2
             # Compute the additional variable (i.e. F_T = 2*D*tau), F_B
             self.F_T[i,:,ipic] = 2*self.D[i,:,ipic]*1e3*self.tau[i,:,ipic]*1e6
         # detect_slab_detachment
@@ -130,7 +141,7 @@ class SLAB():
         ix2 = np.zeros((len(C.zp)),dtype=int)
         
         ix1,ix2,self.W[:,ipic]=compute_W_slab(self.D[:,:,ipic],C.xp[self.ind_boundary[0]],C.zp,self.W[:,ipic],ix1,ix2)
-        self.det_vec,self.depth_vec,self.T_vec,self.tau_vec =detect_slab_detachment(self.D[:,:,ipic],
+        self.det_vec,self.depth_vec,self.T_vec,self.tau_vec, self.dDdt_vec[:,ipic] =detect_slab_detachment(self.D[:,:,ipic],
                                                                                     C.xp[self.ind_boundary[0]],
                                                                                     C.zp,
                                                                                     tcur,
@@ -144,7 +155,9 @@ class SLAB():
                                                                                     ix1,ix2,
                                                                                     self.x1,
                                                                                     self.y_vec,
-                                                                                    self.x_vec)
+                                                                                    self.x_vec,
+                                                                                    self.dDdt_vec[:,ipic],
+                                                                                    self.D[:,:,ipic])
         # deep copy the detachment vector (variables space = pointer space, it means that if i do not deep copy a variable, it modifies it and screw up everything)
         det_buf = np.copy(self.det_vec)
         tearing_ = np.isnan(det_buf)==False
@@ -335,7 +348,7 @@ class SLAB():
         zz,xx = np.meshgrid(z,x_s)
         it = 0 
         for values in var: 
-
+            print(values)
        
             fg = figure()
     
@@ -390,7 +403,7 @@ class SLAB():
                 if ((lm2)<0) & (lm1 <0) :
                     lm1 = 1
                     lm2 = 10 
-                cf=ax0.pcolormesh(xx,zz,np.log10((buf)),cmap='inferno',vmin = lm1, vmax=lm2)
+                cf=ax0.pcolormesh(xx,zz,np.log10((buf)),cmap='inferno',vmin = np.log10(lm1), vmax=np.log10(lm2))
                     
                 cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
             else:
@@ -1031,7 +1044,7 @@ class Free_S_Slab_break_off(FS):
                 self.mean_stress_1D[i,ipic] = np.mean(tau_C[ind_area,i])
             self.ind_boundary=ind_boundary
             return self 
-    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB,t_cur):
+    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB,t_cur,D0):
         val = ['HMax','v_z']
         ptsave=os.path.join(ptsave,'1D_surfaces')
         if not os.path.isdir(ptsave):
@@ -1069,17 +1082,25 @@ class Free_S_Slab_break_off(FS):
                 plt.xlim(0,1200)
 
             elif v == 'v_z':
-                p1=ax2.plot(self.x_s,self.v_z_M[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
-                p2=ax2.plot(self.x_s,self.v_z_m[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.8)
-                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_M[ib==True,ipic],color='blue',alpha=0.4)
-                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'r',alpha = 1.0,linewidth=0.8)
-                plt.xlabel('x, [km]')
-                plt.ylabel('$v_z$, $[\frac{cm}{yrs}]$')
-                plt.xlim(0,1200)
-
+                p1=ax2.plot(self.x_s,self.v_z_M[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.6)
+                p2=ax2.plot(self.x_s,self.v_z_m[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.6)
+                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_M[ib==True,ipic],color='blue',alpha=0.2)
+                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'r',alpha = 1.0,linewidth=1.2)
+                ax2.set_xlabel(r'$\ell_{trench}, [km]$')
+                ax2.set_ylabel(r'$\dot{H}$, $[\frac{cm}{yrs}]$')
+                ax3 = ax2.twinx()
+                D_ = ndi.uniform_filter1d(S.dDdt_vec[:,ipic], size=20)
+                p5=ax3.plot(self.x_sp,D_/D0[0][0],c = 'k',alpha = 1.0,linewidth=1.2,linestyle='dashed')
+                ax3.set_ylim(0.1,1.0)
+                ax3.set_xlim(0.0,1200.0)
+                ax3.set_ylabel(r'$D^{\dagger}$, $[]$')
+                ax3.set_ylim()
+                fig.tight_layout()  # otherwise the right y-label is slightly clipped
             elif v == 'HMax':
                 p1=ax2.plot(self.x_s,self.HMax[ib==True,ipic]-self.Hmeang[ipic],c = 'r',alpha = 1.0,linewidth=1.0,linestyle=':')
                 p2=ax2.plot(self.x_s,self.Hmin[ib==True,ipic]-self.Hmeang[ipic],c = 'b',alpha = 1.0,linewidth=1.2)
+                ax2.set_xlabel(r'$\ell_{trench}, [km]$')
+                ax2.set_ylabel(r'${H}$, $[\frac{cm}{yrs}]$')
                 plt.xlabel('x_s, [km]')
                 plt.ylabel('H, [km]')
                 plt.xlim(0,1200)
@@ -1088,7 +1109,7 @@ class Free_S_Slab_break_off(FS):
                 p3=ax2.plot(self.HBx[ib==True,ipic],self.HBy[ib==True,ipic],c = 'k',alpha = 1.0,linewidth=0.8,linestyle=':')
                 plt.xlabel('x, [km]')
                 plt.ylabel('y, [km]')
-            p5 = ax2.scatter(S.x_vec,np.zeros(len(S.x_vec)),10,S.det_vec,cmap='inferno')
+            p5 = ax2.scatter(self.x_sp,np.zeros(len(self.x_sp)),10,S.det_vec,cmap='inferno')
             try: 
                 lim1_m = np.nanmin(S.det_vec)
                 lim2_m = np.nanmax(S.det_vec)
@@ -1101,9 +1122,9 @@ class Free_S_Slab_break_off(FS):
             cbar2.vmax = lim2_m
             ax2.set_title(tick)
 
-            plt.grid(True)
-            plt.xlabel('x, [km]')
-            plt.ylabel('H, [km]')
+            #plt.grid(True)
+            #plt.xlabel(r'\ell_{trench}, [km]')
+            #plt.ylabel('H, [km]')
             ax2.tick_params(axis='both', which='major', labelsize=5)
             ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
         ###############################################################       
@@ -1296,7 +1317,7 @@ def _compute_length_coordinatesCB(ind_boundary,boundary_geometry,x):
     return y,x_s 
 
 @jit(nopython=True,parallel=True)
-def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau,ind1,ind2,x1,yvec,xvec):
+def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau,ind1,ind2,x1,yvec,xvec,dDdt_vec,dDdt):
         
         """
         Input:
@@ -1321,14 +1342,14 @@ def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau
         depth_vec
         T_vec
         """
-        #ind_z = []                              #empty vector for ind_z
-        #lz = len(z)                             #length vector lz
-        #chos_x = []                             #index of the chosen 
-        #chos_T = []
+        
         for ix in prange(len(x)):
+            dDdt_vec[ix]=200
             for i in range(len(z)-1,-1,-1):              #Loop starting from the top to the bottom 
                 buf = D[ix,i]                   #1D(z) vector of D 
                 if (z[i] <-80) & (z[i]>-500):      #Constraining better the area of research
+                    if (buf<dDdt_vec[ix]) & (np.isnan(buf)==0)& (np.isnan(det_vec[ix])):
+                        dDdt_vec[ix]=buf
                     if (np.isnan(buf)) & (ix > ind1[i]) &  (ix < ind2[i]) & (np.isnan(det_vec[ix])):
                         det_vec[ix] = tcur
                         depth_vec[ix]=z[i]
@@ -1336,10 +1357,12 @@ def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau
                         tau_vec[ix]  = tau[ix,i,ipic-1]
                         xvec[ix]    = x[ix]
                         yvec[ix]    = x1[ix,i,ipic-1]
+                        dDdt_vec[ix] = np.nan
+                        
                         
             
 
-        return det_vec,depth_vec,T_vec,tau_vec
+        return det_vec,depth_vec,T_vec,tau_vec,dDdt_vec
     
     
 @jit(nopython=True)  

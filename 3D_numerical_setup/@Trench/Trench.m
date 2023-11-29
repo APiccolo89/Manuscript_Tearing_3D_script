@@ -25,15 +25,16 @@ classdef Trench
         Subducted_crust_L        % Polygon crust subduction
         % Orogenic prism information
         position_end_prism= 100;
-        phase_prism
+        phase_prism   
+        Prism_lc_depth = -40; 
         % Field that are used internally to the class to do the proper
         % computation
         d_slab % store the distance from the top surface
         l_slab % store the length of the slab {useful for McKenzie temperature profile}
         length_continent = {[100,20],'none'} 
         continent 
-        crust_depth = -35; % This is an optional value. I need to reduce the amount of weak zone, otherwise it creates unrealistic topopgrapy
-        
+        %crust_depth = -35; % This is an optional value. I need to reduce the amount of weak zone, otherwise it creates unrealistic topopgrapy
+        prism_depth = -70; 
     end
     methods (Access = public)
         % Function that interacts with the external enviroment: Take the
@@ -58,7 +59,7 @@ classdef Trench
         [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp) % I need the data of the object for this particular function
         [Phase] = generate_accretion_prism(obj,A,Phase,Boundary)
         function [Phase] = fill_weak_zone(obj,Phase,Z)
-            ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism & Z(:) <obj.crust_depth;
+            ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism{1} &  Phase(:)~= obj.phase_prism{2};%& Z(:) <obj.crust_depth;
             Phase(ind) = obj.ph_WZ;
 
         end

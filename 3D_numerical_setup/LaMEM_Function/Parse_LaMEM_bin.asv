@@ -18,8 +18,8 @@ Gr.x_g = [min(x),max(x)];
 Gr.z_g =[min(z),max(z)];
 Gr.y_g = [min(y),max(y)];
 Gr.lx  = length(X)./npart_x;
-Gr.ly  = length(Y)./npart_y;
-Gr.lz  = length(Z)./npart_z;
+Gr.lx  = length(X)./npart_x;
+Gr.lx  = length(X)./npart_x;
 % Update variables (size of grid in [x,y,z] direction
 nump_x  =   size(X,2);
 nump_y  =   size(X,1);

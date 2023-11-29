@@ -816,7 +816,7 @@ class FS():
 
             return buf 
     
-    def ASCI_FILE(self,ipic,t_cur,Test_Name,ptsave,x,y):
+    def ASCI_FILE(self,ipic,t_cur,Test_Name,ptsave,C:Coordinate_System):
         
         """
         Write a simple ascii file for the post processing of the free surface data
@@ -830,8 +830,16 @@ class FS():
             os.mkdir(ptsave_b)
         
         filename = os.path.join(ptsave_b,file_name)
-    
-        S        = np.array([x,y,self.vx[:,ipic],self.vz,self.vz[:,ipic],self.vm[:,ipic],self.Amplitude[:,ipic]])
+        Y,X = np.meshgrid(C.y,C.x)
+        buf_x = X.ravel()
+        buf_y = Y.ravel()
+        vx    = self.vx[:,:,ipic]
+        vy    = self.vy[:,:,ipic]
+        vz    = self.vz[:,:,ipic]
+        vm    = self.vm[:,:,ipic]
+        H     = self.Amplitude[:,:,ipic]
+        
+        S        = np.array([buf_x,buf_y,vx.ravel(),vy.ravel(),vz.ravel(),vm.ravel(),H.ravel()])
     
         if(os.path.isfile(filename)):
             os.remove(filename)
@@ -840,7 +848,7 @@ class FS():
 
         f.write('########################################\n')
         f.write('time [Myrs] time step []\n')
-        f.write('x vector, v_x, v_z, v_m, Topography\n')
+        f.write('x, y, v_x,v_y ,v_z, v_m, Topography\n')
         f.write('  [km],  [cm/yrs], [cm/yrs],[cm/yrs], [km]\n')
         f.write('########################################\n')
         f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))

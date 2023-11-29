@@ -66,7 +66,7 @@ else
     B_time = cputime; 
     disp(['Benchmark3D took',num2str(B_time-A_time,3) ,' s, to load']); 
 end
-[A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
+[A,~] = displace_phase_isostasy(ph,A,Gr,TI);
 
 
 A.RandomNoise = logical(0);

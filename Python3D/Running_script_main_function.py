@@ -140,6 +140,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         FSurf._Update_(Filename_s,C,ipic)
         FSurf._update_extra_variables(DYN,C,dt,ipic)
         FSurf._compute_relevant_information_topography(C,IG.Slab,ipic)
+        FSurf.ASCI_FILE(ipic,t_cur,Test_Name,ptsave,C)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
 
@@ -147,8 +148,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         t1 = perf_counter()
         Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
         Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
-        #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
-        FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur)
+        FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
+        FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur,Initial_Condition.D0/1e3)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################
@@ -167,3 +168,4 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         print("||Script took ","{:02}".format(int(minutes)),"minutes and","{:05.2f}".format(seconds),' seconds ||' )
         print("===========================================")
     _write_h5_database(Data_Base_path,Group,Test_Name,Slab,Initial_Condition,IG,C,FSurf,Phase_DB,time)
+
