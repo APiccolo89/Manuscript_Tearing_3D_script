@@ -1,5 +1,5 @@
 
-function [A,surf] = displace_phase_isostasy(ph,A,Gr,TI)
+function [A] = displace_phase_isostasy(ph,A,Gr,TI)
 % =========================================================================
 % Function that compute the relative displacement of the phase if we
 % consider them in Isostatic equilibrium.
@@ -41,8 +41,8 @@ y  = squeeze(A.Ypart(:,:,1));
 
 dx = diff(x(:,1));
 dy = diff(y(1,:));
-dx_MV = floor(75./mean(dx));
-dy_MV = floor(75./mean(dy));
+dx_MV = floor(100./mean(dx));
+dy_MV = floor(100./mean(dy));
 topo_M = movmean(topo,dx_MV,2);
 topo_M = movmean(topo_M,dy_MV,1);
 % Substract the median of the topography:
@@ -61,6 +61,10 @@ ily = length(y(1,:));
 Ph2 = 0.*Ph;
 T2  = 0.*Ph;
 % loop over the 2D nodes, interpolate along z
+% This is where most of the time is lost: i cannot do better, you need to
+% port this stuff into Julia or C for having a decent performance: Matlab
+% is shit.
+% is shit.
 for i = 1:ilx
     for j =1:ily
         z = squeeze(Z(j,i,:))+topo_M(j,i);
@@ -73,17 +77,9 @@ Ph2(isnan(Ph2)& Z >0.0)=ph.Ph_Ar(1);
 Ph2(isnan(Ph2)& Z <0.0)=ph.Ph_UM(1);
 T2(isnan(T2) & Z >0.0)=TI.TS;
 T2(isnan(T2)& Z <0.0)=TI.TP;
-% = plot several section of the setup: temperature, phase and
-% topography and the new update topography
-
-% for iy = 1:ily
-%     A.Phase(:,iy,:) = Ph2;
-%     A.Temp(:,iy,:) = T2;
-% end
-%
 A.Phase = Ph2;
 A.Temp = T2;
-plot_section(A,topo_M)
+%plot_section(A,topo_M)
 
 
 [s]=save_topography(A,topo_M,Gr);
@@ -95,48 +91,41 @@ function [topo,rho] = compute_topography_(A,rho_ij)
 
 x = (squeeze(A.Xpart(:,1,1)));
 y = (squeeze(A.Ypart(1,:,1)));
-rho_x = zeros(length(x),length(y));
-P_lith = zeros(length(x),length(y));
 topo  = zeros(length(x),length(y));
-dz = squeeze(A.Zpart(1,1,:));
-dz = mean(diff(dz)).*1000;
-
-for i = 1:length(x)
-    for j=1:length(y)
-        rho= nanmean(rho_ij(i,j,:));
-        if i == 1 && j==1
-            rho_0 = rho;
-        end
-        topo(i,j) = 1000.*(rho_0-rho)./rho;
-        rho_x(i,j)  = (rho);
-        ll = cumsum(squeeze(rho_ij(i,j,:)).*9.81.*dz)./1e9; 
-        P_lith(i,j) = ll(end); 
-        Ph = [];
-        l_ph = [];
-        rho = [];
-    end
-end
+rho= nanmean(rho_ij,[3]);
+rho_0 = rho(1,1);
+CPU_A = cputime;
+topo = 1000.*(rho_0-rho)./rho;
+CPU_B = cputime;
+disp(['Raw Topography took, ',num2str(CPU_B-CPU_A,3),' sec']);
 end
 
 
 
 function [string] = save_topography(A,topo_M,Gr)
-
-
-
-%%g
-dX = (max(Gr.x_g)-min(Gr.x_g))/Gr.lx;
-dY = (max(Gr.y_g)-min(Gr.y_g))/Gr.ly;
+y=squeeze(A.Ypart(1,:,1));
+x=squeeze(A.Xpart(:,1,1));
+% %%g
+dX = (max(Gr.x_g)-min(Gr.x_g))/(Gr.lx-1);
+dY = (max(Gr.y_g)-min(Gr.y_g))/(Gr.ly-1);
 x_t = min(Gr.x_g):dX:max(Gr.x_g);
 y_t = min(Gr.y_g):dY:max(Gr.y_g);
 [Y_t,X_t] = meshgrid(y_t,x_t);
-y=squeeze(A.Ypart(1,:,1));
-x=squeeze(A.Xpart(:,1,1));
-[Y,X] = meshgrid(y,x); 
-topo_t=interp2(Y,X,topo_M,Y_t,X_t,'linear');
 
-Topo = zeros(length(x_t),length(y_t));
-Topo = topo_t';
+[Y,X] = meshgrid(y,x);
+% How to make fast this piece of art?
+[topo_t] = griddata(double(Y(:)),double(X(:)),double(topo_M(:)),Y_t,X_t);
+topo_t(1,:) = topo_t(2,:);
+topo_t(end,:)=topo_t(end-1,:);
+topo_t(:,1) = topo_t(:,2);
+topo_t(:,end)=topo_t(:,end-1);
+% It appears that Matlab is really lobotomized, and does not extrapolate in
+% the corner, implying that I need to do yet an other loop, but hey, we
+% have a lot of time to invest, waiting ages for doing simple task, because
+% a multimilionare company is too lazy to implement this feature.
+% So the best solution is to linear interpolation of the marker to a
+% regular grid:
+Topo = topo_t;
 Easting     = x_t;
 Northing    = y_t;
 
@@ -151,7 +140,7 @@ dy = (max(Northing) - min(Northing))/(length(Northing)-1);
 % write binary to be read by LaMEM
 % (FILENAME,[# of points in x-dir, # of points in y-dir, x-coord of SW corner, y_coord of SW corner,
 % grid spacing in x-dir, grid spacing in y-dir, TopoMatrix in vector form])
-PetscBinaryWrite('topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
+PetscBinaryWrite('Topo.dat', [size(Topo,1); size(Topo,2); min(Easting);min(Northing); dx; dy; Topo(:)]);
 string = 'Isostatic balance finished, and the resulted topography has been saved in Topo.dat';
 end
 
@@ -162,6 +151,7 @@ rho_ij = A.Xpart.*0.0;
 % loop over the phases contained in ph
 field_names = fields(ph);
 ip = numel(field_names);
+CPU_PRIME = cputime;
 for i = 1:ip
     CPU_A = cputime;
     % Select Phase
@@ -183,6 +173,8 @@ for i = 1:ip
 end
 disp('Additional note: density is computed assuming a thermal expansion of:');
 disp('3e-5 [1/K], if you want to change, just go to function density node, in displace_isostasy.m');
+disp(['Average density  has been processed in ',num2str(CPU_B-CPU_PRIME,2), 'seconds']);
+
 
 end
 
@@ -215,7 +207,6 @@ figure(10)
 ax = gca;
 s = pcolor(X,Y,topo_M');
 shading interp;
-colormap(crameri('oleron',15));
 ax.XColor = [0,0,0];
 ax.YColor = [0,0,0];
 ax.Box= 'on';
@@ -230,7 +221,7 @@ ax.YLabel.Interpreter = 'latex';
 ax.ZLabel.String = 'H, [km]';
 ax.ZLabel.Interpreter = 'latex';
 ax.YLim = [-600, 600];
-ax.XLim = [-400,400];
+ax.XLim = [-600,600];
 colorbar;
 
 path_folder = 'Initial_Setup';
@@ -248,7 +239,7 @@ print(filename,'-dpng')
 
 
 
-for i = 1:50:lx
+for i = 1:20:lx
     it = it+1;
     figure(it)
     clf;
@@ -258,7 +249,6 @@ for i = 1:50:lx
     ax = gca;
     p1=pcolor(Y,Z,squeeze(Ph(i,:,:))');
     shading interp;
-    colormap(crameri('oleron',15));
     ax.XColor = [0,0,0];
     ax.YColor = [0,0,0];
     ax.Box= 'on';
@@ -293,7 +283,6 @@ for i = 1:50:lx
     ax = gca;
     p1=pcolor(Y,Z,squeeze(A.Temp(i,:,:))');
     shading interp;
-    colormap(crameri('bilbao',15));
     ax.XColor = [0,0,0];
     ax.YColor = [0,0,0];
     ax.Box= 'on';
@@ -325,6 +314,44 @@ for i = 1:50:lx
 
 
 end
+close all;
 
+end
 
+function [int_val] = linear_interpolation_marker_grid(xp,yp,x,y,I)
+%====================================================================%
+% Input:
+% I = Quantity to interpolate
+%x,y regular grid
+%xp,yp marker position
+% Output:
+%int_val => value at the nodal point
+%===================================================================%
+lx = length(x);
+ly = length(y);
+int_val = zeros(ly,ly);
+dx = diff(x);
+dy = diff(y);
+dx = dx(1);
+dy = dy(1);
+% Transform coordinate:
+xp = xp-min(x);
+yp = yp-min(y);
+x = x-min(x);
+y = y-min(y);
+%======================================
+[Y,X]=meshgrid(y,x);
+X = X(:);
+Y = Y(:);
+CPU_timeA = cputime;
+for i = 1:length(X)
+    mx = abs(xp-X(i));
+    my = abs(yp-Y(i));
+    m_ind = mx<=dx & my <=dy;
+    weight  = (1-mx(m_ind==1)./(dx)).*(1-my(m_ind==1)./(dy));
+    int_val(i) = sum(I(m_ind==1).*weight)./sum(weight);
+    weight = [];
+end
+CPU_timeB = cputime;
+disp(['Interpolation topography took', num2str(CPU_timeB-CPU_timeA,3), ' seconds: could be worse.'])
 end

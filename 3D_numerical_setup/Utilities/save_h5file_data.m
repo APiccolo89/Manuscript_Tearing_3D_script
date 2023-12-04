@@ -15,7 +15,7 @@ TB = [];
 for it = 1:number_terranes
     t = Terranes.(structure_fields{it}); 
     sub_fields = fieldnames(t);
-    S_data = [] %empty structure for introducing the variables 
+    S_data = []; %empty structure for introducing the variables 
     for is =1:length(sub_fields)
        if isa(t.(sub_fields{is}),'Passive_Margin') || isa(t.(sub_fields{is}),'Thermal_Type') || isa(t.(sub_fields{is}),'Thermal_Information') || isa(t.(sub_fields{is}),'BoundsT')
            sub_sub_Field = fieldnames(t.(sub_fields{is}));

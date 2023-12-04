@@ -1,9 +1,5 @@
-function Create_Setup(Terranes,ph,TI,A,npart,Gr,Parallel_partition,Save_Test_Benchmark)
-%=========================================================================
-% Benchmark {Since waiting for 30 minutes everytime I fucked up something,
-% I will save A,ph,Gr, in benchmark3D.m}
-%==========================================================================
-if nargin ~= 0 
+function Create_Setup(Terranes,ph,TI,A,npart,Gr,Parallel_partition)
+
 RandomNoise             =   logical(0);
 Is64BIT                 =   logical(0);
 Phase = 0.0.*((A.Xpart));
@@ -24,14 +20,13 @@ TB = cputime;
 disp('=================================TERRANES ARE FINISHED==============')
 disp(['The full operation took ', num2str(round((TB-TA)./60)), ' minutes'])
 disp('====================================================================')
-save_h5file_data(Terranes,Phase,Temp,A.Zpart)
 
 % Final correction 
 ind =   abs(Temp-TI.TP)<0.1 & A.Zpart<0.0; 
 Phase(ind)  = TI.Ph_Ast;
 Temp(ind)   = TI.TP;
 
-ind = A.Zpart>=0.0;
+ind = A.Zpart>0.0;
 Temp(ind)   = TI.TS;
 Phase(ind)  = TI.Ph_Air;
 
@@ -55,19 +50,8 @@ z = squeeze(A.Zpart(1,1,:));
 A.x      =  double(x(:));
 A.y      =  double(y(:));
 A.z      =  double(z(:));
-if Save_Test_Benchmark == 1
-    save('Benchmark3D.mat',"A","Gr","ph","TI")
-end
-else
-    clear all;
-    close all;
-    A_time = cputime;
-    load('Benchmark3D.mat');
-    B_time = cputime; 
-    disp(['Benchmark3D took',num2str(B_time-A_time,3) ,' s, to load']); 
-end
-[A] = displace_phase_isostasy(ph,A,Gr,TI);
-A.Phase(A.Phase==0) = 12;
+
+%[A,surf] = displace_phase_isostasy(ph,A,Gr,TI);
 
 
 A.RandomNoise = logical(0);

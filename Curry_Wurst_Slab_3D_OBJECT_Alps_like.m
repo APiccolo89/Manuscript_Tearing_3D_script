@@ -18,12 +18,12 @@ Parallel_partition     = 'ProcessorPartitioning_128cpu_4.4.8.bin';
 phases.Ph_Ar  = [0,10]  ;% Air
 phases.Ph_UC  = [1,2700]  ;% Upper Crust
 phases.Ph_LC  = [2,2800]  ;% Lower Crust
-phases.Ph_Clt = [3,3290] ;% Continental Lithosphere
-phases.Ph_Clt2 = [4,3290] ;
+phases.Ph_Clt = [3,3300] ;% Continental Lithosphere
+phases.Ph_Clt2 = [4,3300] ;
 phases.Ph_UM  = [5,3300]  ;% Upper Mantle
 phases.Ph_OLt = [6,3300] ;% Ocean Lithosphere
 phases.Ph_OC  = [7,3300]   ;%place holder
-phases.Ph_sed_oc = [8,2680];
+phases.Ph_sed_oc = [8,2700];
 phases.Ph_WZ  = [9,3300]  ;% Weak Zone
 phases.Ph_LC2  = [10,2700]  ;
 phases.Ph_UC2  = [11,2800] ;
@@ -63,9 +63,9 @@ BG = BG.compute_coordinate_boundary_composite;
 
 %South Continent 
 C2 = BoundsT; 
-C2.c = [0.0,-250];
-C2.W = 500.0;
-C2.L = 500.0;
+C2.c = [0.0,-500];
+C2.W = 1000.0;
+C2.L = 1000.0;
 C2=C2.Create_arc_circumference_margin(1000,'B',1200);
 
 % = North Continent with composite D Boundary
@@ -123,7 +123,7 @@ passive_margin2 = Passive_Margin; % To apply to continent 1
 %==========================================================================
 passive_margin1.Direction = 'right';
 passive_margin1.ph_pas_m  = phases.Ph_pas_m(1);
-passive_margin1.shape     = 'triangular'; 
+passive_margin1.shape     = 'rectangular'; 
 passive_margin1.Thermal_type_O = Thermal_TypeTrench;
 passive_margin1.Thermal_type_C = Thermal_TypeContinent; 
 passive_margin1.Stratigraphy= continental_stratigraphy;
@@ -158,7 +158,6 @@ Ocean_BG.Boundary = BG;
 Ocean_BG.Stratigraphy = oceanic_stratigraphy2;
 Ocean_BG.Thermal_information = Thermal_information;
 Ocean_BG.Thermal_type = Thermal_TypeOcean;
-
 %==========================================================================
 T.Boundary = C2;
 T.Boundaries_list = {'B'}; 

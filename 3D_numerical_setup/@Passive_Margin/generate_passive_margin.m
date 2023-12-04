@@ -127,8 +127,15 @@ elseif strcmp (obj.shape,'trapezoidal')
         x        = [lim_depo(1),Depo_x,lim_depo(2),lim_depo(2)];
     end
     z        = [0.0,Depo_z,Depo_z,0.0];
+elseif strcmp(obj.shape, 'rectangular')
+    if Direction == 1
+        x        = [lim_depo(2),lim_depo(2),lim_depo(1),lim_depo(1)];
+    else
+        x        = [lim_depo(1),lim_depo(1),lim_depo(2),lim_depo(2)];
+    end
+    z        = [0.0,Depo_z,Depo_z,0.0];
 else
-    error('Dear user, it seems that you did a mistake: passive margin are {trapezoidal} or {triangular}, any permutation of wrong letter is not admissible.')
+    error('Dear user, it seems that you did a mistake: passive margin are {trapezoidal} or {triangular} or {rectangular}, any permutation of wrong letter is not admissible.')
 end
 Lithos   = C.Stratigraphy.Tk(end);
 if Direction==1

@@ -40,9 +40,9 @@ for i=1:length(ph)
         B = t_Tk(i+1);
     end
     if ~isempty(ind)
-        ind_ph = D(:) < T & D(:)>=B & ind(:)==1;
+        ind_ph = D(:) <=T & D(:)>=B & ind(:)==1;
     else
-        ind_ph = D(:) < T & D(:)>=B & ind(:) == 1 ;
+        ind_ph = D(:) <= T & D(:)>=B & ind(:) == 1 ;
     end
     Phase(ind_ph) = ph(i);
     T=B;
@@ -58,7 +58,7 @@ if isa(obj,'Trench')
             B = TT.Tk(i+1);
         end
 
-        ind_c = D(:) < T & D(:)>=B & obj.continent(:)>0;
+        ind_c = D(:) <= T & D(:)>=B & obj.continent(:)>0;
 
         Phase(ind_c) = TT.phases(i);
         T=B;
