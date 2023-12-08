@@ -193,7 +193,7 @@ T.prism_depth = -70;
 Terranes = struct('Ocean_BG',Ocean_BG,'Continent1',Continent1,'Continent2',Continent2,'Trench',T);%,'T',T);
 %==========================================================================
 TA = cputime; 
-Create_Setup(Terranes,phases,Thermal_information,A,npart,Gr,Parallel_partition,1);
+Create_Setup(Terranes,phases,Thermal_information,A,npart,Gr,Parallel_partition,0);
 TB = cputime;
 disp('====================================================================')
 disp(['The Setup is finished and took ', num2str(round((TB-TA)./60)), ' min'])

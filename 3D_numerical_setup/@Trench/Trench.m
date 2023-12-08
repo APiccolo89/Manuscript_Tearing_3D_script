@@ -40,10 +40,10 @@ classdef Trench
         % Function that interacts with the external enviroment: Take the
         % Phase and Temp array and modify accordingly
 
-        function [Phase,Temp] = fill_terranes(obj,A,Phase,Temp)
+        function [A] = fill_terranes(obj,A)
             disp([obj.name, 'object is filling....'])
             A_time = cputime;
-            [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
+            [A] = fill_subduction(obj,A);
             B_time = cputime;
             disp(['and took ', num2str(B_time-A_time,3), 'seconds']);
 

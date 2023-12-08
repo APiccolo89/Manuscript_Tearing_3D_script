@@ -79,9 +79,9 @@ if ~isempty(obj.Boundary_terrane_list)
         % Compute the new thermal structure within the terrane area:
         % select the point chosen point:
         if strcmp(obj.Direction,'left') || strcmp(obj.Boundary_terrane_list(ib),'A') ||strcmp(obj.Boundary_terrane_list(ib),'D')
-            ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (A.Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(A.Phase(:))) & iy(:)==1; % chosen particles
+            ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (A.Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
         else
-            ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (A.Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(A.Phase(:))) & iy(:)==1; % chosen particles
+            ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
         end
         x_chosen = abs((B.Xpart(ind==1)-lim_depo(1))./obj.length); % weight of the average
         z_chosen = B.Zpart(ind==1);

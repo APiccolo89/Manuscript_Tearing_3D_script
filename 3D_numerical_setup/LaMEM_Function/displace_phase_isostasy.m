@@ -67,19 +67,19 @@ T2  = 0.*Ph;
 % is shit.
 for i = 1:ilx
     for j =1:ily
-        z = squeeze(Z(j,i,:))+topo_M(j,i);
-        Ph2(j,i,:)=interp1(z,squeeze(Ph(j,i,:)),squeeze(Z(i,j,:)),'nearest');
-        T2(j,i,:)=interp1(z,squeeze(T(j,i,:)),squeeze(Z(j,i,:)),'nearest');
+        z = squeeze(Z(i,j,:))+topo_M(i,j);
+        Ph2(i,j,:)=interp1(z,squeeze(Ph(i,j,:)),squeeze(Z(i,j,:)),'nearest');
+        T2(i,j,:)=interp1(z,squeeze(T(i,j,:)),squeeze(Z(i,j,:)),'nearest');
         z = [];
     end
 end
-Ph2(isnan(Ph2)& Z >0.0)=ph.Ph_Ar(1);
-Ph2(isnan(Ph2)& Z <0.0)=ph.Ph_UM(1);
-T2(isnan(T2) & Z >0.0)=TI.TS;
-T2(isnan(T2)& Z <0.0)=TI.TP;
-A.Phase = Ph2;
-A.Temp = T2;
-%plot_section(A,topo_M)
+Ph2(isnan(Ph2(:))& Z(:) >0.0)=ph.Ph_Ar(1);
+Ph2(isnan(Ph2(:))& Z(:) <0.0)=ph.Ph_UM(1);
+T2(isnan(T2(:)) & Z(:) >0.0)=TI.TS;
+T2(isnan(T2(:))& Z(:) <0.0)=TI.TP;
+A.Phase = reshape(Ph2,size(A.Xpart));
+A.Temp = reshape(T2,size(A.Xpart));
+plot_section(A,topo_M)
 
 
 [s]=save_topography(A,topo_M,Gr);
@@ -106,10 +106,10 @@ function [string] = save_topography(A,topo_M,Gr)
 y=squeeze(A.Ypart(1,:,1));
 x=squeeze(A.Xpart(:,1,1));
 % %%g
-dX = (max(Gr.x_g)-min(Gr.x_g))/(Gr.lx-1);
-dY = (max(Gr.y_g)-min(Gr.y_g))/(Gr.ly-1);
-x_t = min(Gr.x_g):dX:max(Gr.x_g);
-y_t = min(Gr.y_g):dY:max(Gr.y_g);
+dX = (max(Gr.x_g+0.1)-min(Gr.x_g-0.1))/(Gr.lx-1);
+dY = (max(Gr.y_g+0.1)-min(Gr.y_g-0.1))/(Gr.ly-1);
+x_t = min(Gr.x_g-0.1):dX:max(Gr.x_g+0.1);
+y_t = min(Gr.y_g-0.1):dY:max(Gr.y_g+0.1);
 [Y_t,X_t] = meshgrid(y_t,x_t);
 
 [Y,X] = meshgrid(y,x);
@@ -135,7 +135,7 @@ dy = (max(Northing) - min(Northing))/(length(Northing)-1);
 
 
 % transpose Topo to be read correctly by LaMEM
-%Topo    = Topo';
+Topo    = Topo;
 
 % write binary to be read by LaMEM
 % (FILENAME,[# of points in x-dir, # of points in y-dir, x-coord of SW corner, y_coord of SW corner,

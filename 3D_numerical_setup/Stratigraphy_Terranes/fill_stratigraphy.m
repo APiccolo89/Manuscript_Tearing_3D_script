@@ -1,5 +1,5 @@
 
-function [Phase] = fill_stratigraphy(obj,A,Phase,ind)
+function [Phase] = fill_stratigraphy(obj,Z,Phase,ind)
 %==========================================================================
 % function that allows to fill up the phases 
 % Check if the type of terranes (i.e., Trench or normal Terranes?)
@@ -25,7 +25,7 @@ if isa(obj,'Trench')
 else
     ph = obj.Stratigraphy.phases;    % phase vector: i.e., the phases that are required to fill up     
     t_Tk = obj.Stratigraphy.Tk;      % depth of interface 
-    D    = A.Zpart; 
+    D    = Z; 
 end
 % Extract relevant information 
 T_Tk = [0.0, t_Tk(end)]; % Thickness of the terrain

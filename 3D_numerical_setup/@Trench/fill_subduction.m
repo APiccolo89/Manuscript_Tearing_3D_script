@@ -1,4 +1,4 @@
-function [Phase,Temp] = fill_subduction(obj,A,Phase,Temp)
+function [A] = fill_subduction(obj,A)
 % Boundary list
 boundary_list = obj.Boundaries_list;
 for ib = 1:numel(boundary_list)
@@ -19,7 +19,7 @@ for ib = 1:numel(boundary_list)
 
     if strcmp(obj.theta{2},'none')
         theta = abs(obj.theta{1}(1));
-        [obj,Phase,Temp] = obj.find_slab_(B,'Slab',Phase,Temp,obj.Boundaries_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
+        [obj,A.Phase,A.Temp] = obj.find_slab_(B,'Slab',A.Phase,A.Temp,obj.Boundaries_list{ib},theta); % Since the correction for the phase and temperature is inevitably connected to the mid plane, i use this function to correct this array
     else
         % Place holder for a loop over y direction 
         % ALG: 
@@ -40,14 +40,16 @@ for ib = 1:numel(boundary_list)
     end
 
     A_time = cputime;
-    [Temp] = compute_temperature_profile(obj,B,[],Temp,obj.Boundaries_list{ib});
+    B.Temp = A.Temp;
+    [A.Temp] = compute_temperature_profile(obj,B,[],obj.Boundaries_list{ib});
+    B.Temp = []; 
     B_time = cputime;
     disp(['   Temperature field of the slab took ', num2str(B_time-A_time,3), ' seconds'])
     A_time = cputime;
-    [Phase] = fill_stratigraphy(obj,B,Phase,[]);
-    [Phase] = obj.generate_accretion_prism(B,Phase,boundary_list{ib});
-    [obj,Phase,Temp] = obj.find_slab_(B,'Weak',Phase,Temp,boundary_list{ib},theta);
-    [Phase] = obj.fill_weak_zone(Phase,A.Zpart);
+    [A.Phase] = fill_stratigraphy(obj,B,A.Phase,[]);
+    [A.Phase] = obj.generate_accretion_prism(B,A.Phase,boundary_list{ib});
+    [obj,A.Phase,A.Temp] = obj.find_slab_(B,'Weak',A.Phase,A.Temp,boundary_list{ib},theta);
+    [A.Phase] = obj.fill_weak_zone(A.Phase,A.Zpart);
     B_time = cputime;
     disp(['   Phase field of the slab, prism weakzone  took ', num2str(B_time-A_time,3), ' seconds'])
 end

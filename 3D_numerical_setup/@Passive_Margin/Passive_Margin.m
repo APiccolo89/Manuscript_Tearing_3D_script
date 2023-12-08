@@ -34,7 +34,7 @@ classdef Passive_Margin % => Composite class with continents ~ Default value
     end
     
     methods
-        [Phase,Temp] = generate_passive_margin(obj,C,A,Phase,Temp)
+        [A] = generate_passive_margin(obj,C,A)
     end
 end
 
