@@ -11,11 +11,7 @@ end
 % by the type of the boundary and correct this coordinate for filling up
 % the phase.
 %==========================================================================
-if nargin > 3
-  theta = thetaA;
-else
-  theta  = [];
-end
+
 data_boundary = obj.(Boundary);
 if strcmp(Boundary,'D')||strcmp(Boundary,'B')
     % local transformation of the variable name in the
