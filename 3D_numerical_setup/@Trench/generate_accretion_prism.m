@@ -16,7 +16,7 @@ else
 end
 
 C = [xc,-obj.R(2)];
-if ~isempty(obj.C_prism)
+if isempty(obj.C_prism)
     CP = C; 
 else
     CP = obj.C_prism; 
