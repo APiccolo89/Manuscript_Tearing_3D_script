@@ -36,7 +36,7 @@ if strcmp(Weak_Slab,'Weak')
     %=============
 end
 % select the point that are worth to check if they belong to the slab
-ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>=ya & y<=yb;
+ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>ya & y<yb;
 A_time = cputime;
 % Vector version
 d = x*nan; % d the distance array for the slab

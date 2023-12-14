@@ -14,7 +14,7 @@ if strcmp(Boundary,'A') || strcmp(Boundary,'C')
     if isempty(obj.L)
         error('You have to specify L in the class before using the function for this boundary')
     end
-    [obj.W,CC]= obj.modify_boundary_limits(R,arc_length,Boundary);
+    [obj.W,CC]= obj.modify_terrane_limits(R,arc_length,Boundary);
 
 elseif strcmp(Boundary,'B') || strcmp(Boundary,'D')
     if isempty(obj.W) || obj.W==1.0 

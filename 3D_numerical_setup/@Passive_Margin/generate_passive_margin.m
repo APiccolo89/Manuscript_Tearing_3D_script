@@ -1,5 +1,5 @@
 
-function [Phase,Temp] = generate_passive_margin(obj,C,A,Phase,Temp)
+function [A] = generate_passive_margin(obj,C,A)
 %=========================================================================%
 % Input:
 % obj => the passive_margin object associated with a specific terranes
@@ -74,14 +74,14 @@ if ~isempty(obj.Boundary_terrane_list)
         [B] = C.Boundary.transform_coordinate(A,obj.Boundary_terrane_list{ib});       
         iy =  B.Ypart>=l1 & B.Ypart<=l2;
         [in,~] = inpolygon(B.Xpart,B.Zpart,x,z);
-        Phase(in==1 & iy==1) = obj.ph_pas_m;
+        A.Phase(in==1 & iy==1) = obj.ph_pas_m;
         % => Thermal information
         % Compute the new thermal structure within the terrane area:
         % select the point chosen point:
         if strcmp(obj.Direction,'left') || strcmp(obj.Boundary_terrane_list(ib),'A') ||strcmp(obj.Boundary_terrane_list(ib),'D')
-            ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
+            ind = B.Xpart(:)>lim_depo(2) & B.Xpart(:)<lim_depo(1) & (A.Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(A.Phase(:))) & iy(:)==1; % chosen particles
         else
-            ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(Phase(:))) & iy(:)==1; % chosen particles
+            ind = B.Xpart(:)>lim_depo(1) & B.Xpart(:)<lim_depo(2) & (A.Phase(:) ~= C.Thermal_information.Ph_Ast | isnan(A.Phase(:))) & iy(:)==1; % chosen particles
         end
         x_chosen = abs((B.Xpart(ind==1)-lim_depo(1))./obj.length); % weight of the average
         z_chosen = B.Zpart(ind==1);
@@ -96,11 +96,11 @@ if ~isempty(obj.Boundary_terrane_list)
             [T_prov2] = Continental_Geotherm(obj,z_chosen,ind(ind==1),T_prov2);
         end
         T         = T_prov1.*x_chosen + T_prov2.*(1-x_chosen);
-        Temp(ind==1) = T;
+        A.Temp(ind==1) = T;
         % Lithosphere correction
         [in2,~]  = inpolygon(B.Xpart,B.Zpart,x_l,z_l);
-        Phase(in2(:)==1 &  iy(:)==1) = C.Thermal_information.Ph_Ast;
-        Temp(in2(:)==1 & iy(:)==1) = C.Thermal_information.TP;
+        A.Phase(in2(:)==1 &  iy(:)==1) = C.Thermal_information.Ph_Ast;
+        A.Temp(in2(:)==1 & iy(:)==1) = C.Thermal_information.TP;
     end
 end
 end
@@ -127,8 +127,15 @@ elseif strcmp (obj.shape,'trapezoidal')
         x        = [lim_depo(1),Depo_x,lim_depo(2),lim_depo(2)];
     end
     z        = [0.0,Depo_z,Depo_z,0.0];
+elseif strcmp(obj.shape, 'rectangular')
+    if Direction == 1
+        x        = [lim_depo(2),lim_depo(2),lim_depo(1),lim_depo(1)];
+    else
+        x        = [lim_depo(1),lim_depo(1),lim_depo(2),lim_depo(2)];
+    end
+    z        = [0.0,Depo_z,Depo_z,0.0];
 else
-    error('Dear user, it seems that you did a mistake: passive margin are {trapezoidal} or {triangular}, any permutation of wrong letter is not admissible.')
+    error('Dear user, it seems that you did a mistake: passive margin are {trapezoidal} or {triangular} or {rectangular}, any permutation of wrong letter is not admissible.')
 end
 Lithos   = C.Stratigraphy.Tk(end);
 if Direction==1

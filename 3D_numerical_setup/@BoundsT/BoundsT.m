@@ -39,8 +39,9 @@ classdef BoundsT
         % A{2} => Type 'circular', 'none', 'none'
         % A{3} => Vector containing v(1) x_c, v(2), y_c, v(3), radius of
         % curvature
+        % 
         A    = {[],['none'],[]};      % 4 value {x1,x2,R,c} | {}
-        B    = {[],['none'],[]};         % 4 value {x1,x2,R,c} | {}
+        B    = {[],['none'],[]};      % 4 value {x1,x2,R,c} | {}
         C    = {[],['none'],[]};      %
         D    = {[],['none'],[]};       %
         angle = NaN          % primary axis direction w.r.t. current axis 

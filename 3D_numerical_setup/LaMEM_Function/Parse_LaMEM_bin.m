@@ -17,6 +17,7 @@ npart_z =   npart(3);
 Gr.x_g = [min(x),max(x)];
 Gr.z_g =[min(z),max(z)];
 Gr.y_g = [min(y),max(y)];
+
 % Update variables (size of grid in [x,y,z] direction
 nump_x  =   size(X,2);
 nump_y  =   size(X,1);
@@ -30,10 +31,16 @@ mH      =   abs(min(z));
 Xvec    =   squeeze(X(1,:,1));
 Yvec    =   squeeze(Y(:,1,1));
 Zvec    =   squeeze(Z(1,1,:));
+
+Gr.lx  = length(Xvec)./npart_x;
+Gr.ly  = length(Yvec)./npart_y;
+Gr.lz  = length(Zvec)./npart_z;
 % Temporary save memory
 clear Z Xpart Ypart Zpart
 % Prepare data for visualization/output
 A           =   struct('W',[],'L',[],'H',[],'nump_x',[],'nump_y',[],'nump_z',[],'Phase',[],'Temp',[],'x',[],'y',[],'z',[],'npart_x',[],'npart_y',[],'npart_z',[]);
 % Linear vectors containing coords
 [A.Xpart,A.Ypart,A.Zpart] =meshgrid(single(Xvec),single(Yvec),single(Zvec));
+A.Phase = zeros(size(A.Xpart));
+A.Temp = zeros(size(A.Xpart));
 end

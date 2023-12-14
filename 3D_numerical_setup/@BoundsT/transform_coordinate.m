@@ -1,4 +1,11 @@
+<<<<<<< HEAD
 function [B] = transform_coordinate(obj,A,Boundary,thetaA)
+=======
+function [B] = transform_coordinate(obj,A,Boundary,theta)
+if nargin == 3
+    theta = 1; 
+end
+>>>>>>> Python_3D_post_process
 %==========================================================================
 % function to transform coordinate such that the curved boundary is
 % deflected back to linear.
@@ -43,6 +50,10 @@ if strcmp(data_boundary{2},'Circular')
         dx = -dx;
     end
     B.Xpart(B.Ypart>=ya & B.Ypart<=yb) = B.Xpart(B.Ypart>=ya & B.Ypart<=yb)+dx(B.Ypart>=ya & B.Ypart<=yb);
+    if sum(theta) <0 
+        B.Xpart = -B.Xpart; 
+    end
+    
 end
 if ~isempty(theta)
     if theta<0

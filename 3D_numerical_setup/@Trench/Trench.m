@@ -1,5 +1,7 @@
 classdef Trench
-
+%=========================================================================%
+% Definitions, and use of this class
+%=========================================================================%
     properties
         name = 'Subduction zone'
         Type_Subduction % Subduction type {Mode_1}{Ribe}{To_Do: Linear _World_Builder_example => CITE IT}
@@ -23,24 +25,27 @@ classdef Trench
         Stratigraphy_Oceanic     %
         % Subducted crust
         Subducted_crust_L        % Polygon crust subduction
-        % Orogenic prism information
-        position_end_prism= 100;
-        phase_prism
         % Field that are used internally to the class to do the proper
         % computation
         d_slab % store the distance from the top surface
         l_slab % store the length of the slab {useful for McKenzie temperature profile}
         length_continent = {[100,20],'none'} 
         continent 
+        % Orogenic prism information
+        prism_depth = -70; 
+        position_end_prism= 100;
+        phase_prism   
+        Prism_lc_depth = -40;
+        C_prism % Center of prism {if empty, it takes the center of the curvature of the slab}
     end
     methods (Access = public)
         % Function that interacts with the external enviroment: Take the
         % Phase and Temp array and modify accordingly
 
-        function [Phase,Temp] = fill_terranes(obj,A,Phase,Temp)
+        function [A] = fill_terranes(obj,A)
             disp([obj.name, 'object is filling....'])
             A_time = cputime;
-            [Phase,Temp] = fill_subduction(obj,A,Phase,Temp);
+            [A] = fill_subduction(obj,A);
             B_time = cputime;
             disp(['and took ', num2str(B_time-A_time,3), 'seconds']);
 
@@ -55,8 +60,8 @@ classdef Trench
         [obj,Phase,Temp]= find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
         [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp) % I need the data of the object for this particular function
         [Phase] = generate_accretion_prism(obj,A,Phase,Boundary)
-        function [Phase] = fill_weak_zone(obj,Phase)
-            ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism;
+        function [Phase] = fill_weak_zone(obj,Phase,Z)
+            ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism{1} &  Phase(:)~= obj.phase_prism{2};%& Z(:) <obj.crust_depth;
             Phase(ind) = obj.ph_WZ;
 
         end

@@ -69,7 +69,11 @@ C2 = BoundsT;
 C2.c = [0.0,-250];
 C2.W = 500.0;
 C2.L = 500.0;
+<<<<<<< HEAD
 C2=C2.Create_arc_circumference_margin(500,'B',1200);
+=======
+C2=C2.Create_arc_circumference_margin(390,'B',1200);
+>>>>>>> Python_3D_post_process
 % Trench => ~ night mare, but let's try
 % Rift background oceanic terranes
 
@@ -79,7 +83,7 @@ C2=C2.Create_arc_circumference_margin(500,'B',1200);
 
 Thermal_TypeTrench = Thermal_Type;
 Thermal_TypeTrench.Age = convert_Age_velocity(30,1); 
-Thermal_TypeTrench.vel = {[convert_Age_velocity(3,2),convert_Age_velocity(10,2)],'none'}; 
+Thermal_TypeTrench.vel = {[convert_Age_velocity(3,2),convert_Age_velocity(10,2)],'linear'}; 
 Thermal_TypeTrench.Type = 'McKenzie';
 %
 Thermal_TypeOcean = Thermal_Type;
@@ -157,8 +161,8 @@ T.Boundary = C2;
 T.Boundaries_list = {'B'}; 
 T.Stratigraphy_Continental = continental_stratigraphy_s;
 T.Stratigraphy_Oceanic = oceanic_stratigraphy;
-T.theta = {[90,90],'none'};
-T.D0   = 80; 
+T.theta = {[-90,-90],'none'};
+T.D0   = 100; 
 T.L0   = 400; 
 T.Decoupling_depth = -100; 
 T.Thermal_type = Thermal_TypeTrench;
@@ -201,8 +205,6 @@ function [converted] = convert_Age_velocity(value,type)
             converted = value/(Myrs_sec/1e6)/cm_to_meter; 
         end
 end
-
-
 
 
 

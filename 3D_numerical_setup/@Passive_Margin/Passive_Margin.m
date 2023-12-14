@@ -23,8 +23,8 @@ classdef Passive_Margin % => Composite class with continents ~ Default value
                 depo_center     = 12; %Depth of the depocenter 
                 center_pos = 0.2;     %Depocenter position
                 shape         = 'triangular'; %'trapezoidal'
-                length          = 200;% Horizontal distance from the border
-                d_lithos        = 20; % thickness difference 
+                length          = 400;% Horizontal distance from the border
+                d_lithos        = 0; % thickness difference 
                 Age             = 80; % Age of the next terrane
                 Thermal_type_O  = Thermal_Type;
                 Thermal_type_C = Thermal_Type;    % Thermal type of the attached continent     
@@ -34,7 +34,7 @@ classdef Passive_Margin % => Composite class with continents ~ Default value
     end
     
     methods
-        [Phase,Temp] = generate_passive_margin(obj,C,A,Phase,Temp)
+        [A] = generate_passive_margin(obj,C,A)
     end
 end
 
