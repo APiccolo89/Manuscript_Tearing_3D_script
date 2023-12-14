@@ -66,7 +66,7 @@ C2 = BoundsT;
 C2.c = [0.0,-500];
 C2.W = 1000.0;
 C2.L = 1000.0;
-C2=C2.Create_arc_circumference_margin(1000,'B',1200);
+C2=C2.Create_arc_circumference_margin(10000,'B',1200);
 
 % = North Continent with composite D Boundary
 C1 = BoundsT;

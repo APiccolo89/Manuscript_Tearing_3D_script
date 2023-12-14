@@ -1,5 +1,7 @@
 classdef Trench
-
+%=========================================================================%
+% Definitions, and use of this class
+%=========================================================================%
     properties
         name = 'Subduction zone'
         Type_Subduction % Subduction type {Mode_1}{Ribe}{To_Do: Linear _World_Builder_example => CITE IT}
@@ -23,18 +25,18 @@ classdef Trench
         Stratigraphy_Oceanic     %
         % Subducted crust
         Subducted_crust_L        % Polygon crust subduction
-        % Orogenic prism information
-        position_end_prism= 100;
-        phase_prism   
-        Prism_lc_depth = -40; 
         % Field that are used internally to the class to do the proper
         % computation
         d_slab % store the distance from the top surface
         l_slab % store the length of the slab {useful for McKenzie temperature profile}
         length_continent = {[100,20],'none'} 
         continent 
-        %crust_depth = -35; % This is an optional value. I need to reduce the amount of weak zone, otherwise it creates unrealistic topopgrapy
+        % Orogenic prism information
         prism_depth = -70; 
+        position_end_prism= 100;
+        phase_prism   
+        Prism_lc_depth = -40;
+        C_prism % Center of prism {if empty, it takes the center of the curvature of the slab}
     end
     methods (Access = public)
         % Function that interacts with the external enviroment: Take the

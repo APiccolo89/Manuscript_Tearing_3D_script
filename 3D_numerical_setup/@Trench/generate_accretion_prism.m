@@ -16,7 +16,12 @@ else
 end
 
 C = [xc,-obj.R(2)];
-d_p = [C(1)+obj.position_end_prism 0.0];
+if ~isempty(obj.C_prism)
+    CP = C; 
+else
+    CP = obj.C_prism; 
+end
+d_p = [CP(1)+obj.position_end_prism 0.0];
 s   = (d_p(2)-obj.prism_depth)./(d_p(1)-C(1)+obj.position_end_prism*0.8);
 ind2 = z(:)>s.*(x(:)-C(1))+C(2)  & (Phase(:) == ~isnan(Phase(:)) | Phase(:) ~= obj.Thermal_information.Ph_Ast) & isnan(obj.d_slab(:)) &z <0.0 & x>C(1) & A.Ypart(:)>=ya & A.Ypart(:)<=yb ;
 Phase(ind2) = obj.phase_prism{1};
