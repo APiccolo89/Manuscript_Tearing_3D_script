@@ -4,19 +4,30 @@ classdef Trench
 %=========================================================================%
     properties
         name = 'Subduction zone'
-        Type_Subduction % Subduction type {Mode_1}{Ribe}{To_Do: Linear _World_Builder_example => CITE IT}
+
+        Type_Subduction % Subduction type {Mode_1}{Mode_2}{To_Do: Linear _World_Builder_example => CITE IT} => CITE!
+
         Boundary = BoundsT; 
+
                    %================================================================================
         Boundaries_list = {'none'} %where to apply the subduction zone.  
+
         % Thermal information +/- Generic information needed
         Thermal_type        % typology thermal structure
+
         Thermal_information % Data required thermal structure
+
         % Information concerning the subduction
         R       % Curvature radius
+
         C       % Center of radius curvature
+
         theta  = {[90, 90], 'none'} % Bending angle
+
         tk_WZ   % thickness of the weak zone
+
         ph_WZ   % phase of the weak zone
+        
         L0      % Lenght of the slab
         D0      % Thickness of the slab
         Decoupling_depth % Decoupling depth
@@ -27,10 +38,17 @@ classdef Trench
         Subducted_crust_L        % Polygon crust subduction
         % Field that are used internally to the class to do the proper
         % computation
+
         d_slab % store the distance from the top surface
         l_slab % store the length of the slab {useful for McKenzie temperature profile}
         length_continent = {[100,20],'none'} 
         continent 
+
+        % Mode 2 data 
+
+        Slab_surface % Data structure containing top, mid and bottom surface
+        nseg         % Resolution of the slab
+
         % Orogenic prism information
         prism_depth = -70; 
         position_end_prism= 100;
@@ -65,6 +83,7 @@ classdef Trench
             Phase(ind) = obj.ph_WZ;
 
         end
+        [Top,Bottom] = Compute_top_bottom_surface(obj); 
     end
 end
 

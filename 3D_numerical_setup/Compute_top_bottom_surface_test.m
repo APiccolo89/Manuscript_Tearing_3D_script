@@ -104,7 +104,6 @@ if nargin == 0
     axis equal
 
 end
-
 % Import the important information about the slab surface. 
 
 Slab_surface.Top = Top;
@@ -120,8 +119,6 @@ end
 
 % functions for computing the bending angle of the slab
 
-% Linear function angle
-
 function [theta_l] = theta_computing_linear(l,L0,theta)
 
 % slope linear function
@@ -131,9 +128,7 @@ s = (theta-0)./(L0);
 theta_l = l.*s;
 
 end
-
-%Ribe angle function
-
+%
 function [theta_l] = ribe_angle(l,L0,theta)
 
 theta_l = theta.*l.^2.*((3.*L0-2.*l))./(L0^3);
