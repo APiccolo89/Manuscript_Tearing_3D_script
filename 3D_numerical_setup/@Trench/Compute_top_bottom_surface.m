@@ -1,4 +1,4 @@
-function [obj] = Compute_top_bottom_surface(obj)
+function [obj] = Compute_top_bottom_surface(obj,theta)
 %=========================================================================%
 % Function to compute
 % Function to compute the top and bottom surface of the slab if the bending
@@ -30,6 +30,8 @@ if nargin == 0
     l_test = 0:L0./(1000):L0;
 else
 
+    theta = theta.*pi/180; 
+
     L0 =obj.L0;
 
     D0 = obj.D0; 
@@ -38,14 +40,12 @@ else
 
     seg_L = obj.nseg; % number of segment
 
-    theta = obj.theta*pi./180; %radians
-
     % Choose the function handle
-    if strcmp(obj.Type_angle, 'linear')
+    if strcmp(obj.Type_Angle, 'linear')
 
         ftheta = @(l) theta_computing_linear(l,L0,theta);
 
-    elseif strcmp(obj.Type_angle, 'ribe')
+    elseif strcmp(obj.Type_Angle, 'ribe')
 
         ftheta = @(l) ribe_angle(l,L0,theta);
 
@@ -72,6 +72,8 @@ Bottom(1,2) = -D0;
 
 % Weak zone top surface
 WS_surf = Top;
+
+WS_surf(1,2) = WZ_tk; 
 
 %Initialize iteration
 l = 0;
@@ -129,6 +131,8 @@ if nargin == 0
     scatter(MidS(:,1),MidS(:,2),'black','filled');
 
     scatter(Bottom(:,1),Bottom(:,2),'red','filled');
+    
+    scatter(WS_surf(:,1),WS_surf(:,2),'green')
 
     hold on
 
@@ -145,6 +149,8 @@ Slab_surface.Top = Top;
 Slab_surface.MidS = MidS;
 
 Slab_surface.Bottom = Bottom;
+
+Slab_surface.WZ_surf = WS_surf; 
 %Update object
 
 obj.Slab_surface = Slab_surface; 

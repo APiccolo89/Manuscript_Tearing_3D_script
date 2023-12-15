@@ -7,9 +7,9 @@ if strcmp(obj.Type_Subduction,'Mode_1')
 elseif strcmp(obj.Type_Subduction,'Mode_2')
     % Find top, mid and bottom surface of the slab
 
-    [obj] = obj.compute_top_bottom_surface(obj); 
+    [obj] = obj.Compute_top_bottom_surface(theta); 
     % Find the slab 
-    
+
     [obj,Phase,Temp] = obj.find_slab_mode_2(A,Weak_Slab,Phase,Temp,Boundary,theta);
 
 else

@@ -52,7 +52,7 @@ classdef Trench
 
         continent 
         % Mode 2 data 
-        Type_angle % type of angle {linear, ribe}
+        Type_Angle % type of angle {linear, ribe}
 
         Slab_surface % Data structure containing top, mid and bottom surface
 
@@ -91,13 +91,15 @@ classdef Trench
         [obj,Phase,Temp] = find_slab_(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
         % Slab mode 1
         [obj,Phase,Temp]= find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
+        [obj,Phase,Temp]= find_slab_mode_2(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
+        [obj] = Compute_top_bottom_surface(obj,theta)
         [l,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r,d,l,Phase,Temp) % I need the data of the object for this particular function
         [Phase] = generate_accretion_prism(obj,A,Phase,Boundary)
         function [Phase] = fill_weak_zone(obj,Phase,Z)
             ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism{1} &  Phase(:)~= obj.phase_prism{2};%& Z(:) <obj.crust_depth;
             Phase(ind) = obj.ph_WZ;
         end
-        [Top,Bottom] = Compute_top_bottom_surface(obj); 
+        
     end
 end
 

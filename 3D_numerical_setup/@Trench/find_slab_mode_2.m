@@ -19,6 +19,83 @@ else
     xc = data_boundary{1}(3);
 
 end
+% Restrict our research to the point that ARE WORTH TO LOOK. You do not
+% find God in a Casino, but in church. 
+ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>ya & y<yb;
+
+%Prepare the main vectors
+d_slab = x.*Nan; 
+
+l_slab = x.*Nan;
+%Prepare other variables 
+it = 1; 
+
+l = 0; 
+
+dl = obj.L0./obj.nseg; 
+% Spell out the surfaces
+T = obj.Slab_surface.Top;
+
+M = obj.Slab_surface.MidS;
+
+B = obj.Slab_surface.Bottom; 
+
+while l<obj.L0 
+
+    CPU_A = cputime;
+
+    ln = l+dl; 
+
+    itn = it+1; 
+    %[Spell out the coordinate of the small element]
+
+    Ap = [T(it,1),T(it,2)]; % coordinate point A
+
+    Bp = [T(itn,2),T(itn,2)];% coordinate point B
+
+    Cp = [B(it,1),B(it,2)]; %coordinate point C 
+
+    Dp = [B(itn,1),B(itn,2)]; % coordinate D; 
+
+    Mp1  = [M(it,1),M(it,2)]; % coordinate point midplane 1
+
+    Mp2  = [M(it,1),M(it,2)]; % coordinate point midplane 2
+
+    % Compute slope AB and CD
+
+    s1 = (Bp(2)-Ap(2))./(Bp(1)-Ap(1));
+
+    s2 = (Dp(2)-Cp(2))./(Dp(1)-Cp(1));
+    % Compute AC slope 
+
+    s3 = (Cp(2)-Ap(2))./(Cp(1)-Ap(1));
+
+    s4 = (Dp(2)-Bp(2))./(Dp(1)-Bp(1)); 
+    % Compute the slope of the midplane
+
+    sm =(Mp2(2)-Mp1(1))./(Mp2(1)-Mp1(2)); 
+    % find the chosen point 
+    % The chosen one, the favorite marker of the Godly Slab is the one that
+    % are within ya-yb, and that feature z> or < of two pairs of straight
+    % line. 
+
+    ind_chosen = ind(:) == 1 & z<=linear_equation_two_points(s1,Ap,x) ...
+        & z>=linear_equation_two_points(s2,Cp,x) & z<=linear_equation_two_points(s3,Ap,x) ...
+        & z>=linear_equation_two_points(s4,Bp,x);
+
+    % Project the chosen point to the midsurface to find the lenght for the
+    % chosen particles 
+    % 1) find the projection. From the projection, use l+distance along the
+    % projection to find the distance l(P) = l+d(Ppr(in)Midsurface) 
+    %
+
+
+    it = itn; 
+    l = ln; 
+    CPU_B = cputime;
+    disp(['Segment took ',num2str(CPU_B-CPU_A,2), 'seconds'])
+end
+
 
 ang_  = (theta)*pi/180; % angle of the slab
 ang_2 = (theta+90)*pi/180; %needed for the linear portion of the slab
@@ -179,4 +256,11 @@ Phase(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2)& x>C(1) & ~isnan(Phase(:))) = obj
 Temp(z<PA(2)+m*(x-PA(1)) & isnan(d) & z<PA(2) & x>C(1) &~isnan(Phase(:))) = obj.Thermal_information.TP;
 end
 
+function [z] = linear_equation_two_points(s,A,x)
+   
+   z = s.*(x-A(1))+A(2);
 
+end
+
+function [pr] = linear_projection(s,M,P)
+end
