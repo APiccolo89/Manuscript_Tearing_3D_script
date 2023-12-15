@@ -27,35 +27,50 @@ classdef Trench
         tk_WZ   % thickness of the weak zone
 
         ph_WZ   % phase of the weak zone
-        
+
         L0      % Lenght of the slab
+
         D0      % Thickness of the slab
+
         Decoupling_depth % Decoupling depth
         % Stratigraphic information
+
         Stratigraphy_Continental %
+
         Stratigraphy_Oceanic     %
         % Subducted crust
+
         Subducted_crust_L        % Polygon crust subduction
         % Field that are used internally to the class to do the proper
         % computation
 
         d_slab % store the distance from the top surface
-        l_slab % store the length of the slab {useful for McKenzie temperature profile}
-        length_continent = {[100,20],'none'} 
-        continent 
 
+        l_slab % store the length of the slab {useful for McKenzie temperature profile}
+
+        length_continent = {[100,20],'none'} 
+
+        continent 
         % Mode 2 data 
+        Type_angle % type of angle {linear, ribe}
 
         Slab_surface % Data structure containing top, mid and bottom surface
-        nseg         % Resolution of the slab
 
+        nseg         % Resolution of the slab
         % Orogenic prism information
+
         prism_depth = -70; 
+
         position_end_prism= 100;
+
         phase_prism   
+
         Prism_lc_depth = -40;
+
         C_prism % Center of prism {if empty, it takes the center of the curvature of the slab}
+
     end
+
     methods (Access = public)
         % Function that interacts with the external enviroment: Take the
         % Phase and Temp array and modify accordingly
@@ -81,7 +96,6 @@ classdef Trench
         function [Phase] = fill_weak_zone(obj,Phase,Z)
             ind = ~isnan(obj.d_slab(:))& Phase(:)~= obj.phase_prism{1} &  Phase(:)~= obj.phase_prism{2};%& Z(:) <obj.crust_depth;
             Phase(ind) = obj.ph_WZ;
-
         end
         [Top,Bottom] = Compute_top_bottom_surface(obj); 
     end

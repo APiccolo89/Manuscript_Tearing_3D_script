@@ -18,19 +18,43 @@ if nargin == 0
     % Default Debugging parameters                                        %
     %=====================================================================%
     L0 = 600;
+
     seg_L = 30; % number of segment
+
     theta = 60*pi./180; %radians
+
     D0 = 100;
+
     ftheta = @(l) ribe_angle(l,L0,theta);
+
     l_test = 0:L0./(1000):L0;
 else
-    L0 = 400;
-    seg_L = 30; % number of segment
+
+    L0 =obj.L0;
+
+    D0 = obj.D0; 
+
+    WZ_tk = obj.tk_WZ; 
+
+    seg_L = obj.nseg; % number of segment
+
     theta = obj.theta*pi./180; %radians
-    
-    x     = 0;
-    z     = 0;
-    ftheta = @(l) theta_computing_linear(l,L0,theta);
+
+    % Choose the function handle
+    if strcmp(obj.Type_angle, 'linear')
+
+        ftheta = @(l) theta_computing_linear(l,L0,theta);
+
+    elseif strcmp(obj.Type_angle, 'ribe')
+
+        ftheta = @(l) ribe_angle(l,L0,theta);
+
+    else 
+
+        error('Type of angle not existent, check the grammar')
+
+    end
+
 end
 % Prepare Top,mid and bottom surface.
 
@@ -45,6 +69,10 @@ MidS(1,2) = -D0./2;
 Bottom = Top;
 
 Bottom(1,2) = -D0;
+
+% Weak zone top surface
+WS_surf = Top;
+
 %Initialize iteration
 l = 0;
 
@@ -74,6 +102,11 @@ while l<L0
     Bottom(it+1,1) = MidS(it+1,1)-0.5.*D0.*abs(sin(theta_mean(it)));
 
     Bottom(it+1,2) = MidS(it+1,2)-0.5.*D0.*abs(cos(theta_mean(it)));
+    % Compute the top surface for the weak zone 
+
+    WS_surf(it+1,1) = MidS(it+1,1)+(0.5.*D0+WZ_tk).*abs(sin(theta_mean(it)));
+
+    WS_surf(it+1,2) = MidS(it+1,2)+(0.5.*D0+WZ_tk).*abs(cos(theta_mean(it)));
     % update l and it
 
     l = ln;
