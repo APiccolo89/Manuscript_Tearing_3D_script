@@ -25,11 +25,22 @@ C      = [xc,0.0-obj.R(2)]; % center of the curvature
 
 ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>ya & y<yb;
 
+
 %Prepare the main vectors
 d_slab = x.*nan; 
 
 l_slab = x.*nan;
 %Prepare other variables 
+
+xs = x(ind==1);
+zs = z(ind==1);
+ds = d_slab(ind==1);
+ls = l_slab(ind==1); 
+%free memory
+x = [];
+z = [];
+y = [];
+
 it = 1; 
 
 l = 0; 
@@ -82,26 +93,26 @@ while l<obj.L0
     % are within ya-yb, and that feature z> or < of two pairs of straight
     % line. 
     if l > 0 
-    ind_chosen = ind(:) == 1 & z<=linear_equation_two_points(s1,Ap,x) ...
-        & z>=linear_equation_two_points(s2,Cp,x) & z<linear_equation_two_points(s3,Ap,x) ...
-        & z>=linear_equation_two_points(s4,Bp,x);
+    ind_chosen = zs<=linear_equation_two_points(s1,Ap,xs) ...
+        & zs>=linear_equation_two_points(s2,Cp,xs) & zs<linear_equation_two_points(s3,Ap,xs) ...
+        & zs>=linear_equation_two_points(s4,Bp,xs);
     else
         % we need to do that at the beginning
-        ind_chosen = ind(:) == 1 & z<=linear_equation_two_points(s1,Ap,x) ...
-        & z>=linear_equation_two_points(s2,Cp,x) & x>=xc ...
-        & z>=linear_equation_two_points(s4,Bp,x);
+        ind_chosen = zs<=linear_equation_two_points(s1,Ap,xs) ...
+        & zs>=linear_equation_two_points(s2,Cp,xs) & xs>=xc ...
+        & zs>=linear_equation_two_points(s4,Bp,xs);
     end
     % Project the chosen point to the midsurface to find the lenght for the
     % chosen particles 
     % 1) find the projection. From the projection, use l+distance along the
     % projection to find the distance l(P) = l+d(Ppr(in)Midsurface) 
 
-    l_slab(ind_chosen==1) = compute_real_length(sm,Mp1,x(ind_chosen==1),z(ind_chosen==1),l);
+    ls(ind_chosen==1) = compute_real_length(sm,Mp1,xs(ind_chosen==1),zs(ind_chosen==1),l);
     % 2) find the distance from the top surface of the chosen particles
 
-    P = [x(ind_chosen==1), z(ind_chosen==1)];
+    P = [xs(ind_chosen==1), zs(ind_chosen==1)];
 
-    d_slab(ind_chosen==1) = -(find_distance_linear(P,Ap,Bp)');
+    ds(ind_chosen==1) = -(find_distance_linear(P,Ap,Bp)');
     %clean the trash
 
     P = [];
@@ -114,7 +125,7 @@ while l<obj.L0
     CPU_B = cputime;
     disp(['Segment took ',num2str(CPU_B-CPU_A,2), 'seconds'])
 end
-CPU_BF = cpu_time; 
+CPU_BF = cputime; 
 disp(['Slab took ',num2str(CPU_BF-CPU_AF,2), 'seconds'])
 
 
