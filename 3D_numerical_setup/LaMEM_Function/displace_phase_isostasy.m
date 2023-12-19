@@ -261,7 +261,9 @@ for i = 1:20:lx
     ax.YLabel.String = 'Z, [km]';
     ax.XLabel.Interpreter = 'latex';
     path_folder = 'Initial_Setup';
-    colorbar;
+    colorbar;    
+    axis equal
+
     if ~isfolder(path_folder)
         mkdir(path_folder)
     end
@@ -272,6 +274,7 @@ for i = 1:20:lx
     name_pic = (['Phase',num2str(it),'.png']);
     filename = fullfile(path_save,name_pic);
     print(filename,'-dpng')
+    close all;
 
 
 
@@ -297,6 +300,7 @@ for i = 1:20:lx
     path_folder = 'Initial_Setup';
     caxis([20,1300]);
     colorbar;
+    axis equal
     if ~isfolder(path_folder)
         mkdir(path_folder)
     end
@@ -307,6 +311,7 @@ for i = 1:20:lx
     name_pic = (['Temp',num2str(it),'.png']);
     filename = fullfile(path_save,name_pic);
     print(filename,'-dpng')
+    close all; 
 
 
 
