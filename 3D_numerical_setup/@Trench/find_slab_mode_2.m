@@ -67,9 +67,9 @@ it = 1;
 l = 0;
 
 
-ind_decoupling_1 = find(M(:,2)>obj.Decoupling_depth,1);
+ind_decoupling_1 = find(M(:,2)<=obj.Decoupling_depth,1);
 
-
+found  = 0; 
 
 CPU_AF = cputime;
 
@@ -109,7 +109,7 @@ while l<obj.L0
     zv = [Ap(2),Bp(2),Dp(2),Cp(2)];
     % Find the chosen one
 
-    [ind_chosen,~] = inpolygon(xs,zs,xv,zv);
+    [ind_chosen] = inpoly2([xs,zs],[xv',zv']);
 
     %Set up the scatter interpolant classes
     F1  = scatteredInterpolant(xv',zv',[l l+dl l+dl l]');
@@ -121,8 +121,9 @@ while l<obj.L0
 
     ds(ind_chosen==1) = F2(double(xs(ind_chosen==1)),double(zs(ind_chosen==1)));
 
-    if it == ind_decoupling_1
+    if it == ind_decoupling_1 & found ==0 
         l_dc = l;
+        found =1; 
     end
 
     it = itn;
@@ -191,7 +192,7 @@ Phase(ind==1 & isnan(d_slab) & A.Zpart(:)<-obj.D0) = obj.Thermal_information.Ph_
 
 % Find the first particles fullfilling the required dept
 
-ind_decoupling = find(l_slab>=l_dc,1);
+ind_decoupling = find(l_slab<=l_dc,1);
 
 % Update 
 obj.l_slab = reshape(l_slab,size(A.Xpart));
