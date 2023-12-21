@@ -34,6 +34,12 @@ else
 
     L0 =obj.L0;
 
+    if isempty(obj.Lb)
+        Lb = L0;
+    else
+        Lb = obj.Lb; 
+    end
+
     D0 = obj.D0; 
 
     WZ_tk = obj.tk_WZ; 
@@ -43,11 +49,11 @@ else
     % Choose the function handle
     if strcmp(obj.Type_Angle, 'linear')
 
-        ftheta = @(l) theta_computing_linear(l,L0,theta);
+        ftheta = @(l) theta_computing_linear(l,Lb,theta);
 
     elseif strcmp(obj.Type_Angle, 'ribe')
 
-        ftheta = @(l) ribe_angle(l,L0,theta);
+        ftheta = @(l) ribe_angle(l,Lb,theta);
 
     else 
 
@@ -168,6 +174,9 @@ function [theta_l] = theta_computing_linear(l,L0,theta)
 s = (theta-0)./(L0);
 
 theta_l = l.*s;
+if l>L0
+    theta_l=theta;
+end
 
 end
 
@@ -176,5 +185,8 @@ end
 function [theta_l] = ribe_angle(l,L0,theta)
 
 theta_l = theta.*l.^2.*((3.*L0-2.*l))./(L0^3);
+if l>L0
+    theta_l=theta;
+end
 
 end

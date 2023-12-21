@@ -30,6 +30,8 @@ classdef Trench
 
         L0      % Lenght of the slab
 
+        Lb      % Bending lenght [where to apply variable bending angle]
+
         D0      % Thickness of the slab
 
         Decoupling_depth % Decoupling depth
@@ -68,6 +70,7 @@ classdef Trench
         Prism_lc_depth = -40;
 
         C_prism % Center of prism {if empty, it takes the center of the curvature of the slab}
+
 
     end
 
