@@ -1,5 +1,5 @@
 
-function [A] = displace_phase_isostasy(ph,A,Gr,TI)
+function [A] = displace_phase_isostasy(ph,A,Gr,TI,OBG_st)
 % =========================================================================
 % Function that compute the relative displacement of the phase if we
 % consider them in Isostatic equilibrium.
@@ -70,6 +70,15 @@ for i = 1:ilx
         z = squeeze(Z(i,j,:))+topo_M(i,j);
         Ph2(i,j,:)=interp1(z,squeeze(Ph(i,j,:)),squeeze(Z(i,j,:)),'nearest');
         T2(i,j,:)=interp1(z,squeeze(T(i,j,:)),squeeze(Z(i,j,:)),'nearest');
+        % Fill the flysh
+        ind = (squeeze(Ph2(i,j,:))==OBG_st.phases(1) | squeeze(Ph2(i,j,:))==OBG_st.phases(2));
+        if isempty(ind(ind==1))
+            if topo_M(i,j)<=-1
+                ind2 =  squeeze(Z(i,j,:))>=topo_M(i,j) &  squeeze(Z(i,j,:))<=-1;
+                Ph2(i,j,ind2==1)=ph.Flysh1(1); 
+                topo_M(i,j) = -1; 
+            end
+        end
         z = [];
     end
 end
@@ -77,6 +86,10 @@ Ph2(isnan(Ph2(:))& Z(:) >0.0)=ph.Ph_Ar(1);
 Ph2(isnan(Ph2(:))& Z(:) <0.0)=ph.Ph_UM(1);
 T2(isnan(T2(:)) & Z(:) >0.0)=TI.TS;
 T2(isnan(T2(:))& Z(:) <0.0)=TI.TP;
+% Identify the continental area
+
+
+
 A.Phase = reshape(Ph2,size(A.Xpart));
 A.Temp = reshape(T2,size(A.Xpart));
 plot_section(A,topo_M)

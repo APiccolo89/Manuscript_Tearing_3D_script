@@ -55,7 +55,7 @@ A.x      =  double(x(:));
 A.y      =  double(y(:));
 A.z      =  double(z(:));
 if Save_Test_Benchmark == 1
-    save('Benchmark3D.mat',"A","Gr","ph","TI")
+    save('Benchmark3D.mat',"A","Gr","ph","TI","Terranes")
 end
 else
     clear all;
@@ -65,7 +65,9 @@ else
     B_time = cputime; 
     disp(['Benchmark3D took',num2str(B_time-A_time,3) ,' s, to load']); 
 end
-[A] = displace_phase_isostasy(ph,A,Gr,TI);
+[A] = displace_phase_isostasy(ph,A,Gr,TI,Terranes.Ocean_BG.Stratigraphy);
+
+
 A.Phase(A.Phase==0) = 12;
 
 
@@ -80,4 +82,5 @@ FDSTAGWriteMatlab2VTK(A,'BINARY'); % default option
 FDSTAGSaveMarkersParallelMatlab(A,Parallel_partition, Is64BIT);
 
 end
+
 

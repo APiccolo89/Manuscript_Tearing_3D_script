@@ -1,5 +1,5 @@
 
-function [A] = displace_phase_isostasy(ph,A,Gr,TI)
+function [A] = displace_phase_isostasy(ph,A,Gr,TI,OBG_st)
 % =========================================================================
 % Function that compute the relative displacement of the phase if we
 % consider them in Isostatic equilibrium.
@@ -70,6 +70,14 @@ for i = 1:ilx
         z = squeeze(Z(i,j,:))+topo_M(i,j);
         Ph2(i,j,:)=interp1(z,squeeze(Ph(i,j,:)),squeeze(Z(i,j,:)),'nearest');
         T2(i,j,:)=interp1(z,squeeze(T(i,j,:)),squeeze(Z(i,j,:)),'nearest');
+        % Fill the flysh
+        ind = (squeeze(Ph2(i,j,:))~=OBG_st.phases(1) | squeeze(Ph2(i,j,:))~=OBG_st.phases(2));
+        if min(ind)~=0
+            if topo_M(i,j)<=-1
+                Ph2(i,j,z(i,j)>=topo_M(i,j) & z(i,j)<=1000)=ph.Flysh1(1); 
+                topo_M(i,j) = -1; 
+            end
+        end
         z = [];
     end
 end
@@ -77,6 +85,10 @@ Ph2(isnan(Ph2(:))& Z(:) >0.0)=ph.Ph_Ar(1);
 Ph2(isnan(Ph2(:))& Z(:) <0.0)=ph.Ph_UM(1);
 T2(isnan(T2(:)) & Z(:) >0.0)=TI.TS;
 T2(isnan(T2(:))& Z(:) <0.0)=TI.TP;
+% Identify the continental area
+
+
+
 A.Phase = reshape(Ph2,size(A.Xpart));
 A.Temp = reshape(T2,size(A.Xpart));
 plot_section(A,topo_M)
@@ -239,7 +251,7 @@ print(filename,'-dpng')
 
 
 
-for i = 1:1:lx
+for i = 1:20:lx
     it = it+1;
     figure(it)
     clf;
@@ -261,7 +273,9 @@ for i = 1:1:lx
     ax.YLabel.String = 'Z, [km]';
     ax.XLabel.Interpreter = 'latex';
     path_folder = 'Initial_Setup';
-    colorbar;
+    colorbar;    
+    axis equal
+
     if ~isfolder(path_folder)
         mkdir(path_folder)
     end
@@ -272,6 +286,7 @@ for i = 1:1:lx
     name_pic = (['Phase',num2str(it),'.png']);
     filename = fullfile(path_save,name_pic);
     print(filename,'-dpng')
+    close all;
 
 
 
@@ -297,6 +312,7 @@ for i = 1:1:lx
     path_folder = 'Initial_Setup';
     caxis([20,1300]);
     colorbar;
+    axis equal
     if ~isfolder(path_folder)
         mkdir(path_folder)
     end
@@ -307,6 +323,7 @@ for i = 1:1:lx
     name_pic = (['Temp',num2str(it),'.png']);
     filename = fullfile(path_save,name_pic);
     print(filename,'-dpng')
+    close all; 
 
 
 
