@@ -4,10 +4,10 @@ from Read_VTK_files_LAMEM import  _file_list
 from Parser_File import *
 from Slab_detachment import *
 
-def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,IG:Initial_Geometry,C:Coordinate_System,Fs:FS,Ph_DB:Phase_Data_Base,PtrB:Basement_Passive_Tracer,time):
+def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,C:Coordinate_System,Fs:FS,Ph_DB:Phase_Data_Base,time):
 
     import h5py
-    data_base_name = os.path.join(ptsave,"Data_base_Slab_detachment_3D.hdf5")
+    data_base_name = os.path.join(ptsave,"Data_base_Slab_detachment_2D.hdf5")
     print(data_base_name)
     f = h5py.File(data_base_name, 'a')
     e = False
@@ -27,9 +27,6 @@ def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,IG:Init
     node_coordinate_system = node_test+"/"+"Coordinate_System"
     # function to save the initial coordinate system 
     f = save_test_data(f,node_coordinate_system,C)
-    # function to save the initial geometry
-    node_IG = node_test+"/"+"IG"
-    f= save_test_data(f,node_IG,IG)
     # function to save the initial Phase database
     node_PB = node_test+"/"+"Phase_DB"
     f= save_test_data(f,node_PB,Ph_DB)
@@ -54,8 +51,7 @@ def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,IG:Init
         f.create_dataset(buf_name,data = np.array(time))
     else:
         f.create_dataset(buf_name,data = np.array(time))
-    node_PtrB = node_test+"/"+"PTrBas"
-    f= save_test_data(f,node_PtrB,S)
+    
     f.close() 
 
     return 1 
@@ -66,8 +62,6 @@ def save_test_data(f,path_DB,Type_DATA):
     typ = np.nan
     if isinstance(Type_DATA,Phase_Data_Base):
         typ = 1
-    elif isinstance(Type_DATA,Initial_Geometry):
-        typ = 2
     else:
         typ = 0 
     

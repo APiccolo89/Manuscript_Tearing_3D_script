@@ -22,7 +22,7 @@ from Read_VTK_files_LAMEM import findnodes
 from Read_VTK_files_LAMEM import bilinearinterpolation
 from Read_VTK_files_LAMEM import trilinearinterpolation
 from Read_VTK_files_LAMEM import linearinterpolation
-
+import copy 
 
 from Parser_File import * 
 
@@ -45,6 +45,7 @@ class SLAB():
         self.dDdt  = np.zeros((tx,tz,nstep),dtype=float)
         self.eps   = np.zeros((tx,tz,nstep),dtype=float)
         self.tau   = np.zeros((tx,tz,nstep),dtype=float)
+        self.tau_max   = np.zeros((tx,tz,nstep),dtype=float)
         self.vis   = np.zeros((tx,tz,nstep),dtype=float)
         self.F_T   = np.zeros((tx,tz,nstep),dtype=float)
         self.Rho  = np.zeros((tx,tz,nstep),dtype=float)
@@ -62,22 +63,23 @@ class SLAB():
         self.dDdt_vec =  np.zeros((tx,nstep),dtype=float)
         self.nodes_tearing_=np.ones(nstep,dtype=int)*np.nan
         self.average_tearing_velocity=np.ones((3,nstep),dtype=float)*np.nan
-        self.LGV         = ["D","T","tau","dDdt"]
+        self.LGV         = ["D","T","tau","dDdt","tau_max"]
         self.Label       = ["$D^{\dagger} []$",     
                             "T [$^{\circ}C$]",
-                            r"$\\tau^{\dagger}_{II} []$$",
-                            "$F_B [\\frac{N}{m}]$",
-                            r"$2 \cdot D \\tau [\\frac{N}{m}]$",
-                            "$\dot{\epsilon}^{\dagger}_{II} []$",
-                            "$\Psi [\\frac{W}{m^3}]$",
-                            r"$\frac{dD}{dt}$,[$cm/yrs$]"
+                            r"$\tau^{\dagger}_{II} [MPa]$$",
+                            r"$\frac{dD}{dt}$,[$cm/yrs$]",
+                            r"$\tau_{max}$, $[MPa]$",
+                            r"$\dot{\epsilon}^{\dagger}_{II} []$",
+                            r"$\Psi [\frac{W}{m^3}]$",
+                            r"$\frac{dD}{dt}$,[$cm/yrs$]",
+                            r"$\tau_{max}$, $[MPa]$"
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
         self.Val         = [(0.1,0.85),
-                            (900,1200),
+                            (600,1200),
                             ("min","max"),
-                            (5e12,1e13),
-                            (1e-15,1e-12),
+                            ("min","max"),
+                            ("min","max"),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
@@ -89,7 +91,7 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","eps","tau",'Rho','Psi',"dDdt"]       
+        self.CV = ["T","eps","tau",'Rho','Psi',"dDdt","tau_max"]       
 
 
     def _update_C(self,C,FS,Ph,IG,ipic,tcur,dt):
@@ -111,16 +113,23 @@ class SLAB():
             ix = self.ind_boundary[0][i]
             # Loop over the variable that you want to see in 2D plot of the slab
             for iv in self.CV:
+                switch = 0.0
                 # Prepare buffer variable to fill with the new one
                 if iv != 'dDdt':
-                    buf_var_ph = eval(iv,globals(),Ph.__dict__)[:,:,ix]
+                    if iv == 'tau_max':
+                        switch = 1
+                    if iv != 'tau_max':
+                        buf_var_ph = eval(iv,globals(),Ph.__dict__)[:,:,ix]
+                    else:
+                        buf_var_ph = Ph.tau[:,:,ix]
+                        
                     D     = np.zeros((np.sum(C.ind_zp)),dtype=float)
                     buf_var   = np.zeros(np.sum(C.ind_zp),dtype=float)
                     z_bottom   = np.zeros(np.sum(C.ind_zp),dtype=float)
                     x1    = np.zeros(np.sum(C.ind_zp))
                     x2    = np.zeros(np.sum(C.ind_zp))
                     # Run the function 
-                    D,L0,buf_var,x1,x2 = _Find_Slab_PERFORM_C(C.yp,C.zp,buf_var_ph,lay_ph[:,:,ix],np.sum(C.ind_zp),ix,D,buf_var,x1,x2,z_bottom)
+                    D,L0,buf_var,x1,x2 = _Find_Slab_PERFORM_C(C.yp,C.zp,buf_var_ph,lay_ph[:,:,ix],np.sum(C.ind_zp),ix,D,buf_var,x1,x2,z_bottom,switch)
                     # update the class 
                     self.D[i,:,ipic] = D
                     self.L[i,:,ipic] =L0
@@ -128,7 +137,10 @@ class SLAB():
                     if ipic == 0:
                         self.dDdt[i,:,ipic]=D*0.0
                     else:
-                        self.dDdt[i,:,ipic] = ((self.D[i,:,ipic]-self.D[i,:,ipic-1])*1e3*1e2)/(dt*1e6)
+                        buf = (((self.D[i,:,ipic]-self.D[i,:,ipic-1])*1e3*1e2)/(dt*1e6))
+                        buf[buf>=0.0] = 1.0
+                        buf[buf<0.0] = np.abs(buf[buf<0.0])
+                        self.dDdt[i,:,ipic] = buf
                 else:
                     eval(iv,globals(),self.__dict__)[i,:,ipic] = buf_var
                 
@@ -347,19 +359,21 @@ class SLAB():
         index = self.Label 
         zz,xx = np.meshgrid(z,x_s)
         it = 0 
+        cm = 1/2.54  # centimeters in inches
+        plt.rcParams.update({"text.usetex": False,"font.family": "sans-serif", "font.sans-serif": "Helvetica"})
         for values in var: 
             print(values)
        
-            fg = figure()
+            fg = figure(figsize=(15*cm,20*cm))
     
-            tick=r'%s Time = %s Myrs, $t^{\dagger}$ = %s' %(index[it],time_sim,time_dimen)
+            tick=r'%s $Time = %s Myrs$' %(index[it],time_sim)
 
             ptsave_c=os.path.join(ptsave_b,values)
             if not os.path.isdir(ptsave_c):
                 os.mkdir(ptsave_c)
         
             fn = os.path.join(ptsave_c,fna)
-            ax1 = fg.add_axes([0.1, 0.6, 0.8, 0.2])
+            ax1 = fg.add_axes([0.1, 0.7, 0.8, 0.2])
             ax0 = fg.add_axes([0.1, 0.05, 0.8, 0.5])   
             cfactor = (1e3*100)/1e6
                 
@@ -367,21 +381,20 @@ class SLAB():
             ax1.plot((time[0:ipic]),(self.average_tearing_velocity[1,0:ipic]*cfactor),color='r',linewidth=1.2)
             #ax1.plot((time[0:ipic]),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),color='b',linewidth=0.8)
             #ax1.fill((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),c='b',alpha=0.3)
-
+            ax1.set_ylabel(r'$v_{tearing}, [cm/yr]$')
+            ax1.set_xlabel(r'$t, [Myrs]$')
             ax1.set_title(tick)
             ax1.tick_params(axis='both', which='major', labelsize=5)
             ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
             plt.grid(True)
-            
-
             ax1.set_xlim(0, (np.max(time)))           
-            
+            ax1.set_yscale('log')    
             if values == 'D':
                 cor = 1/(IC.D0[0][0]/1e3)
             elif values =='tau':
-                cor = 1/(IC.tau0[0][0]/1e6)
+                cor = 1.0
             elif values == 'eps':
-                cor = 1/IC.epsc[0][0]
+                cor = 1.0
             else:
                 cor = 1.0
             buf = eval(values,globals(),self.__dict__)[:,:,ipic]*cor
@@ -399,7 +412,7 @@ class SLAB():
             levels = np.linspace(np.round(lm1), np.round(lm2), num=10, endpoint=True, retstep=False, dtype=float)
             plt.grid(True)
 
-            if((values == "eps") | (values == "Psi")):
+            if((values == "eps") | (values == "dDdt")):
                 if ((lm2)<0) & (lm1 <0) :
                     lm1 = 1
                     lm2 = 10 
@@ -409,13 +422,17 @@ class SLAB():
             else:
                 cf=ax0.pcolormesh(xx,zz,buf,cmap='inferno',vmin = lm1, vmax=lm2)
                 cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
+                cbar.label = r'%s' %(index[it])
 
             
 
             ax0.tick_params(axis='both', which='major', labelsize=5)
             ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+            ax0.set_ylabel(r'$z, [km]$')
+            ax0.set_xlabel(r'$x_s, [Myrs]$')
+            fg.tight_layout()    
             plt.draw()    # necessary to render figure before saving
-            fg.savefig(fn,dpi=300)
+            fg.savefig(fn,dpi=600)
             ax0.plot()
             it += 1
             val = [] 
@@ -767,6 +784,7 @@ class Free_S_Slab_break_off(FS):
         self.dH          = np.zeros((ty,tx,nstep),dtype=float)
         self.vz_M        = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_stress = np.zeros((ty,tx,nstep),dtype=float)
+        self.thickness = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_eps = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_dx     = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_dy     = np.zeros((ty,tx,nstep),dtype=float)
@@ -797,6 +815,7 @@ class Free_S_Slab_break_off(FS):
         self.vz_M[:,:,ipic]        = self._update_FS(dt,ipic,'vz_M')
         self.mean_stress[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'tau')
         self.mean_eps[:,:,ipic]    = self.update_Mean_CC(V,C,ipic,'eps')
+        self.thickness[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'thickness')
 
         self.mean_dx[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dx')
         self.mean_dy[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dy')
@@ -805,15 +824,17 @@ class Free_S_Slab_break_off(FS):
         
         
         
-        self.LGV = ['dH','vz_M','mean_stress','mean_eps','mean_dz','Amplitude']
-        self.Label  = ['dH','vz','tau','eps','dz','H']
-        self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.cork","cmc.oleron"]
+        self.LGV = ['dH','vz_M','mean_stress','mean_eps','mean_dz','Amplitude','thickness','F_z']
+        self.Label  = ['dH','vz','tau','eps','dz','H','thickness','F_z']
+        self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.cork","cmc.oleron","cmc.bilbao","cmc.hawaii"]
         self.Val         = [("min","max"),
                             ("min","max"),
                             ("min","max"),
                             (1e-16,"max"),
                             ("min","max"),
-                            ("min","max")]
+                            ("min","max"),
+                            ("min","max"),
+                            (10**11,10**13)]
         
         return self
         
@@ -833,7 +854,7 @@ class Free_S_Slab_break_off(FS):
     
     def update_Mean_CC(self,V:VAL,C:Coordinate_System,ipic,field_name):
         # Compute the continental crust
-        Continental_crust                           = V.Sed+V.CC1+V.CC2 
+        Continental_crust                           = V.Lit+V.OP 
         Continental_crust[Continental_crust>=0.8]      = 1.0
         Continental_crust[Continental_crust<0.8]    = np.nan
         buf = 0.0*Continental_crust
@@ -841,12 +862,16 @@ class Free_S_Slab_break_off(FS):
         # loop over x,y. Select colum: compute mean of those that has high crustal fraction 
         for i in range(len(C.y)):
             for j in range(len(C.x)): 
-                column = eval(field_name,globals(),V.__dict__)[:,i,j]
                 crust  = Continental_crust[:,i,j]
                 if len(crust[crust==1]) == 0:
                     buf[i,j]=np.nan 
                 else:
-                    buf[i,j] = np.mean(column[crust==1])
+                    if field_name == 'thickness':
+                        buf[i,j]=np.abs(np.nanmax(C.z[(crust==1) & (C.z>-100)])-np.nanmin(C.z[(crust==1) & (C.z>-100)]))
+                    else:
+                        column = eval(field_name,globals(),V.__dict__)[:,i,j]
+                        buf[i,j] = np.mean(column[(crust==1) & (C.z>-100)])
+                    
         return buf 
     def _plot_maps_FS(self,t_cur,y,x,ptsave,ipic,S):
         import cmcrameri.cm as cmc
@@ -883,18 +908,16 @@ class Free_S_Slab_break_off(FS):
         cf0.set_clim([lim1_m,lim2_m])
         cbar2.vmin = lim1_m 
         cbar2.vmax = lim2_m
- 
-        
-        
-       
         for name in values:
         
             cmap2 = eval(cmaps[ic])
-
-            val = eval(name,globals(),self.__dict__)
-            val = val[:,:,ipic]
+            if name != 'F_z':
+                val = eval(name,globals(),self.__dict__)
+                val = val[:,:,ipic]
+            else:
+                val = self.mean_stress[:,:,ipic]*1e6*self.thickness[:,:,ipic]*1e3
             log=0 
-            if (name == "eps" )|(name =="gamma"):
+            if (name == "eps" )|(name =="gamma"):#|(name=='F_z'):
                 log = 1
                 
             tick = r"t = %s [Myrs]" %(time_sim)
@@ -910,20 +933,23 @@ class Free_S_Slab_break_off(FS):
             
             lim_m = lm[0]
             lim_M = lm[1]
+            if name == 'F_z':
+                lim_m = np.median(val)
+                lim_M = np.percentile(val,95)
+                print('lim_m=','{0:.2E}'.format(lim_m), 'lim_M=','{0:.2E}'.format(lim_M))
             
             val[abs(val) == np.inf] = np.nan
+            if log ==1:
+                val = np.log10(val)
             
             if(lm[0]=="min"):
-            
                 lim_m = np.nanmin(val)
 
             if (lm[1]=="max"):
-               
                 lim_M = np.nanmax(val)
                 
                 if lm[0] != "min":
                      lim_m = lm[0]
-                     
             if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
                 lim_m = 0.01
                 lim_M = +0.1
@@ -931,7 +957,6 @@ class Free_S_Slab_break_off(FS):
 
             fna='Fig'+"{:03d}".format(ipic)+'.png'
             fn = os.path.join(ptsave_c,fna)
-           
             cf.set_array(val.ravel())
             cf.set_cmap(cmaps[ic])
             if log == 1:
@@ -1189,7 +1214,7 @@ def function_interpolate(xp,yp,zp,x,y,z,buf,buf2):
     return buf2
 
 @jit(nopython=True,parallel=True)
-def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom):    #(self,C,Values,ph,ipic,ix,ix1):
+def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom,switch):    #(self,C,Values,ph,ipic,ix,ix1):
 
     for i in prange(tz):
         buf = ph[i,:]
@@ -1232,7 +1257,10 @@ def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom):    #
                 buf_var[i] = np.nan
                 D[i]=np.nan               
             else:
-                buf_var[i] = _mean_numba(buf,buf2)
+                if switch == 0.0:
+                    buf_var[i] = _mean_numba(buf,buf2)
+                else: 
+                    buf_var[i] = _max_numba(buf,buf2)
     L0  =z-np.min(z_bottom)
     return D,L0,buf_var,x1,x2
     
@@ -1247,6 +1275,13 @@ def _mean_numba(buf,buf2):
     mean = mean/len_
     
     return mean
+@jit(nopython=True)  
+def _max_numba(buf,buf2):
+    max = 0.0
+    for i in range(len(buf)):
+        if (buf[i]>0.95) & (max<buf2[i]):
+            max = buf2[i]    
+    return max
 
 @jit(nopython=True)  
 def _find_index(buf,i1,i2):
@@ -1345,9 +1380,9 @@ def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau
         
         for ix in prange(len(x)):
             dDdt_vec[ix]=200
-            for i in range(len(z)-1,-1,-1):              #Loop starting from the top to the bottom 
+            for i in range(len(z)-1):              #Loop starting from the top to the bottom 
                 buf = D[ix,i]                   #1D(z) vector of D 
-                if (z[i] <-80) & (z[i]>-500):      #Constraining better the area of research
+                if (z[i] <-80) & (z[i]>-300):      #Constraining better the area of research
                     if (buf<dDdt_vec[ix]) & (np.isnan(buf)==0)& (np.isnan(det_vec[ix])):
                         dDdt_vec[ix]=buf
                     if (np.isnan(buf)) & (ix > ind1[i]) &  (ix < ind2[i]) & (np.isnan(det_vec[ix])):
@@ -1358,10 +1393,6 @@ def detect_slab_detachment(D,x,z,tcur,ipic,det_vec,tau_vec,depth_vec,T_vec,T,tau
                         xvec[ix]    = x[ix]
                         yvec[ix]    = x1[ix,i,ipic-1]
                         dDdt_vec[ix] = np.nan
-                        
-                        
-            
-
         return det_vec,depth_vec,T_vec,tau_vec,dDdt_vec
     
     
@@ -1407,5 +1438,143 @@ def compute_W_slab(D,x,z,W,ix1,ix2):
     Just a paragraph to self-punish me, and avoid that people that read this code consider me a worthwile asset. 
     """
     return ix1,ix2,W
+
+# Passive Tracer routine for the current project 
+class Basement_Passive_Tracer():
+    def __init__(self,P:Passive_Tracers,C: Coordinate_System,F:FS,list_phases,levels,ts,ipic):
+        self.ID_chosen = self.select_chosen(P,F,C,list_phases,levels,ipic)
+        n_chosen = len(self.ID_chosen)
+        self.P = np.zeros([ts,n_chosen],dtype = float)
+        self.T = np.zeros([ts,n_chosen],dtype = float)
+        self.x = np.zeros([ts,n_chosen],dtype = float)
+        self.y = np.zeros([ts,n_chosen],dtype = float)
+        self.z = np.zeros([ts,n_chosen],dtype = float)
+        self.x[ipic,:] = P.x[self.ID_chosen]
+        self.y[ipic,:] = P.y[self.ID_chosen]
+        self.z[ipic,:] = P.z[self.ID_chosen]
+        self.P[ipic,:] = P.P[self.ID_chosen]
+        self.T[ipic,:] = P.T[self.ID_chosen]
+        
+        
+    def select_chosen(self,P:Passive_Tracers,F:FS,C: Coordinate_System,list_phases:int,levels:float,ipic:int): 
+        # Select the marker that belongs to the chosen phases 
+        # From them, select the one that are within level[0] and level[1]
+        # Extract the ID and send out
+        ID_chosen = []
+        Ph_lay = copy.deepcopy(P.Ph) # Deep copy the variable, as I do not want to modify the phase layer
+        
+        for il in list_phases:
+            Ph_lay[P.Ph==il] = -100
+        Ph_lay[Ph_lay>0] = 0
+        Ph_lay[Ph_lay<0] = 1 
+        # interpolate topography
+        topo_marker = _interpolate_topography(F.Topo[:,:,ipic],C.x,C.y,P.x,P.y)
+        # Select the ID_Chosen
+        Ph_lay[(Ph_lay == 1) & (P.z<=topo_marker+levels[0]) & (P.z>=topo_marker+levels[1]) & (P.y<100)]=2
+        ID_Chosen = np.where(Ph_lay == 2)
+        ID_Chosen = ID_Chosen[0]
+        print(len(ID_Chosen),' marker choosen')
+        return ID_Chosen
+    def _update_PTDB(self,P: Passive_Tracers,ipic:int,time:float):
+        self.T[ipic,:] = P.T[self.ID_chosen]
+        self.P[ipic,:] = P.P[self.ID_chosen]
+        self.x[ipic,:] = P.x[self.ID_chosen]
+        self.y[ipic,:] = P.y[self.ID_chosen]
+        self.z[ipic,:] = P.z[self.ID_chosen]
+    def _plot_passive_tracers(self,F:Free_S_Slab_break_off,x:float,y:float,time:float,ipic:int,ptsave:str,field:str):
+        import cmcrameri.cm as cmc
+        from matplotlib.colors import LogNorm
+        from mpl_toolkits.mplot3d import Axes3D # <--- This is important for 3d plotting 
+        ptsave_b=os.path.join(ptsave,"Passive_Tracers_Basement")
+        
+        if not os.path.isdir(ptsave_b):
+            os.mkdir(ptsave_b)
+        ptsave_c=os.path.join(ptsave_b,field)
+            
+        if not os.path.isdir(ptsave_c):
+        
+            os.mkdir(ptsave_c)
+        
+        dt = time[ipic]-time[ipic-1]
+        
+   
+        t_cur = time[ipic]
+        
+        dt = dt*1e6 # convert the dt
+        if field == 'dTdt':
+            buf = (self.T[ipic,:]-self.T[ipic-1,:])/dt
+            label = r'$\frac{dT}{dt}$,$[K yr^{-1}]$'
+        elif field == 'dPdt':
+            buf = 1e6*((self.P[ipic,:]-self.P[ipic-1,:])/dt)
+            label = r'$\frac{dP}{dt}$,$[Pa yr^{-1}]$'
+        elif field == 'dzdt':
+            buf = 1000*((self.z[ipic,:]-self.z[ipic-1,:])/dt)
+            label = r'$\frac{dz}{dt}$,$[m yr^{-1}]$'
+        elif field == 'T':
+            buf = self.T[ipic,:]
+            label = r'$Temperature [^{\circ}C]$'
+
+        
+        # 3D surface plot 
+        
+        time_sim = 'Time = '+"{:.2f}".format(t_cur)+'Myr.'+' Rate computed from '+"{:.2f}".format(time[ipic-1])
+        X,Y = np.meshgrid(x,y)
+        ic = 0  
+        val = np.zeros((len(y),len(x)),dtype=float)
+        fg = figure()
+        ax0 = fg.gca(projection='3d')
+        ax0.view_init(-140, 60)
+        fna='Fig'+"{:03d}".format(ipic)+'.png'       
+        #surf=ax0.plot_surface(X,Y ,F.Topo[:,:,ipic], cmap=cmc.oleron,
+        #            linewidth=0, antialiased=True)
+        #cbar = fg.colorbar(surf, ax=ax0,orientation='horizontal',extend="both",label='Topography, [km]')
+        scat = ax0.scatter(self.x[ipic,:],self.y[ipic,:],self.z[ipic,:],c=buf)
+        ax0.set_xlabel('x [km]')
+        ax0.set_ylabel('y [km]')
+        ax0.set_zlabel('z [km]')
+        cbar = fg.colorbar(scat, ax=ax0,orientation='vertical',extend="both",label=label)
+        fna='Fig'+"{:03d}".format(ipic)+'.png'
+        fn = os.path.join(ptsave_c,fna)
+        ax0.tick_params(axis='both', which='major', labelsize=5)
+        ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+        ax0.set_ylim(np.min(-100),np.max(100))
+        ax0.set_xlim(np.min(-590),np.max(590))
+        ax0.set_zlim(np.min(-20),np.max(0))
+        ax0.set_title(time_sim)
+        #plt.draw()    # necessary to render figure before saving
+        fg.savefig(fn,dpi=300,transparent=False)
+        fg.clear
+        plt.close()        
+        
+        
+        
+        
+# Decorate with numba and parallel     
+@jit(nopython=True,parallel=True)
+def _interpolate_topography(Topo:float,xg:float,yg:float,xp:float,yp:float):
+    topo_marker = xp*0.0 
+    for i in prange(len(xp)):
+        xx = xp[i]
+        yy = yp[i]
+        ix = find1Dnodes(xg,xx,len(xg))
+        iy = find1Dnodes(yg,yy,len(yg))
+        x1 = xg[ix]
+        x2 = xg[ix+1]
+        y1 = yg[iy]
+        y2 = yg[iy+1]
+        intp1=Topo[iy,ix]
+        intp2=Topo[iy,ix+1]
+        intp3=Topo[iy+1,ix+1]
+        intp4=Topo[iy+1,ix]
+        val_ = bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4)
+        topo_marker[i]=val_
+    return topo_marker
+    
+    
+
+
+
+
+
             
             

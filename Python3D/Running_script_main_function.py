@@ -40,6 +40,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     "CC1"       : "_Continental_Crust_ [ ]",
     "CC2"      : "_Continental_Crust_2 [ ]",
     "Sed"      : "_Sediments_ [ ]",
+    "Lit"      : "_Lithosphere_all_ [ ]",
     "T"        : "temperature [C]",
     "velocity" : "velocity [cm/yr]",
     "disp"     : "tot_displ [km]",
@@ -76,7 +77,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     dyn             ='%s.pvtr'      %fname
     surf            ='%s_surf.pvts' %fname
     phase           ='%s_phase.pvtr'%fname
-    #passive_tracers ='%s_passive_tracers.pvtu' %fname
+    ptrac ='%s_passive_tracers.pvtu' %fname
     ###############################################
     fname2 = fname+".pvd"
     fname=os.path.join(Folder,Test_Name,fname2)
@@ -90,6 +91,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     ts0 = Flist[0]
     fn=ts0[1:ts0.find('/')]
     Filename_0 = [os.path.join(Folder,Test_Name,fn,dyn),os.path.join(Folder,Test_Name,fn,phase)]
+    Filename_0ptr = os.path.join(Folder,Test_Name,fn,ptrac)
     folder_ = os.path.join(Folder,Test_Name)
     IG       = Initial_Geometry(os.path.join(folder_,'Test_Data_Base.mat'))
     C = Coordinate_System(Filename_0,ptsave,(-700.0,700.0),(-500,500),(-600.0,50.0))
@@ -100,7 +102,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     FSurf = Free_S_Slab_break_off(C,len(time)) # Create the instance of free surface class 
     DYN   = VAL(C,dic_val)  # Create the instance of the .pvd file 
     Ph    = Phase_det(C,phase_dictionary) # Create the instance of the Phase field
-    Slab  = SLAB(C,IG,len(time))        # Create the instance of the Slab. 
+    Slab  = SLAB(C,IG,len(time))        # Create the instance of the Slab.
+    PT    = Passive_Tracers(Filename_0ptr) # Create the instance of Passive tracers 
     ################################################
     ###############################################################################
     # Read Information related to the initial condition
@@ -120,6 +123,13 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         Filename_dyn=os.path.join(Folder,Test_Name,fn,dyn)
         Filename_ph=os.path.join(Folder,Test_Name,fn,phase)
         Filename_s=os.path.join(Folder,Test_Name,fn,surf)
+        Filename_ptr = os.path.join(Folder,Test_Name,fn,ptrac)
+        ##############Passive Tracers##############################################
+        t1 = perf_counter()
+        PT._update_PTracer(Filename_ptr)
+        t2 = perf_counter()
+        Values_time = t2-t1
+        print("PT value took","{:02}".format(Values_time))
         
         ###### Retrieve the field that is needed ##################################
         t1 = perf_counter()
@@ -143,6 +153,17 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         FSurf.ASCI_FILE(ipic,t_cur,Test_Name,ptsave,C)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
+        #======Select the chosen ===========# 
+        list_phase = [1,2,12,13]
+        levels     = [-15.0,-16.0]
+        if ipic == 0:
+            BSPT = Basement_Passive_Tracer(PT,C,FSurf,list_phase,levels,len(time),ipic)
+            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'T')
+        else:
+            BSPT._update_PTDB(PT,ipic,time)
+            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dzdt')
+            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dTdt')
+            
 
         ###########################################################################
         t1 = perf_counter()
@@ -167,5 +188,5 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         print("===========================================")
         print("||Script took ","{:02}".format(int(minutes)),"minutes and","{:05.2f}".format(seconds),' seconds ||' )
         print("===========================================")
-    _write_h5_database(Data_Base_path,Group,Test_Name,Slab,Initial_Condition,IG,C,FSurf,Phase_DB,time)
+    _write_h5_database(Data_Base_path,Group,Test_Name,Slab,Initial_Condition,IG,C,FSurf,Phase_DB,BSPT,time)
 

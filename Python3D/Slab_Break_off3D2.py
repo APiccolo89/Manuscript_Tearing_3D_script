@@ -32,9 +32,9 @@ from Slab_detachment import *
 
 
 # Folder where the tests are contained
-Folder = r'/scratch/bt307806/3D_Numerical_suites' 
+Folder = r'/scratch/bt307806/3D_Numerical_suites/' 
 # Folder where the output must be saved
-ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_'
+ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_2'
 
 #Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 
 #ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/Output'
@@ -42,7 +42,7 @@ ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_'
 if not os.path.isdir(ptsave1):
     os.mkdir(ptsave1)
 # List of tests {Could be as well a list automatically created}
-Test_Name =['T1_AV1_v10_1000','T1_AV2_v3_1000','T1_AV2_v5_1000','T1_AV2_v10_1000']
+Test_Name =['TSD2','TSD3','TSD4']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)
@@ -59,13 +59,13 @@ for L in Test_Name:
         ptsave = os.path.join(ptsave1,L)
         if not os.path.isdir(ptsave):
             os.mkdir(ptsave)
-        try:
-            ptsave_DB = os.path.join(ptsave1,'Data_Base')
-            if not os.path.isdir(ptsave_DB):
-                os.mkdir(ptsave_DB)
-            _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,'Shear_Heating')
-        except:
-            print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
+        #try:
+        ptsave_DB = os.path.join(ptsave1,'Data_Base')
+        if not os.path.isdir(ptsave_DB):
+            os.mkdir(ptsave_DB)
+        _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,'Calibration')
+       # except:
+        #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
     else: 
         print(L)
 

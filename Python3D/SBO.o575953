@@ -1,0 +1,100 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+modile: Command not found.
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'inteloneapi/mpi/2022.0.1'
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+Loading mpi version 2021.5.0
+Loading mkl version 2022.0.1
+Loading compiler-rt version 2022.0.1
+Loading tbb version 2021.5.0
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 9: setenv: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 15: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 16: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 17: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 18: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 19: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 20: modile: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 21: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 22: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 23: module: command not found
+/var/lib/torque/mom_priv/jobs/575953.mgmt01.SC: line 24: module: command not found
+
+Fri Jan 12 10:26:18 CET 2024
+
+Job id: 575953.mgmt01
+
+Directory: /scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:138: RuntimeWarning: invalid value encountered in multiply
+  self.dDdt[i,:,ipic]=D*0.0
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:138: RuntimeWarning: invalid value encountered in multiply
+  self.dDdt[i,:,ipic]=D*0.0
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:433: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+  fg.tight_layout()
+findfont: Font family ['sans-serif'] not found. Falling back to DejaVu Sans.
+findfont: Font family ['sans-serif'] not found. Falling back to DejaVu Sans.
+findfont: Font family ['sans-serif'] not found. Falling back to DejaVu Sans.
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:419: RuntimeWarning: divide by zero encountered in log10
+  cf=ax0.pcolormesh(xx,zz,np.log10((buf)),cmap='inferno',vmin = np.log10(lm1), vmax=np.log10(lm2))
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:902: RuntimeWarning: All-NaN slice encountered
+  lim1_m = np.nanmin(S.det_vec)
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:903: RuntimeWarning: All-NaN slice encountered
+  lim2_m = np.nanmax(S.det_vec)
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:1139: RuntimeWarning: All-NaN slice encountered
+  lim1_m = np.nanmin(S.det_vec)
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:1140: RuntimeWarning: All-NaN slice encountered
+  lim2_m = np.nanmax(S.det_vec)
+Traceback (most recent call last):
+  File "Slab_Break_off3D.py", line 66, in <module>
+    _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,'Calibration')
+  File "/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Running_script_main_function.py", line 163, in _run_script_visualization
+    BSPT._update_PTDB(PT)
+TypeError: _update_PTDB() missing 2 required positional arguments: 'ipic' and 'time'
+
+================================
+  START btrzx2 EPILOGUE SCRIPT
+================================
+
+User is 
+
+Epilogue Args (normal):
+
+Job ID:              575953.mgmt01
+User ID:             bt307806
+Group ID:            vo_bgi
+Job name:            SBO
+Session ID:          2942
+Resourse list:       neednodes=1:ppn=16:compute8,nodes=1:ppn=16:compute8,walltime=100:00:00
+Resource used:       cput=00:26:22,mem=31226336kb,vmem=35334428kb,walltime=00:05:01
+Queue name:          long
+Account string:      
+Exit code:           575953.mgmt010
+
+Epilogue session ID: 3285
+
+Hostlist:            r03n30 
+
+#Nodes:              1
+
+-------------------
+Single node section
+-------------------
+
+Remaining user PIDs
+PID TTY TIME CMD
+PIDs forked from session leader_
+
+ => No remaining processes to clean up
+ => Drop buffers
+
+================================
+   END btrzx2 EPILOGUE SCRIPT
+================================

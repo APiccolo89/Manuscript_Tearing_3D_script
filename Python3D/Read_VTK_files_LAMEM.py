@@ -365,16 +365,7 @@ class Coordinate_System():
         
     
         return xd,yd,zd,nx,ny,nz
-           
-class PTT_path : 
-    def __init__(self,Filename_ptr):
-        
-        self.x      = ReadPassive(Filename_ptr,'x')  
-        self.z      = ReadPassive(Filename_ptr,'z')  
-        self.p      = ReadPassive(Filename_ptr,'Pressure [MPa]')  
-        self.T      = ReadPassive(Filename_ptr,'Temperature [C]')  
-        self.phase  = ReadPassive(Filename_ptr,'Phase')
-        
+
 class Phase():
     def __init__(self,C,Phase_dic):
         ind_x = C.ind_xp
@@ -508,6 +499,7 @@ class VAL():
         self.C2    = np.zeros([tz,ty,tx],dtype=float)
         self.CC1    = np.zeros([tz,ty,tx],dtype=float)
         self.CC2    = np.zeros([tz,ty,tx],dtype=float)
+        self.Lit    = np.zeros([tz,ty,tx],dtype=float)
         self.Sed    = np.zeros([tz,ty,tx],dtype=float)
         self.T     = np.zeros([tz,ty,tx],dtype=float)
         self.vx,self.vy,self.vz,self.vm = np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float),np.zeros([tz,ty,tx],dtype=float)
@@ -854,32 +846,45 @@ class FS():
         f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))
         f.write('\n')
         np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
-   
         f.close()
         print('Free surface data of the timestep %d, has been printed' %(ipic))
-
-
-
-def ReadPassive(Filename_ptr,Field):      
-    VTK_SET_ptt(Filename_ptr)
-    VTK_UPDATE_ptt()
-    VTK_OUT_ptt().GetPoints()
-    number_marker = VTK_OUT_ptt().GetNumberOfPoints()
-
-    if(Field == 'x' or Field == 'z'):
-        x = np.zeros((number_marker,3),dtype=float)
         
-        for i in range(number_marker):
-            x[i,0],x[i,1],x[i,2] = VTK_OUT_ptt().GetPoint(i)
-            
-        if(Field == 'x'):  
-            return x[:,0]
+class Passive_Tracers():
+    def __init__(self,Filename_ptr):
+        self.n_marker= self._ReadPassive_(Filename_ptr,'none')
+        self.x = np.zeros((self.n_marker),dtype=float)
+        self.y = np.zeros((self.n_marker),dtype=float)
+        self.z = np.zeros((self.n_marker),dtype=float)
+        self.Ph =np.zeros((self.n_marker),dtype=int)
+        self.T = np.zeros((self.n_marker),dtype=float)
+        self.P =np.zeros((self.n_marker),dtype=float)
+        self.ID = np.zeros((self.n_marker),dtype=int)
+        
+    def _update_PTracer(self,Filename_ptr):
+        self = self._ReadPassive_(Filename_ptr,'Coordinate')
+        self.Ph = self._ReadPassive_(Filename_ptr,'Phase')
+        self.T = self._ReadPassive_(Filename_ptr,'Pressure [MPa]')
+        self.P = self._ReadPassive_(Filename_ptr,'Temperature [C]')
+        self.ID = self._ReadPassive_(Filename_ptr,'ID')
+    
+    def _ReadPassive_(self,Filename_ptr,Field):      
+        VTK_SET_ptt(Filename_ptr)
+        VTK_UPDATE_ptt()
+        VTK_OUT_ptt().GetPoints()
+        n_marker = VTK_OUT_ptt().GetNumberOfPoints()
+        if Field == 'none':
+            print('Number of Passive tracers: ', n_marker)
+            return n_marker
+        if(Field == 'Coordinate'):
+            for i in range(self.n_marker):
+                x,y,z = VTK_OUT_ptt().GetPoint(i)
+                self.x[i] = x
+                self.y[i] = y 
+                self.z[i] = z
+            return self 
         else:
-            return x[:,2]
-    else:
-        buf_ptt=vtk_to_numpy(VTK_OUT_ptt().GetPointData().GetArray(Field))
-        return buf_ptt
-
+            buf_ptt=vtk_to_numpy(VTK_OUT_ptt().GetPointData().GetArray(Field))
+            return buf_ptt
 
 @jit(nopython=True)   
 def find1Dnodes(cord,cordm,number):

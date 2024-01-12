@@ -1,0 +1,2369 @@
+T1_AV1_v5_1000_SH
+phase 8 does not exist, and default value are set for each field
+phase 16 does not exist, and default value are set for each field
+phase 17 does not exist, and default value are set for each field
+phase 18 does not exist, and default value are set for each field
+phase 19 does not exist, and default value are set for each field
+phase 20 does not exist, and default value are set for each field
+phase 21 does not exist, and default value are set for each field
+phase 22 does not exist, and default value are set for each field
+phase 23 does not exist, and default value are set for each field
+Initial Bouancy force F_B is 1.533774e+13
+The average effective viscosity of the mantle at reference condition is 16.859833
+The effective viscosity at the reference condition of the slab is 21.036492 and with cut off is 21.036020
+The initial phi without cut off is -4.176659 and with cutoff is -4.176187 and if the viscosity of the mantle is low than cutoff -3.036020
+Strain rate dislocation creep is -13.355882
+Strain rate diffusion creep is -26.821522
+Strain rate upper cut off creep is -16.319389
+Characteristic strain rate is -13.355409
+The characteristic time of the simulation is 0.718298
+The analytical time  of detachment is 0.205228
+Reference viscosity diffusion creep of the slab is 26.520492
+Reference viscosity dislocation creep of the slab is 21.036493
+XiS 5.483999
+Timestep n 0
+Dynamic value took 1.2028400810086168
+time interpolation 15.050647733994992 s
+Phase_update 15.653921635006554
+Free surface  2.517457125999499
+time find_slab 4.911114224989433 s
+Slab routine  5.8293025419989135
+===========================================
+||Script took  00 minutes and 25.20  seconds ||
+===========================================
+Timestep n 1
+Dynamic value took 21.229693979985313
+time interpolation 12.300871933985036 s
+Phase_update 24.164450345007936
+Free surface  2.6135099270031787
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5402569249854423 s
+Slab routine  1.4608842569869012
+===========================================
+||Script took  00 minutes and 49.47  seconds ||
+===========================================
+Timestep n 2
+Dynamic value took 25.09560855801101
+time interpolation 12.232358475012006 s
+Phase_update 23.809453995985677
+Free surface  2.824210093996953
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.8752889930037782 s
+Slab routine  1.7861625659861602
+===========================================
+||Script took  00 minutes and 53.52  seconds ||
+===========================================
+Timestep n 3
+Dynamic value took 24.399489100993378
+time interpolation 12.349331231991528 s
+Phase_update 23.347593470010906
+Free surface  2.3564007800014224
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4795926770020742 s
+Slab routine  1.4010935519763734
+===========================================
+||Script took  00 minutes and 51.50  seconds ||
+===========================================
+Timestep n 4
+Dynamic value took 24.508762265002588
+time interpolation 12.361759608989814 s
+Phase_update 23.319865829020273
+Free surface  2.161643108993303
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4312554220086895 s
+Slab routine  1.3550012520281598
+===========================================
+||Script took  00 minutes and 51.35  seconds ||
+===========================================
+Timestep n 5
+Dynamic value took 23.226719258003868
+time interpolation 12.232737933984026 s
+Phase_update 23.725409097998636
+Free surface  2.636487068986753
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.50427368900273 s
+Slab routine  1.421500979020493
+===========================================
+||Script took  00 minutes and 51.01  seconds ||
+===========================================
+Timestep n 6
+Dynamic value took 23.015946113999235
+time interpolation 12.366613612975925 s
+Phase_update 23.439570902992273
+Free surface  2.0648447790008504
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43831672600936145 s
+Slab routine  1.3577908770239446
+===========================================
+||Script took  00 minutes and 49.88  seconds ||
+===========================================
+Timestep n 7
+Dynamic value took 25.347013150021667
+time interpolation 12.330965366010787 s
+Phase_update 24.081957691989373
+Free surface  2.330188886990072
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4184074340155348 s
+Slab routine  1.7741173169924878
+===========================================
+||Script took  00 minutes and 53.53  seconds ||
+===========================================
+Timestep n 8
+Dynamic value took 23.001926085009472
+time interpolation 12.351382155000465 s
+Phase_update 24.294382861990016
+Free surface  2.2282662779907696
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43247616599546745 s
+Slab routine  1.7709898809844162
+===========================================
+||Script took  00 minutes and 51.30  seconds ||
+===========================================
+Timestep n 9
+Dynamic value took 24.38661449000938
+time interpolation 12.297078167001018 s
+Phase_update 24.116043013025774
+Free surface  2.221881046978524
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4742169220116921 s
+Slab routine  1.8618484400212765
+===========================================
+||Script took  00 minutes and 52.59  seconds ||
+===========================================
+Timestep n 10
+Dynamic value took 24.152688868023688
+time interpolation 12.365573235001648 s
+Phase_update 24.48706442301045
+Free surface  2.6178845260001253
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5003711150202435 s
+Slab routine  1.873989480023738
+===========================================
+||Script took  00 minutes and 53.13  seconds ||
+===========================================
+Timestep n 11
+Dynamic value took 23.808002588979434
+time interpolation 12.602172082988545 s
+Phase_update 24.686195321992273
+Free surface  2.6956465959956404
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.507397052977467 s
+Slab routine  1.8722697730117943
+===========================================
+||Script took  00 minutes and 53.06  seconds ||
+===========================================
+Timestep n 12
+Dynamic value took 24.28829767400748
+time interpolation 12.632165608985815 s
+Phase_update 24.150335990008898
+Free surface  2.221648514008848
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4427668279968202 s
+Slab routine  2.1485658820020035
+===========================================
+||Script took  00 minutes and 52.81  seconds ||
+===========================================
+Timestep n 13
+Dynamic value took 24.3385914649989
+time interpolation 12.296202355995774 s
+Phase_update 24.064467638992937
+Free surface  2.0981262820132542
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4586934599792585 s
+Slab routine  2.2567680740030482
+===========================================
+||Script took  00 minutes and 52.76  seconds ||
+===========================================
+Timestep n 14
+Dynamic value took 22.443371892994037
+time interpolation 12.517686737992335 s
+Phase_update 23.71654967201175
+Free surface  2.6569259609968867
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49588755099102855 s
+Slab routine  1.7318533270154148
+===========================================
+||Script took  00 minutes and 50.55  seconds ||
+===========================================
+Timestep n 15
+Dynamic value took 23.651570494985208
+time interpolation 12.396247243013931 s
+Phase_update 23.295474343001842
+Free surface  2.5263819830142893
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5087389370019082 s
+Slab routine  1.7218499729933683
+===========================================
+||Script took  00 minutes and 51.20  seconds ||
+===========================================
+Timestep n 16
+Dynamic value took 22.551771294005448
+time interpolation 12.409833173005609 s
+Phase_update 23.664287623018026
+Free surface  2.3428425950114615
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.46390703300130554 s
+Slab routine  1.6961532330024056
+===========================================
+||Script took  00 minutes and 50.26  seconds ||
+===========================================
+Timestep n 17
+Dynamic value took 23.330481192999287
+time interpolation 12.162713389989221 s
+Phase_update 23.57687381102005
+Free surface  2.149686240009032
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4525487630162388 s
+Slab routine  1.572869369003456
+===========================================
+||Script took  00 minutes and 50.63  seconds ||
+===========================================
+Timestep n 18
+Dynamic value took 22.551857267011655
+time interpolation 12.602191285986919 s
+Phase_update 23.92123064500629
+Free surface  2.399801229010336
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43842842598678544 s
+Slab routine  1.6652060589985922
+===========================================
+||Script took  00 minutes and 50.54  seconds ||
+===========================================
+Timestep n 19
+Dynamic value took 23.729722326999763
+time interpolation 12.421685440989677 s
+Phase_update 23.653185939008836
+Free surface  2.284276079008123
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5041640760027803 s
+Slab routine  1.725847412017174
+===========================================
+||Script took  00 minutes and 51.39  seconds ||
+===========================================
+Timestep n 20
+Dynamic value took 23.170016838004813
+time interpolation 12.298157965007704 s
+Phase_update 23.331711265986087
+Free surface  2.3126679380075075
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.42681373900268227 s
+Slab routine  1.345525456010364
+===========================================
+||Script took  00 minutes and 50.16  seconds ||
+===========================================
+Timestep n 21
+Dynamic value took 23.49670428101672
+time interpolation 12.595248622994404 s
+Phase_update 24.076695326017216
+Free surface  2.6509021550009493
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49708046700106934 s
+Slab routine  1.6016696119913831
+===========================================
+||Script took  00 minutes and 51.83  seconds ||
+===========================================
+Timestep n 22
+Dynamic value took 23.172703207004815
+time interpolation 12.463653479004279 s
+Phase_update 23.879428736981936
+Free surface  2.501280169992242
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4517904300009832 s
+Slab routine  2.0776817519799806
+===========================================
+||Script took  00 minutes and 51.63  seconds ||
+===========================================
+Timestep n 23
+Dynamic value took 24.12768786799279
+time interpolation 12.737843388982583 s
+Phase_update 24.534005644993158
+Free surface  2.6779814419860486
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4883994480187539 s
+Slab routine  1.9469831459864508
+===========================================
+||Script took  00 minutes and 53.29  seconds ||
+===========================================
+Timestep n 24
+Dynamic value took 23.666825516003883
+time interpolation 12.266836050024722 s
+Phase_update 24.258288240002003
+Free surface  2.563232724991394
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49917766300495714 s
+Slab routine  2.2200458080042154
+===========================================
+||Script took  00 minutes and 52.71  seconds ||
+===========================================
+Timestep n 25
+Dynamic value took 24.317385155998636
+time interpolation 12.397853597998619 s
+Phase_update 24.091132743022172
+Free surface  2.7237814179970883
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.46709296698099934 s
+Slab routine  1.8475559029902797
+===========================================
+||Script took  00 minutes and 52.98  seconds ||
+===========================================
+Timestep n 26
+Dynamic value took 22.777332708006725
+time interpolation 12.598093061009422 s
+Phase_update 24.771723052981542
+Free surface  2.3357913510117214
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.44166839399258606 s
+Slab routine  2.097701014019549
+===========================================
+||Script took  00 minutes and 51.98  seconds ||
+===========================================
+Timestep n 27
+Dynamic value took 24.176666822982952
+time interpolation 12.39415835501859 s
+Phase_update 24.76547956900322
+Free surface  2.04758490002132
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5182697120180819 s
+Slab routine  2.3197637060075067
+===========================================
+||Script took  00 minutes and 53.31  seconds ||
+===========================================
+Timestep n 28
+Dynamic value took 23.710635650000768
+time interpolation 12.611482398991939 s
+Phase_update 24.813902230991516
+Free surface  2.1819635719875805
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4181735930033028 s
+Slab routine  2.1401959540089592
+===========================================
+||Script took  00 minutes and 52.85  seconds ||
+===========================================
+Timestep n 29
+Dynamic value took 23.358622368978104
+time interpolation 12.461008400015999 s
+Phase_update 24.170020101009868
+Free surface  2.250402457983
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.42461241999990307 s
+Slab routine  1.7582887310127262
+===========================================
+||Script took  00 minutes and 51.54  seconds ||
+===========================================
+Timestep n 30
+Dynamic value took 23.854510206001578
+time interpolation 12.337885232002009 s
+Phase_update 23.748629046982387
+Free surface  2.6824141110118944
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49759813901619054 s
+Slab routine  1.7665738920040894
+===========================================
+||Script took  00 minutes and 52.05  seconds ||
+===========================================
+Timestep n 31
+Dynamic value took 22.5446467139991
+time interpolation 12.323271091998322 s
+Phase_update 24.37990024400642
+Free surface  2.082945692993235
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.45169816599809565 s
+Slab routine  1.678512658982072
+===========================================
+||Script took  00 minutes and 50.69  seconds ||
+===========================================
+Timestep n 32
+Dynamic value took 22.78177036100533
+time interpolation 12.214419486990664 s
+Phase_update 23.97833179801819
+Free surface  2.131490428990219
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4201210259925574 s
+Slab routine  1.3357402620022185
+===========================================
+||Script took  00 minutes and 50.23  seconds ||
+===========================================
+Timestep n 33
+Dynamic value took 22.70006998500321
+time interpolation 12.311777254013577 s
+Phase_update 24.010675761994207
+Free surface  2.145276456983993
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4438150339992717 s
+Slab routine  1.3572892239899375
+===========================================
+||Script took  00 minutes and 50.21  seconds ||
+===========================================
+Timestep n 34
+Dynamic value took 23.487907276983606
+time interpolation 12.471348995022709 s
+Phase_update 24.138343970000278
+Free surface  2.379360417020507
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49400224100099877 s
+Slab routine  1.7021870530152228
+===========================================
+||Script took  00 minutes and 51.71  seconds ||
+===========================================
+Timestep n 35
+Dynamic value took 22.382657301001018
+time interpolation 12.427126522001345 s
+Phase_update 23.604529331991216
+Free surface  2.1781733020034153
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.47008920201915316 s
+Slab routine  1.382636886992259
+===========================================
+||Script took  00 minutes and 49.55  seconds ||
+===========================================
+Timestep n 36
+Dynamic value took 23.14929330899031
+time interpolation 12.066057940013707 s
+Phase_update 23.726609692996135
+Free surface  2.182762228010688
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4341301599924918 s
+Slab routine  1.3493780619755853
+===========================================
+||Script took  00 minutes and 50.41  seconds ||
+===========================================
+Timestep n 37
+Dynamic value took 23.374481436010683
+time interpolation 12.598395331006031 s
+Phase_update 25.145336618006695
+Free surface  2.8114496500056703
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49675846300669946 s
+Slab routine  2.095849220000673
+===========================================
+||Script took  00 minutes and 53.43  seconds ||
+===========================================
+Timestep n 38
+Dynamic value took 23.56173259401112
+time interpolation 12.353405124973506 s
+Phase_update 24.073565497994423
+Free surface  2.1557275829836726
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4333474960003514 s
+Slab routine  1.7991297520056833
+===========================================
+||Script took  00 minutes and 51.59  seconds ||
+===========================================
+Timestep n 39
+Dynamic value took 21.55711859301664
+time interpolation 12.505789850984002 s
+Phase_update 24.99511820700718
+Free surface  2.1892300129984505
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.40240132602048106 s
+Slab routine  2.0620473950111773
+===========================================
+||Script took  00 minutes and 50.80  seconds ||
+===========================================
+Timestep n 40
+Dynamic value took 22.39249361399561
+time interpolation 12.577154269994935 s
+Phase_update 25.026268685993273
+Free surface  2.3634867829969153
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49999108898919076 s
+Slab routine  1.4140980769880116
+===========================================
+||Script took  00 minutes and 51.20  seconds ||
+===========================================
+Timestep n 41
+Dynamic value took 23.818240796012105
+time interpolation 12.43298730198876 s
+Phase_update 24.382968489982886
+Free surface  2.1678968780033756
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.472499121009605 s
+Slab routine  1.8855376980209257
+===========================================
+||Script took  00 minutes and 52.25  seconds ||
+===========================================
+Timestep n 42
+Dynamic value took 23.671493570989696
+time interpolation 12.493891515012365 s
+Phase_update 23.878574902017135
+Free surface  2.240290677989833
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43412330298451707 s
+Slab routine  1.8325554390030447
+===========================================
+||Script took  00 minutes and 51.62  seconds ||
+===========================================
+Timestep n 43
+Dynamic value took 23.642156137997517
+time interpolation 12.304824816994369 s
+Phase_update 24.35482050801511
+Free surface  2.81993169899215
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.50694598199334 s
+Slab routine  2.1676159919879865
+===========================================
+||Script took  00 minutes and 52.98  seconds ||
+===========================================
+Timestep n 44
+Dynamic value took 23.3427924689895
+time interpolation 12.507782547007082 s
+Phase_update 24.39421384400339
+Free surface  2.1468456619768403
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4316208019736223 s
+Slab routine  2.1371565189911053
+===========================================
+||Script took  00 minutes and 52.02  seconds ||
+===========================================
+Timestep n 45
+Dynamic value took 23.92850742401788
+time interpolation 12.498556634993292 s
+Phase_update 24.13932801099145
+Free surface  2.3625110579887405
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4576670340029523 s
+Slab routine  1.823910753999371
+===========================================
+||Script took  00 minutes and 52.25  seconds ||
+===========================================
+Timestep n 46
+Dynamic value took 23.370609672012506
+time interpolation 12.563217119022738 s
+Phase_update 24.762950667995028
+Free surface  2.3631197809881996
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4360300610132981 s
+Slab routine  1.3604508629941847
+===========================================
+||Script took  00 minutes and 51.86  seconds ||
+===========================================
+Timestep n 47
+Dynamic value took 24.05484311498003
+time interpolation 12.462917754979571 s
+Phase_update 23.98335690901149
+Free surface  2.5020406470284797
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5030039609991945 s
+Slab routine  1.8738398300192785
+===========================================
+||Script took  00 minutes and 52.41  seconds ||
+===========================================
+Timestep n 48
+Dynamic value took 22.9694961149944
+time interpolation 12.482213227020111 s
+Phase_update 24.690836235007737
+Free surface  2.182762429001741
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43973221597843803 s
+Slab routine  2.1048624649993144
+===========================================
+||Script took  00 minutes and 51.95  seconds ||
+===========================================
+Timestep n 49
+Dynamic value took 23.74725404000492
+time interpolation 12.461431364994496 s
+Phase_update 24.35217551398091
+Free surface  2.127962280996144
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.4511751940008253 s
+Slab routine  1.801855469995644
+===========================================
+||Script took  00 minutes and 52.03  seconds ||
+===========================================
+Timestep n 50
+Dynamic value took 22.42541009298293
+time interpolation 12.284959935990628 s
+Phase_update 23.50927947301534
+Free surface  2.1375810989993624
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4410281009913888 s
+Slab routine  1.3555629810143728
+===========================================
+||Script took  00 minutes and 49.43  seconds ||
+===========================================
+Timestep n 51
+Dynamic value took 22.776293192000594
+time interpolation 12.364586734998738 s
+Phase_update 23.466266079980414
+Free surface  2.3607233150105458
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4529276110115461 s
+Slab routine  1.5159351349866483
+===========================================
+||Script took  00 minutes and 50.12  seconds ||
+===========================================
+Timestep n 52
+Dynamic value took 22.950118540000403
+time interpolation 12.375532698002644 s
+Phase_update 24.425345516996458
+Free surface  2.0910522709891666
+minumum tearing velocity is: 62.5 km/Myrs
+average tearing velocity is: 66.41059112548828 km/Myrs
+maximum tearing velocity is: 75.595703125 km/Myrs
+time find_slab 0.44092385401017964 s
+Slab routine  1.7557731610140763
+===========================================
+||Script took  00 minutes and 51.22  seconds ||
+===========================================
+Timestep n 53
+Dynamic value took 23.220653869007947
+time interpolation 12.476589016005164 s
+Phase_update 23.934554564009886
+Free surface  2.730113164987415
+minumum tearing velocity is: 250.0 km/Myrs
+average tearing velocity is: 265.6423645019531 km/Myrs
+maximum tearing velocity is: 302.3828125 km/Myrs
+time find_slab 0.46656791400164366 s
+Slab routine  1.7344945130171254
+===========================================
+||Script took  00 minutes and 51.62  seconds ||
+===========================================
+Timestep n 54
+Dynamic value took 23.595734316011658
+time interpolation 12.420725053991191 s
+Phase_update 24.332399424019968
+Free surface  2.1341394869959913
+minumum tearing velocity is: 242.1875 km/Myrs
+average tearing velocity is: 257.3410406112671 km/Myrs
+maximum tearing velocity is: 292.933349609375 km/Myrs
+time find_slab 0.44362807797733694 s
+Slab routine  2.122541660995921
+===========================================
+||Script took  00 minutes and 52.18  seconds ||
+===========================================
+Timestep n 55
+Dynamic value took 23.448558813979616
+time interpolation 12.367417005996685 s
+Phase_update 24.64390627099783
+Free surface  2.1715061720169615
+minumum tearing velocity is: 250.0 km/Myrs
+average tearing velocity is: 265.6423645019531 km/Myrs
+maximum tearing velocity is: 302.3828125 km/Myrs
+time find_slab 0.4465888389968313 s
+Slab routine  2.16895173501689
+===========================================
+||Script took  00 minutes and 52.43  seconds ||
+===========================================
+Timestep n 56
+Dynamic value took 24.760850220016437
+time interpolation 12.572887032991275 s
+Phase_update 24.49049029799062
+Free surface  2.217919893009821
+minumum tearing velocity is: 437.5 km/Myrs
+average tearing velocity is: 464.87413787841797 km/Myrs
+maximum tearing velocity is: 529.169921875 km/Myrs
+time find_slab 0.4478678530140314 s
+Slab routine  1.8658455419936217
+===========================================
+||Script took  00 minutes and 53.34  seconds ||
+===========================================
+Timestep n 57
+Dynamic value took 25.613069092010846
+time interpolation 12.515994710993255 s
+Phase_update 24.09771044398076
+Free surface  2.447786612989148
+minumum tearing velocity is: 359.375 km/Myrs
+average tearing velocity is: 381.8608989715576 km/Myrs
+maximum tearing velocity is: 434.67529296875 km/Myrs
+time find_slab 0.41953486201236956 s
+Slab routine  1.7502085439919028
+===========================================
+||Script took  00 minutes and 53.91  seconds ||
+===========================================
+Timestep n 58
+Dynamic value took 24.40951936802594
+time interpolation 12.262113167991629 s
+Phase_update 23.944320423004683
+Free surface  2.1128201129904483
+minumum tearing velocity is: 265.625 km/Myrs
+average tearing velocity is: 282.2450122833252 km/Myrs
+maximum tearing velocity is: 321.28173828125 km/Myrs
+time find_slab 0.4448615910077933 s
+Slab routine  1.7448445440095384
+===========================================
+||Script took  00 minutes and 52.21  seconds ||
+===========================================
+Timestep n 59
+Dynamic value took 23.061123824008973
+time interpolation 12.606260988017311 s
+Phase_update 24.497509466978954
+Free surface  2.149107769015245
+minumum tearing velocity is: 85.9375 km/Myrs
+average tearing velocity is: 91.31456279754639 km/Myrs
+maximum tearing velocity is: 103.944091796875 km/Myrs
+time find_slab 0.479376196017256 s
+Slab routine  2.1515486809948925
+===========================================
+||Script took  00 minutes and 51.86  seconds ||
+===========================================
+Timestep n 60
+Dynamic value took 25.9726784430095
+time interpolation 12.253998556989245 s
+Phase_update 24.261603438993916
+Free surface  2.5662115970044397
+minumum tearing velocity is: 46.875 km/Myrs
+average tearing velocity is: 49.80794334411621 km/Myrs
+maximum tearing velocity is: 56.69677734375 km/Myrs
+time find_slab 0.4940407509857323 s
+Slab routine  1.8744858170102816
+===========================================
+||Script took  00 minutes and 54.68  seconds ||
+===========================================
+Timestep n 61
+Dynamic value took 29.328281270019943
+time interpolation 12.401084792014444 s
+Phase_update 26.481047699024202
+Free surface  2.213617730012629
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.42776102499919944 s
+Slab routine  1.6763520179956686
+===========================================
+||Script took  00 minutes and 59.70  seconds ||
+===========================================
+Timestep n 62
+Dynamic value took 24.18320158100687
+time interpolation 12.371392793982523 s
+Phase_update 23.79808476701146
+Free surface  2.277778463991126
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4099593709979672 s
+Slab routine  1.3236300089920405
+===========================================
+||Script took  00 minutes and 51.58  seconds ||
+===========================================
+Timestep n 63
+Dynamic value took 24.245224762009457
+time interpolation 12.411052643001312 s
+Phase_update 23.87487588598742
+Free surface  2.215703384979861
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.4468665479798801 s
+Slab routine  1.9776748770091217
+===========================================
+||Script took  00 minutes and 52.31  seconds ||
+===========================================
+Timestep n 64
+Dynamic value took 24.830880437017186
+time interpolation 12.274075274006464 s
+Phase_update 24.246339445991907
+Free surface  2.185098376998212
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.4123476459935773 s
+Slab routine  2.0793815859942697
+===========================================
+||Script took  00 minutes and 53.34  seconds ||
+===========================================
+Timestep n 65
+Dynamic value took 24.900197296025
+time interpolation 12.614793248998467 s
+Phase_update 24.467098608001834
+Free surface  2.293577208998613
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.4507120079942979 s
+Slab routine  1.6717095699859783
+===========================================
+||Script took  00 minutes and 53.33  seconds ||
+===========================================
+Timestep n 66
+Dynamic value took 24.11726215700037
+time interpolation 12.286832173995208 s
+Phase_update 23.2252665089909
+Free surface  2.276744137983769
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43214338898542337 s
+Slab routine  1.3509124809934292
+===========================================
+||Script took  00 minutes and 50.97  seconds ||
+===========================================
+Timestep n 67
+Dynamic value took 23.955237027985277
+time interpolation 12.49696094400133 s
+Phase_update 24.315685286012013
+Free surface  2.193997827009298
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.39695664297323674 s
+Slab routine  1.7777816529851407
+===========================================
+||Script took  00 minutes and 52.24  seconds ||
+===========================================
+Timestep n 68
+Dynamic value took 23.79000518799876
+time interpolation 12.331461388006574 s
+Phase_update 24.46229489799589
+Free surface  2.0642897369980346
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.42598809400806203 s
+Slab routine  2.0864500390016474
+===========================================
+||Script took  00 minutes and 52.40  seconds ||
+===========================================
+Timestep n 69
+Dynamic value took 24.337791397003457
+time interpolation 12.467597933020443 s
+Phase_update 24.104495746985776
+Free surface  2.1943255359947216
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4393681020010263 s
+Slab routine  1.8067288849852048
+===========================================
+||Script took  00 minutes and 52.44  seconds ||
+===========================================
+Timestep n 70
+Dynamic value took 25.28661718100193
+time interpolation 12.78063232000568 s
+Phase_update 24.326493355998537
+Free surface  2.2583462369802874
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.4658336110005621 s
+Slab routine  2.13026925601298
+===========================================
+||Script took  00 minutes and 54.00  seconds ||
+===========================================
+Timestep n 71
+Dynamic value took 24.387197893986013
+time interpolation 12.73692803501035 s
+Phase_update 24.66724753397284
+Free surface  2.948860678996425
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5170387109974399 s
+Slab routine  2.2246651670138817
+===========================================
+||Script took  00 minutes and 54.23  seconds ||
+===========================================
+Timestep n 72
+Dynamic value took 25.000619911996182
+time interpolation 12.428241916990373 s
+Phase_update 24.04714579798747
+Free surface  2.1510868500045035
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.4400143679813482 s
+Slab routine  1.772532009985298
+===========================================
+||Script took  00 minutes and 52.97  seconds ||
+===========================================
+Timestep n 73
+Dynamic value took 24.925379758991767
+time interpolation 12.43391966301715 s
+Phase_update 24.250096286006738
+Free surface  2.2047537039907183
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.43946204902022146 s
+Slab routine  1.5365576729818713
+===========================================
+||Script took  00 minutes and 52.92  seconds ||
+===========================================
+Timestep n 74
+Dynamic value took 23.679236237017903
+time interpolation 12.391032788989833 s
+Phase_update 23.817951425997308
+Free surface  2.602256470010616
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5552055180014577 s
+Slab routine  2.1650210119842086
+===========================================
+||Script took  00 minutes and 52.26  seconds ||
+===========================================
+Timestep n 75
+Dynamic value took 24.435589269996854
+time interpolation 12.492031595989829 s
+Phase_update 24.391186185996048
+Free surface  2.6525708219851367
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5022467890230473 s
+Slab routine  1.8753242370148655
+===========================================
+||Script took  00 minutes and 53.35  seconds ||
+===========================================
+Timestep n 76
+Dynamic value took 24.0897934359964
+time interpolation 12.402392713003792 s
+Phase_update 23.797280099999625
+Free surface  2.2139381720044184
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.44564694399014115 s
+Slab routine  1.7254953569790814
+===========================================
+||Script took  00 minutes and 51.83  seconds ||
+===========================================
+Timestep n 77
+Dynamic value took 24.853041049995227
+time interpolation 12.65362389801885 s
+Phase_update 23.829713929007994
+Free surface  2.3345838059904054
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.4374793030146975 s
+Slab routine  1.3473923860001378
+===========================================
+||Script took  00 minutes and 52.36  seconds ||
+===========================================
+Timestep n 78
+Dynamic value took 23.504754017980304
+time interpolation 12.49496068499866 s
+Phase_update 24.322436129004927
+Free surface  2.328330518997973
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4305852960096672 s
+Slab routine  2.0917589149903506
+===========================================
+||Script took  00 minutes and 52.25  seconds ||
+===========================================
+Timestep n 79
+Dynamic value took 24.6071335329907
+time interpolation 12.44394570600707 s
+Phase_update 23.914969931007363
+Free surface  2.211327289987821
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.45556097498047166 s
+Slab routine  1.6933114989951719
+===========================================
+||Script took  00 minutes and 52.43  seconds ||
+===========================================
+Timestep n 80
+Dynamic value took 24.169883024005685
+time interpolation 12.288074693991803 s
+Phase_update 23.914917005982716
+Free surface  2.2834163069783244
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4085114279878326 s
+Slab routine  1.5287934670050163
+===========================================
+||Script took  00 minutes and 51.90  seconds ||
+===========================================
+Timestep n 81
+Dynamic value took 24.257362039003056
+time interpolation 12.30546209399472 s
+Phase_update 23.529724101012107
+Free surface  2.623161994997645
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.49748474298394285 s
+Slab routine  1.3841264010115992
+===========================================
+||Script took  00 minutes and 51.80  seconds ||
+===========================================
+Timestep n 82
+Dynamic value took 24.17377654000302
+time interpolation 12.102526891976595 s
+Phase_update 23.386750993988244
+Free surface  2.198684097995283
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4392606790061109 s
+Slab routine  1.7525754290109035
+===========================================
+||Script took  00 minutes and 51.51  seconds ||
+===========================================
+Timestep n 83
+Dynamic value took 23.75920981899253
+time interpolation 12.312875030998839 s
+Phase_update 23.84923287498532
+Free surface  2.108590134012047
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4388802809990011 s
+Slab routine  1.8227346280182246
+===========================================
+||Script took  00 minutes and 51.54  seconds ||
+===========================================
+Timestep n 84
+Dynamic value took 23.629361302009784
+time interpolation 12.405551014002413 s
+Phase_update 24.488574009999866
+Free surface  2.312439215980703
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.42860654898686334 s
+Slab routine  1.7209044269984588
+===========================================
+||Script took  00 minutes and 52.15  seconds ||
+===========================================
+Timestep n 85
+Dynamic value took 24.195358479977585
+time interpolation 12.639404508983716 s
+Phase_update 22.909530190983787
+Free surface  2.1420305659994483
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.4300449840084184 s
+Slab routine  1.6270921000104863
+===========================================
+||Script took  00 minutes and 50.87  seconds ||
+===========================================
+Timestep n 86
+Dynamic value took 23.786017572012497
+time interpolation 12.40577467798721 s
+Phase_update 24.22653795199585
+Free surface  2.807353157986654
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5007353399996646 s
+Slab routine  2.186052916018525
+===========================================
+||Script took  00 minutes and 53.01  seconds ||
+===========================================
+Timestep n 87
+Dynamic value took 23.582980931998463
+time interpolation 12.455630212003598 s
+Phase_update 24.82965358000365
+Free surface  2.563760466000531
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5004208250029478 s
+Slab routine  2.223405538999941
+===========================================
+||Script took  00 minutes and 53.20  seconds ||
+===========================================
+Timestep n 88
+Dynamic value took 23.16447987500578
+time interpolation 12.241289704019437 s
+Phase_update 24.659686069004238
+Free surface  2.2536831900069956
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.4352056409989018 s
+Slab routine  1.717477482976392
+===========================================
+||Script took  00 minutes and 51.80  seconds ||
+===========================================
+/scratch/bt307806/3D_Numerical_suites/output_/Data_Base/Data_base_Slab_detachment_3D.hdf5
+T1_AV1_v10_1000_SH
+phase 8 does not exist, and default value are set for each field
+phase 16 does not exist, and default value are set for each field
+phase 17 does not exist, and default value are set for each field
+phase 18 does not exist, and default value are set for each field
+phase 19 does not exist, and default value are set for each field
+phase 20 does not exist, and default value are set for each field
+phase 21 does not exist, and default value are set for each field
+phase 22 does not exist, and default value are set for each field
+phase 23 does not exist, and default value are set for each field
+Initial Bouancy force F_B is 1.669182e+13
+The average effective viscosity of the mantle at reference condition is 16.767976
+The effective viscosity at the reference condition of the slab is 21.991134 and with cut off is 21.986899
+The initial phi without cut off is -5.223157 and with cutoff is -5.218923 and if the viscosity of the mantle is low than cutoff -3.986899
+Strain rate dislocation creep is -14.273782
+Strain rate diffusion creep is -27.543547
+Strain rate upper cut off creep is -16.282646
+Characteristic strain rate is -14.269545
+The characteristic time of the simulation is 5.894425
+The analytical time  of detachment is 1.684121
+Reference viscosity diffusion creep of the slab is 27.242518
+Reference viscosity dislocation creep of the slab is 21.991136
+XiS 5.251382
+Timestep n 0
+Dynamic value took 1.0872123890148941
+time interpolation 12.375517642998602 s
+Phase_update 13.778195299004437
+Free surface  2.7904920949949883
+time find_slab 1.2342034120229073 s
+Slab routine  2.6587469550140668
+===========================================
+||Script took  00 minutes and 20.31  seconds ||
+===========================================
+Timestep n 1
+Dynamic value took 23.860033072996885
+time interpolation 12.587274791992968 s
+Phase_update 24.47848555998644
+Free surface  2.311913896992337
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.758632873010356 s
+Slab routine  2.0449419610085897
+===========================================
+||Script took  00 minutes and 52.70  seconds ||
+===========================================
+Timestep n 2
+Dynamic value took 22.977982504002284
+time interpolation 12.548669708019588 s
+Phase_update 23.719671162980376
+Free surface  2.224384302011458
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.8144205560092814 s
+Slab routine  1.735469239007216
+===========================================
+||Script took  00 minutes and 50.66  seconds ||
+===========================================
+Timestep n 3
+Dynamic value took 22.248559550003847
+time interpolation 12.61973244100227 s
+Phase_update 23.416604550991906
+Free surface  2.737872425990645
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7495527619903442 s
+Slab routine  1.9869781699962914
+===========================================
+||Script took  00 minutes and 50.39  seconds ||
+===========================================
+Timestep n 4
+Dynamic value took 23.442778570984956
+time interpolation 12.560483433015179 s
+Phase_update 23.94333042699145
+Free surface  2.2477249660005327
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7260031570040155 s
+Slab routine  1.6374069529992994
+===========================================
+||Script took  00 minutes and 51.27  seconds ||
+===========================================
+Timestep n 5
+Dynamic value took 22.179652769002132
+time interpolation 12.396696342999348 s
+Phase_update 24.36932250999962
+Free surface  2.097933071985608
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7119198790169321 s
+Slab routine  2.395736532023875
+===========================================
+||Script took  00 minutes and 51.04  seconds ||
+===========================================
+Timestep n 6
+Dynamic value took 22.678097316995263
+time interpolation 12.62456328200642 s
+Phase_update 25.39161373101524
+Free surface  2.1342798660043627
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.736101429007249 s
+Slab routine  2.4486345880141016
+===========================================
+||Script took  00 minutes and 52.65  seconds ||
+===========================================
+Timestep n 7
+Dynamic value took 24.571528605010826
+time interpolation 12.658033110987162 s
+Phase_update 23.476948826981243
+Free surface  2.194154210999841
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7141008650069125 s
+Slab routine  1.85735621600179
+===========================================
+||Script took  00 minutes and 52.10  seconds ||
+===========================================
+Timestep n 8
+Dynamic value took 21.821838120988104
+time interpolation 12.656456034019357 s
+Phase_update 23.57517424301477
+Free surface  2.1720259379944764
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7359897409914993 s
+Slab routine  1.8209843230142724
+===========================================
+||Script took  00 minutes and 49.39  seconds ||
+===========================================
+Timestep n 9
+Dynamic value took 24.313233454013243
+time interpolation 12.61589428500156 s
+Phase_update 24.449744979996467
+Free surface  2.1653674459957983
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7372489020053763 s
+Slab routine  2.4030222639848944
+===========================================
+||Script took  00 minutes and 53.33  seconds ||
+===========================================
+Timestep n 10
+Dynamic value took 23.059630224015564
+time interpolation 12.698567098006606 s
+Phase_update 24.47979728700011
+Free surface  2.1439507879840676
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7546789989864919 s
+Slab routine  2.218165908998344
+===========================================
+||Script took  00 minutes and 51.90  seconds ||
+===========================================
+Timestep n 11
+Dynamic value took 22.466662423015805
+time interpolation 12.833369194995612 s
+Phase_update 24.663340646016877
+Free surface  2.0831018110038713
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7254046509915497 s
+Slab routine  2.359787225985201
+===========================================
+||Script took  00 minutes and 51.57  seconds ||
+===========================================
+Timestep n 12
+Dynamic value took 23.393114940990927
+time interpolation 12.155952030007029 s
+Phase_update 23.898635674995603
+Free surface  2.1846398979832884
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7085591499926522 s
+Slab routine  2.376569402986206
+===========================================
+||Script took  00 minutes and 51.85  seconds ||
+===========================================
+Timestep n 13
+Dynamic value took 24.14366446301574
+time interpolation 12.601206739986083 s
+Phase_update 24.435082987998612
+Free surface  2.504759870003909
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7803981599863619 s
+Slab routine  2.493421421997482
+===========================================
+||Script took  00 minutes and 53.58  seconds ||
+===========================================
+Timestep n 14
+Dynamic value took 22.86207895699772
+time interpolation 12.708696727000643 s
+Phase_update 23.53438696701778
+Free surface  2.3158146910136566
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7360069100104738 s
+Slab routine  1.946024953998858
+===========================================
+||Script took  00 minutes and 50.66  seconds ||
+===========================================
+Timestep n 15
+Dynamic value took 23.663484923978103
+time interpolation 12.518064397998387 s
+Phase_update 23.69888526800787
+Free surface  2.057934459007811
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7320455579902045 s
+Slab routine  1.7384524070075713
+===========================================
+||Script took  00 minutes and 51.16  seconds ||
+===========================================
+Timestep n 16
+Dynamic value took 24.234091590013122
+time interpolation 12.370037544023944 s
+Phase_update 24.273993167997105
+Free surface  2.60040734600625
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7457774770155083 s
+Slab routine  2.3970422330021393
+===========================================
+||Script took  00 minutes and 53.51  seconds ||
+===========================================
+Timestep n 17
+Dynamic value took 23.023030063981423
+time interpolation 12.155036385025596 s
+Phase_update 23.562043823010754
+Free surface  2.132581448997371
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7362010670185555 s
+Slab routine  2.4615418470057193
+===========================================
+||Script took  00 minutes and 51.18  seconds ||
+===========================================
+Timestep n 18
+Dynamic value took 22.798100443993462
+time interpolation 12.848404012009269 s
+Phase_update 24.692168103996664
+Free surface  2.4266664189926814
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.8111067519930657 s
+Slab routine  2.258648275019368
+===========================================
+||Script took  00 minutes and 52.18  seconds ||
+===========================================
+Timestep n 19
+Dynamic value took 23.079983681003796
+time interpolation 12.644568848016206 s
+Phase_update 23.107740882987855
+Free surface  2.715006523998454
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7973545089771505 s
+Slab routine  1.6889201549929567
+===========================================
+||Script took  00 minutes and 50.59  seconds ||
+===========================================
+Timestep n 20
+Dynamic value took 25.699153898021905
+time interpolation 12.569821316021262 s
+Phase_update 24.5122159870225
+Free surface  2.8017150290252175
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7986317729810253 s
+Slab routine  2.4487573220103513
+===========================================
+||Script took  00 minutes and 55.46  seconds ||
+===========================================
+Timestep n 21
+Dynamic value took 23.37762362000649
+time interpolation 12.514707574009662 s
+Phase_update 24.31294403100037
+Free surface  2.246908025990706
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7658570019993931 s
+Slab routine  2.2236110510129947
+===========================================
+||Script took  00 minutes and 52.16  seconds ||
+===========================================
+Timestep n 22
+Dynamic value took 24.055349825997837
+time interpolation 12.528942528995685 s
+Phase_update 23.656526434002444
+Free surface  2.650148230022751
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7812309849832673 s
+Slab routine  2.2085741100017913
+===========================================
+||Script took  00 minutes and 52.57  seconds ||
+===========================================
+Timestep n 23
+Dynamic value took 23.973028398002498
+time interpolation 12.806151017983211 s
+Phase_update 23.780576121003833
+Free surface  2.1595850120065734
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7304968420066871 s
+Slab routine  2.1305305959831458
+===========================================
+||Script took  00 minutes and 52.04  seconds ||
+===========================================
+Timestep n 24
+Dynamic value took 23.073590309999418
+time interpolation 12.454089544015005 s
+Phase_update 23.754330427997047
+Free surface  2.7098281770013273
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7781704700028058 s
+Slab routine  1.6889097800012678
+===========================================
+||Script took  00 minutes and 51.23  seconds ||
+===========================================
+Timestep n 25
+Dynamic value took 22.438876600994263
+time interpolation 12.520613258006051 s
+Phase_update 24.530918995005777
+Free surface  2.5107430939970072
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7760314170154743 s
+Slab routine  2.4390706510166638
+===========================================
+||Script took  00 minutes and 51.92  seconds ||
+===========================================
+Timestep n 26
+Dynamic value took 23.96595973399235
+time interpolation 12.680249664990697 s
+Phase_update 24.390506056981394
+Free surface  2.2246347250184044
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7386910039931536 s
+Slab routine  2.040618077007821
+===========================================
+||Script took  00 minutes and 52.62  seconds ||
+===========================================
+Timestep n 27
+Dynamic value took 23.66497373400489
+time interpolation 12.494187150005018 s
+Phase_update 24.387654545978876
+Free surface  2.756198314978974
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7866527610167395 s
+Slab routine  1.9020340029965155
+===========================================
+||Script took  00 minutes and 52.71  seconds ||
+===========================================
+Timestep n 28
+Dynamic value took 24.18464264299837
+time interpolation 12.487765274010599 s
+Phase_update 25.032687494996935
+Free surface  2.3042211159772705
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7056231750175357 s
+Slab routine  2.353163088992005
+===========================================
+||Script took  00 minutes and 53.87  seconds ||
+===========================================
+Timestep n 29
+Dynamic value took 22.246845371002564
+time interpolation 12.44859477202408 s
+Phase_update 24.959928429016145
+Free surface  2.0666046270052902
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7475613130081911 s
+Slab routine  2.4121224530099425
+===========================================
+||Script took  00 minutes and 51.69  seconds ||
+===========================================
+Timestep n 30
+Dynamic value took 23.62026186901494
+time interpolation 12.625709736021236 s
+Phase_update 24.663205366989132
+Free surface  2.301685112004634
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7610796270018909 s
+Slab routine  1.9122765490028542
+===========================================
+||Script took  00 minutes and 52.50  seconds ||
+===========================================
+Timestep n 31
+Dynamic value took 23.249309352017008
+time interpolation 12.6116295279935 s
+Phase_update 24.570863837987417
+Free surface  2.6459681910055224
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7495344330091029 s
+Slab routine  1.804765289009083
+===========================================
+||Script took  00 minutes and 52.27  seconds ||
+===========================================
+Timestep n 32
+Dynamic value took 22.652405261003878
+time interpolation 12.415235966007458 s
+Phase_update 24.884732569975313
+Free surface  2.4864129060006235
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.8477323569823056 s
+Slab routine  2.616683139989618
+===========================================
+||Script took  00 minutes and 52.64  seconds ||
+===========================================
+Timestep n 33
+Dynamic value took 23.956748396973126
+time interpolation 12.674991637992207 s
+Phase_update 24.8792148840148
+Free surface  2.667121981008677
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7793754780141171 s
+Slab routine  2.51527143799467
+===========================================
+||Script took  00 minutes and 54.02  seconds ||
+===========================================
+Timestep n 34
+Dynamic value took 23.34640159198898
+time interpolation 12.594965604977915 s
+Phase_update 24.04236276401207
+Free surface  2.171157038974343
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7069961850065738 s
+Slab routine  2.098720926005626
+===========================================
+||Script took  00 minutes and 51.66  seconds ||
+===========================================
+Timestep n 35
+Dynamic value took 23.170372476015473
+time interpolation 12.747656227002153 s
+Phase_update 24.459663855988765
+Free surface  2.23790676300996
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.6784819859894924 s
+Slab routine  1.5984952049911954
+===========================================
+||Script took  00 minutes and 51.47  seconds ||
+===========================================
+Timestep n 36
+Dynamic value took 22.733856939012185
+time interpolation 12.389330045989482 s
+Phase_update 24.32657495798776
+Free surface  2.614765909995185
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.760004122974351 s
+Slab routine  2.4253101799986325
+===========================================
+||Script took  00 minutes and 52.10  seconds ||
+===========================================
+Timestep n 37
+Dynamic value took 23.099272485007532
+time interpolation 12.92750802001683 s
+Phase_update 24.82951954001328
+Free surface  2.6627227559802122
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7822577970218845 s
+Slab routine  1.9674722689960618
+===========================================
+||Script took  00 minutes and 52.56  seconds ||
+===========================================
+Timestep n 38
+Dynamic value took 22.6689203659771
+time interpolation 12.427302754978882 s
+Phase_update 23.99597443800303
+Free surface  2.1004140400036704
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7012804189871531 s
+Slab routine  1.613734511018265
+===========================================
+||Script took  00 minutes and 50.38  seconds ||
+===========================================
+Timestep n 39
+Dynamic value took 23.27014992799377
+time interpolation 12.355726709007286 s
+Phase_update 23.817022456991253
+Free surface  2.2108864360197913
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7485390499932691 s
+Slab routine  1.669149452005513
+===========================================
+||Script took  00 minutes and 50.97  seconds ||
+===========================================
+Timestep n 40
+Dynamic value took 22.390319375990657
+time interpolation 12.488008826010628 s
+Phase_update 25.30157671298366
+Free surface  2.295372647990007
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7002317119913641 s
+Slab routine  2.325892624008702
+===========================================
+||Script took  00 minutes and 52.31  seconds ||
+===========================================
+Timestep n 41
+Dynamic value took 23.744527567992918
+time interpolation 12.834652090998134 s
+Phase_update 24.895187115995213
+Free surface  2.273893172998214
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.6089567599992733 s
+Slab routine  2.021699350007111
+===========================================
+||Script took  00 minutes and 52.94  seconds ||
+===========================================
+Timestep n 42
+Dynamic value took 23.82528156400076
+time interpolation 12.439060848002555 s
+Phase_update 24.402605911978753
+Free surface  2.212172395986272
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.5159852270153351 s
+Slab routine  2.249294948007446
+===========================================
+||Script took  00 minutes and 52.69  seconds ||
+===========================================
+Timestep n 43
+Dynamic value took 23.134248199989088
+time interpolation 12.386750145000406 s
+Phase_update 24.37056037300499
+Free surface  2.162671412981581
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7261250340088736 s
+Slab routine  2.45758845898672
+===========================================
+||Script took  00 minutes and 52.13  seconds ||
+===========================================
+Timestep n 44
+Dynamic value took 22.816754151979694
+time interpolation 12.69429509100155 s
+Phase_update 24.772434201993747
+Free surface  2.590067495999392
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7676514229970053 s
+Slab routine  2.212635097996099
+===========================================
+||Script took  00 minutes and 52.39  seconds ||
+===========================================
+Timestep n 45
+Dynamic value took 22.872642117989017
+time interpolation 12.620581102994038 s
+Phase_update 24.667168911983026
+Free surface  2.136782453977503
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7419276100117713 s
+Slab routine  2.1603719039994758
+===========================================
+||Script took  00 minutes and 51.84  seconds ||
+===========================================
+Timestep n 46
+Dynamic value took 22.343003752990626
+time interpolation 12.487752090994036 s
+Phase_update 25.05586591400788
+Free surface  2.248310755996499
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7351003150106408 s
+Slab routine  2.279114944016328
+===========================================
+||Script took  00 minutes and 51.93  seconds ||
+===========================================
+Timestep n 47
+Dynamic value took 22.667455585004063
+time interpolation 12.813286985008745 s
+Phase_update 25.00558637100039
+Free surface  2.5666700020083226
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.8145984790171497 s
+Slab routine  2.4372483309998643
+===========================================
+||Script took  00 minutes and 52.68  seconds ||
+===========================================
+Timestep n 48
+Dynamic value took 23.79880258400226
+time interpolation 12.705119060003199 s
+Phase_update 24.90025881701149
+Free surface  2.174674166017212
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7368689889844973 s
+Slab routine  1.8859725290094502
+===========================================
+||Script took  00 minutes and 52.76  seconds ||
+===========================================
+Timestep n 49
+Dynamic value took 22.607211736991303
+time interpolation 12.515002446016297 s
+Phase_update 24.63755354299792
+Free surface  2.0322575549944304
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7502774849999696 s
+Slab routine  2.077426175994333
+===========================================
+||Script took  00 minutes and 51.35  seconds ||
+===========================================
+Timestep n 50
+Dynamic value took 23.284611011011293
+time interpolation 12.42514235698036 s
+Phase_update 24.51789546897635
+Free surface  2.5615725230018143
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.5053783280018251 s
+Slab routine  1.842912861990044
+===========================================
+||Script took  00 minutes and 52.21  seconds ||
+===========================================
+Timestep n 51
+Dynamic value took 22.297194042999763
+time interpolation 12.844254252006067 s
+Phase_update 24.015733199979877
+Free surface  1.9822044179891236
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7139980900101364 s
+Slab routine  1.793181392014958
+===========================================
+||Script took  00 minutes and 50.09  seconds ||
+===========================================
+Timestep n 52
+Dynamic value took 23.266603166994173
+time interpolation 12.71953347302042 s
+Phase_update 24.78775894199498
+Free surface  2.5461871869920287
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7780222810106352 s
+Slab routine  2.1349283309828024
+===========================================
+||Script took  00 minutes and 52.74  seconds ||
+===========================================
+Timestep n 53
+Dynamic value took 23.569636669009924
+time interpolation 12.646102214988787 s
+Phase_update 25.013473444007104
+Free surface  2.3239576909982134
+minumum tearing velocity is: 93.75 km/Myrs
+average tearing velocity is: 99.61588668823242 km/Myrs
+maximum tearing velocity is: 113.3935546875 km/Myrs
+time find_slab 0.6903158569766674 s
+Slab routine  2.085348039981909
+===========================================
+||Script took  00 minutes and 52.99  seconds ||
+===========================================
+Timestep n 54
+Dynamic value took 23.46993911199388
+time interpolation 12.478988555987598 s
+Phase_update 24.484750788979
+Free surface  2.218849554017652
+minumum tearing velocity is: 140.625 km/Myrs
+average tearing velocity is: 149.42383003234863 km/Myrs
+maximum tearing velocity is: 170.09033203125 km/Myrs
+time find_slab 0.7506348469760269 s
+Slab routine  1.9216902100015432
+===========================================
+||Script took  00 minutes and 52.10  seconds ||
+===========================================
+Timestep n 55
+Dynamic value took 22.704319801006932
+time interpolation 12.654587727010949 s
+Phase_update 24.100033291993896
+Free surface  2.2918718100117985
+minumum tearing velocity is: 375.0 km/Myrs
+average tearing velocity is: 398.4635467529297 km/Myrs
+maximum tearing velocity is: 453.57421875 km/Myrs
+time find_slab 0.7541848980181385 s
+Slab routine  1.695502523012692
+===========================================
+||Script took  00 minutes and 50.79  seconds ||
+===========================================
+Timestep n 56
+Dynamic value took 24.256090437993407
+time interpolation 12.652145327010658 s
+Phase_update 24.780862607993186
+Free surface  2.041953192005167
+minumum tearing velocity is: 367.1875 km/Myrs
+average tearing velocity is: 390.16222286224365 km/Myrs
+maximum tearing velocity is: 444.124755859375 km/Myrs
+time find_slab 0.7177660710003693 s
+Slab routine  2.3502776340174023
+===========================================
+||Script took  00 minutes and 53.43  seconds ||
+===========================================
+Timestep n 57
+Dynamic value took 24.56659567099996
+time interpolation 12.468767568003386 s
+Phase_update 24.134012424998218
+Free surface  2.60521122298087
+minumum tearing velocity is: 390.625 km/Myrs
+average tearing velocity is: 415.06619453430176 km/Myrs
+maximum tearing velocity is: 472.47314453125 km/Myrs
+time find_slab 0.7613904149911832 s
+Slab routine  1.9456872520095203
+===========================================
+||Script took  00 minutes and 53.25  seconds ||
+===========================================
+Timestep n 58
+Dynamic value took 23.32344896098948
+time interpolation 12.37837566100643 s
+Phase_update 23.84919293501298
+Free surface  2.8653930440195836
+minumum tearing velocity is: 335.9375 km/Myrs
+average tearing velocity is: 356.9569272994995 km/Myrs
+maximum tearing velocity is: 406.326904296875 km/Myrs
+time find_slab 0.7418058440089226 s
+Slab routine  2.118177100986941
+===========================================
+||Script took  00 minutes and 52.16  seconds ||
+===========================================
+Timestep n 59
+Dynamic value took 24.499296980007784
+time interpolation 12.53189008301706 s
+Phase_update 24.5069481159735
+Free surface  2.046257770009106
+minumum tearing velocity is: 156.25 km/Myrs
+average tearing velocity is: 166.0264778137207 km/Myrs
+maximum tearing velocity is: 188.9892578125 km/Myrs
+time find_slab 0.7427303860022221 s
+Slab routine  2.4361969279998448
+===========================================
+||Script took  00 minutes and 53.49  seconds ||
+===========================================
+Timestep n 60
+Dynamic value took 24.816611446003662
+time interpolation 12.588905026001157 s
+Phase_update 24.774334964022273
+Free surface  2.061829170997953
+minumum tearing velocity is: 101.5625 km/Myrs
+average tearing velocity is: 107.91721057891846 km/Myrs
+maximum tearing velocity is: 122.843017578125 km/Myrs
+time find_slab 0.750641638005618 s
+Slab routine  2.4882956689980347
+===========================================
+||Script took  00 minutes and 54.14  seconds ||
+===========================================
+Timestep n 61
+Dynamic value took 23.969718984008068
+time interpolation 12.852542765002 s
+Phase_update 24.886063119018218
+Free surface  2.170903933001682
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.7697783960029483 s
+Slab routine  2.2370051050093025
+===========================================
+||Script took  00 minutes and 53.26  seconds ||
+===========================================
+Timestep n 62
+Dynamic value took 23.54125150400796
+time interpolation 12.66239190599299 s
+Phase_update 24.879374131996883
+Free surface  2.449647299014032
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.7334730630100239 s
+Slab routine  2.381703696999466
+===========================================
+||Script took  00 minutes and 53.25  seconds ||
+===========================================
+Timestep n 63
+Dynamic value took 24.456189549993724
+time interpolation 12.75680586101953 s
+Phase_update 24.470271512982436
+Free surface  2.4010462159931194
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7576614450081252 s
+Slab routine  2.453415523021249
+===========================================
+||Script took  00 minutes and 53.78  seconds ||
+===========================================
+Timestep n 64
+Dynamic value took 24.54231278601219
+time interpolation 12.594634460983798 s
+Phase_update 24.26152967699454
+Free surface  2.214348067995161
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.8475076550093945 s
+Slab routine  2.2441680319898296
+===========================================
+||Script took  00 minutes and 53.26  seconds ||
+===========================================
+Timestep n 65
+Dynamic value took 23.758811534004053
+time interpolation 12.470041699998546 s
+Phase_update 23.41146505100187
+Free surface  2.136989958002232
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7149529690213967 s
+Slab routine  1.7700402819900773
+===========================================
+||Script took  00 minutes and 51.08  seconds ||
+===========================================
+Timestep n 66
+Dynamic value took 24.634318386000814
+time interpolation 12.667936749989167 s
+Phase_update 24.361062943993602
+Free surface  2.6402961169951595
+minumum tearing velocity is: 23.4375 km/Myrs
+average tearing velocity is: 24.903971672058105 km/Myrs
+maximum tearing velocity is: 28.348388671875 km/Myrs
+time find_slab 0.775254500011215 s
+Slab routine  2.274604348000139
+===========================================
+||Script took  00 minutes and 53.91  seconds ||
+===========================================
+Timestep n 67
+Dynamic value took 25.322642012994038
+time interpolation 12.683911926986184 s
+Phase_update 24.583443490992067
+Free surface  2.0598814360273536
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7125953659997322 s
+Slab routine  2.366817025002092
+===========================================
+||Script took  00 minutes and 54.33  seconds ||
+===========================================
+Timestep n 68
+Dynamic value took 25.018263728998136
+time interpolation 13.122836879978422 s
+Phase_update 25.018043168995064
+Free surface  2.1433448980096728
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7728402389911935 s
+Slab routine  2.045073362009134
+===========================================
+||Script took  00 minutes and 54.22  seconds ||
+===========================================
+Timestep n 69
+Dynamic value took 23.8848409219936
+time interpolation 12.600390882987995 s
+Phase_update 24.654219388001366
+Free surface  2.1635418989753816
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7076759790070355 s
+Slab routine  1.6203963659936562
+===========================================
+||Script took  00 minutes and 52.32  seconds ||
+===========================================
+Timestep n 70
+Dynamic value took 23.347668950998923
+time interpolation 12.44144798698835 s
+Phase_update 24.5023471530003
+Free surface  2.232659834990045
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7326653600030113 s
+Slab routine  1.6592652410035953
+===========================================
+||Script took  00 minutes and 51.74  seconds ||
+===========================================
+Timestep n 71
+Dynamic value took 26.02178539801389
+time interpolation 12.56662234000396 s
+Phase_update 24.25076190699474
+Free surface  2.1293615000031423
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7870289789862 s
+Slab routine  2.31914258498
+===========================================
+||Script took  00 minutes and 54.72  seconds ||
+===========================================
+Timestep n 72
+Dynamic value took 23.6286179680028
+time interpolation 12.529146048997063 s
+Phase_update 24.36690221200115
+Free surface  3.0308539230027236
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.755459198000608 s
+Slab routine  2.1246649289969355
+===========================================
+||Script took  00 minutes and 53.15  seconds ||
+===========================================
+Timestep n 73
+Dynamic value took 24.124547518993495
+time interpolation 12.831262702005915 s
+Phase_update 24.992135287000565
+Free surface  2.074454777990468
+minumum tearing velocity is: 15.625 km/Myrs
+average tearing velocity is: 16.60264778137207 km/Myrs
+maximum tearing velocity is: 18.89892578125 km/Myrs
+time find_slab 0.7283011740073562 s
+Slab routine  2.40981316199759
+===========================================
+||Script took  00 minutes and 53.60  seconds ||
+===========================================
+Timestep n 74
+Dynamic value took 25.37635066898656
+time interpolation 12.610350622999249 s
+Phase_update 24.60658426498412
+Free surface  2.6012834689754527
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.8072330839931965 s
+Slab routine  2.5324082460138015
+===========================================
+||Script took  00 minutes and 55.12  seconds ||
+===========================================
+Timestep n 75
+Dynamic value took 24.05303415498929
+time interpolation 13.033589886006666 s
+Phase_update 24.51759251600015
+Free surface  2.052805249026278
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.736055896995822 s
+Slab routine  2.2544298029970378
+===========================================
+||Script took  00 minutes and 52.88  seconds ||
+===========================================
+Timestep n 76
+Dynamic value took 25.502883048000513
+time interpolation 12.667845313000726 s
+Phase_update 24.582715855998686
+Free surface  2.1784423630160745
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7771308810042683 s
+Slab routine  2.318974280002294
+===========================================
+||Script took  00 minutes and 54.58  seconds ||
+===========================================
+Timestep n 77
+Dynamic value took 24.268960368994158
+time interpolation 12.78065451400471 s
+Phase_update 24.83224542500102
+Free surface  2.1532185680116527
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7408752379997168 s
+Slab routine  2.0506804430042394
+===========================================
+||Script took  00 minutes and 53.31  seconds ||
+===========================================
+Timestep n 78
+Dynamic value took 24.39257334099966
+time interpolation 12.553583089000313 s
+Phase_update 24.822323116997723
+Free surface  2.489465172024211
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7999760480015539 s
+Slab routine  2.473937948991079
+===========================================
+||Script took  00 minutes and 54.18  seconds ||
+===========================================
+Timestep n 79
+Dynamic value took 24.238670532009564
+time interpolation 12.471599954995327 s
+Phase_update 24.95943709599669
+Free surface  2.590283074998297
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7890896099852398 s
+Slab routine  2.1604446949786507
+===========================================
+||Script took  00 minutes and 53.95  seconds ||
+===========================================
+Timestep n 80
+Dynamic value took 24.309477670001797
+time interpolation 12.30509562799125 s
+Phase_update 24.59576677600853
+Free surface  2.100388587015914
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7511116520036012 s
+Slab routine  2.169281223003054
+===========================================
+||Script took  00 minutes and 53.18  seconds ||
+===========================================
+Timestep n 81
+Dynamic value took 25.108940040983725
+time interpolation 12.610027499002172 s
+Phase_update 24.574781998991966
+Free surface  2.2483251309895422
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7411934510164429 s
+Slab routine  1.608121541008586
+===========================================
+||Script took  00 minutes and 53.54  seconds ||
+===========================================
+Timestep n 82
+Dynamic value took 24.53428408599575
+time interpolation 12.58265268302057 s
+Phase_update 25.3848740439862
+Free surface  2.0971842489962
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7434701689926442 s
+Slab routine  2.096763285982888
+===========================================
+||Script took  00 minutes and 54.11  seconds ||
+===========================================
+Timestep n 83
+Dynamic value took 23.071841721015517
+time interpolation 12.519192665000446 s
+Phase_update 25.441520652006147
+Free surface  2.1558586820028722
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7161332170071546 s
+Slab routine  2.1152773719804827
+===========================================
+||Script took  00 minutes and 52.78  seconds ||
+===========================================
+Timestep n 84
+Dynamic value took 23.765956662013195
+time interpolation 12.805685672006803 s
+Phase_update 24.20591299200896
+Free surface  2.097152589005418
+minumum tearing velocity is: 7.8125 km/Myrs
+average tearing velocity is: 8.301323890686035 km/Myrs
+maximum tearing velocity is: 9.449462890625 km/Myrs
+time find_slab 0.7644150600244757 s
+Slab routine  2.241077648999635
+===========================================
+||Script took  00 minutes and 52.31  seconds ||
+===========================================
+Timestep n 85
+Dynamic value took 23.891825457976665
+time interpolation 12.5484415400133 s
+Phase_update 22.444219645985868
+Free surface  2.6075655910244677
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7712448139791377 s
+Slab routine  1.8389969010022469
+===========================================
+||Script took  00 minutes and 50.78  seconds ||
+===========================================
+Timestep n 86
+Dynamic value took 22.71482501598075
+time interpolation 12.599433921015589 s
+Phase_update 23.575350170984166
+Free surface  2.147335180983646
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7079706359945703 s
+Slab routine  2.2352530820062384
+===========================================
+||Script took  00 minutes and 50.67  seconds ||
+===========================================
+Timestep n 87
+Dynamic value took 23.537517413991736
+time interpolation 12.996632275986485 s
+Phase_update 25.26979040101287
+Free surface  2.1346466270042583
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7263816430058796 s
+Slab routine  1.945989414001815
+===========================================
+||Script took  00 minutes and 52.89  seconds ||
+===========================================
+Timestep n 88
+Dynamic value took 26.242941005999455
+time interpolation 12.650995486008469 s
+Phase_update 26.007638128008693
+Free surface  2.2344602810044307
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7110694170114584 s
+Slab routine  2.1233284950139932
+===========================================
+||Script took  00 minutes and 56.61  seconds ||
+===========================================
+Timestep n 89
+Dynamic value took 26.096774815989193
+time interpolation 12.642394149996107 s
+Phase_update 24.262304817006225
+Free surface  2.1412191610143054
+minumum tearing velocity is: 0.0 km/Myrs
+average tearing velocity is: 0.0 km/Myrs
+maximum tearing velocity is: 0.0 km/Myrs
+time find_slab 0.7159629880043212 s
+Slab routine  2.4447957829979714
+===========================================
+||Script took  00 minutes and 54.95  seconds ||
+===========================================
+/scratch/bt307806/3D_Numerical_suites/output_/Data_Base/Data_base_Slab_detachment_3D.hdf5

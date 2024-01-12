@@ -1,0 +1,85 @@
+Warning: no access to tty (Bad file descriptor).
+Thus no job control in this shell.
+modile: Command not found.
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+ModuleCmd_Load.c(213):ERROR:105: Unable to locate a modulefile for 'inteloneapi/mpi/2022.0.1'
+Loading compiler version 2022.0.1
+Loading tbb version 2021.5.0
+Loading debugger version 2021.5.0
+Loading compiler-rt version 2022.0.1
+Loading dpl version 2021.6.0
+Loading mpi version 2021.5.0
+Loading mkl version 2022.0.1
+Loading compiler-rt version 2022.0.1
+Loading tbb version 2021.5.0
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 9: setenv: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 15: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 16: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 17: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 18: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 19: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 20: modile: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 21: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 22: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 23: module: command not found
+/var/lib/torque/mom_priv/jobs/575955.mgmt01.SC: line 24: module: command not found
+
+Fri Jan 12 11:02:59 CET 2024
+
+Job id: 575955.mgmt01
+
+Directory: /scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:138: RuntimeWarning: invalid value encountered in multiply
+  self.dDdt[i,:,ipic]=D*0.0
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:138: RuntimeWarning: invalid value encountered in multiply
+  self.dDdt[i,:,ipic]=D*0.0
+/scratch/bt307806/3D_Numerical_suites/Lukas_Initial_Setup/Python3D/Slab_detachment.py:433: UserWarning: This figure includes Axes that are not compatible with tight_layout, so results might be incorrect.
+  fg.tight_layout()
+findfont: Font family ['sans-serif'] not found. Falling back to DejaVu Sans.
+findfont: Font family ['sans-serif'] not found. Falling back to DejaVu Sans.
+findfont: Font family ['sans-serif'] not found. Falling back to DejaVu Sans.
+Terminated
+
+================================
+  START btrzx2 EPILOGUE SCRIPT
+================================
+
+User is 
+
+Epilogue Args (normal):
+
+Job ID:              575955.mgmt01
+User ID:             bt307806
+Group ID:            vo_bgi
+Job name:            SBO
+Session ID:          5048
+Resourse list:       neednodes=1:ppn=16:compute8,nodes=1:ppn=16:compute8,walltime=100:00:00
+Resource used:       cput=04:03:34,mem=32088912kb,vmem=36144952kb,walltime=00:45:11
+Queue name:          long
+Account string:      
+Exit code:           575955.mgmt010
+
+Epilogue session ID: 7377
+
+Hostlist:            r03n30 
+
+#Nodes:              1
+
+-------------------
+Single node section
+-------------------
+
+Remaining user PIDs
+PID TTY TIME CMD 5107 ? 04:06:58 python
+PIDs forked from session leader_
+
+ => No remaining processes to clean up
+ => Drop buffers
+
+================================
+   END btrzx2 EPILOGUE SCRIPT
+================================

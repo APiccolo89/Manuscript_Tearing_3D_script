@@ -1,3 +1,4 @@
+
 #!/bin/tcsh
 
 #PBS -W group_list=vo_bgi
@@ -36,6 +37,6 @@ cd $PBS_O_WORKDIR
 
 
 
-python  Slab_Break_off3D.py > test_2.txt
+python  Slab_Break_off3D2.py > test_2.txt
 #mpiexec -n -machinefile $PBS_NODEFILE ../LaMEM -ParamFile SSB2.dat > out.txt -mode restart
 

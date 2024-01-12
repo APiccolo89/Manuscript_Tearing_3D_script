@@ -42,7 +42,7 @@ ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_2'
 if not os.path.isdir(ptsave1):
     os.mkdir(ptsave1)
 # List of tests {Could be as well a list automatically created}
-Test_Name =['Test_2_LR']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
+Test_Name =['TSD2_V13_PR','TSD2_V13_PR2']#,'TSD4_V13']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)
