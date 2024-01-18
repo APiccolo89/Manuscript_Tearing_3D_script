@@ -28,8 +28,6 @@ from Read_VTK_files_LAMEM import  _file_list
 
 from Parser_File import * 
 from Slab_detachment import * 
-from Slab_detachment import _plot_D_D0
-from Slab_detachment import _plot_time_map_surface
 
 def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Group):
     t_INIZIO = perf_counter()
@@ -52,26 +50,26 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     "Psi"      : "plast_dissip [W/m^3]"}
     
     phase_dictionary={
-     "0" : ["Air","white"],
-     "1" : ["Upper Crust", "silver"],
-     "2" : ["Lower Crust", "dimgray"],
-     "3" : ["Continental Lithosperhic mantle","lightgoldenrodyellow"],
-     "4" : ["Continental Lithosperhic mantle2","palegoldenrod"],
-     "5" : ["Upper Mantle", "aliceblue"],
-     "6" : ["Slab","sandybrown"],
-     "7" : ["Oceanic Crust","palegreen"],
-     "8" : ["Weak Zone Mantle","rosybrown"],
-     "9" : ["Upper Crust2","linen"],
-     "10" : ["Lower  Crust 2","gainsboro"],
-     "11" : ["Pelagic Sediment","lavender"],
-     "12" : ["Prism","burlywood"],
-     "13" : ["Passive Margin","darkkhaki"],
-     "14" : ["Mantle 410 km","palegreen"],
-     "15" : ["Slab 410 km","peachpuff"],
-     "16" : ["Eclogite","palevioletred"],
-     "17" : ["Lower  Mantle","darkseagreen"],
-     "18" : ["Lower Slab","tan"]
-     }
+    "0" : ["Air","white"],
+    "1" : ["Upper Crust", "silver"],
+    "2" : ["Lower Crust", "dimgray"],
+    "3" : ["Continental Lithosperhic mantle","lightgoldenrodyellow"],
+    "4" : ["Continental Lithosperhic mantle2","palegoldenrod"],
+    "5" : ["Upper Mantle", "aliceblue"],
+    "6" : ["Slab","sandybrown"],
+    "7" : ["Oceanic Crust","palegreen"],
+    "8" : ["Weak Zone Mantle","rosybrown"],
+    "9" : ["Upper Crust2","linen"],
+    "10" : ["Lower  Crust 2","gainsboro"],
+    "11" : ["Pelagic Sediment","lavender"],
+    "12" : ["Prism","burlywood"],
+    "13" : ["Passive Margin","darkkhaki"],
+    "14" : ["Mantle 410 km","palegreen"],
+    "15" : ["Slab 410 km","peachpuff"],
+    "16" : ["Eclogite","palevioletred"],
+    "17" : ["Lower  Mantle","darkseagreen"],
+    "18" : ["Lower Slab","tan"]
+    }
     
     fname=("SDet")
     dyn             ='%s.pvtr'      %fname
@@ -149,20 +147,22 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         t1= perf_counter()
         FSurf._Update_(Filename_s,C,ipic)
         FSurf._update_extra_variables(DYN,C,dt,ipic)
-        FSurf._compute_relevant_information_topography(C,IG.Slab,ipic)
-        FSurf.ASCI_FILE(ipic,t_cur,Test_Name,ptsave,C)
+#        FSurf._compute_relevant_information_topography(C,IG.Slab,ipic)
+        FSurf.ASCI_FILE_ALT(ipic,t_cur,Test_Name,ptsave,C)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
         #======Select the chosen ===========# 
-        list_phase = [1,2,12,13]
-        levels     = [-15.0,-16.0]
+        list_phase = [1,2,12,13,16,17]
+        levels     = [-15.0,-14.0]
         if ipic == 0:
             BSPT = Basement_Passive_Tracer(PT,C,FSurf,list_phase,levels,len(time),ipic)
             BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'T')
         else:
             BSPT._update_PTDB(PT,ipic,time)
             BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dzdt')
+            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dPdt')
             BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dTdt')
+
             
 
         ###########################################################################
@@ -170,7 +170,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
         Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
         FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
-        FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur,Initial_Condition.D0/1e3)
+        #FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur,Initial_Condition.D0/1e3)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################

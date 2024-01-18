@@ -34,7 +34,7 @@ from Slab_detachment import *
 # Folder where the tests are contained
 Folder = r'/scratch/bt307806/3D_Numerical_suites/' 
 # Folder where the output must be saved
-ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_2'
+ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_3'
 
 #Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 
 #ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/Output'
@@ -42,7 +42,7 @@ ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_2'
 if not os.path.isdir(ptsave1):
     os.mkdir(ptsave1)
 # List of tests {Could be as well a list automatically created}
-Test_Name =['TSD2_V13_PR','TSD2_V13_PR2']#,'TSD4_V13']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
+Test_Name =['TSD2_V13','TSD2_V13_PR','TSD2_V13_PR2']#,'TSD4_V13']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)

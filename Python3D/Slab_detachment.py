@@ -37,8 +37,6 @@ class SLAB():
         self.ind_boundary = np.where(t==True)
         tx  = len(self.ind_boundary[0])
         self.y_b,self.x_s =_compute_length_coordinatesCB(self.ind_boundary,Slab_Geometry.Boundary_B,C.xp)
-
-        
         tz = len(C.zp)
         self.D     = np.ones((tx,tz,nstep),dtype=float)*(-1.0)
         self.T     = np.zeros((tx,tz,nstep),dtype=float)
@@ -63,20 +61,15 @@ class SLAB():
         self.dDdt_vec =  np.zeros((tx,nstep),dtype=float)
         self.nodes_tearing_=np.ones(nstep,dtype=int)*np.nan
         self.average_tearing_velocity=np.ones((3,nstep),dtype=float)*np.nan
-        self.LGV         = ["D","T","tau","dDdt","tau_max"]
-        self.Label       = ["$D^{\dagger} []$",     
-                            "T [$^{\circ}C$]",
-                            r"$\tau^{\dagger}_{II} [MPa]$$",
-                            r"$\frac{dD}{dt}$,[$cm/yrs$]",
-                            r"$\tau_{max}$, $[MPa]$",
-                            r"$\dot{\epsilon}^{\dagger}_{II} []$",
-                            r"$\Psi [\frac{W}{m^3}]$",
-                            r"$\frac{dD}{dt}$,[$cm/yrs$]",
-                            r"$\tau_{max}$, $[MPa]$"
+        self.LGV         = ["D","tau_max",'eps','vis','Psi']
+        self.Label       = ["$D^{\dagger} []$",
+                            r"$\tau_{II,max},[MPa]$",
+                            r"$\dot{\varepsilon}_{II,mean} [1/s]$",
+                            r"$\eta_{S}, [Pas]$",
+                            r"$\Psi, [W/m^3]$",
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
         self.Val         = [(0.1,0.85),
-                            (600,1200),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
@@ -91,7 +84,7 @@ class SLAB():
                             ("min","max"),
                             ("min","max"),
                             ("min","max")]
-        self.CV = ["T","eps","tau",'Rho','Psi',"dDdt","tau_max"]       
+        self.CV = ["T","eps","tau",'Rho','Psi',"dDdt","tau_max","vis"]       
 
 
     def _update_C(self,C,FS,Ph,IG,ipic,tcur,dt):
@@ -188,14 +181,10 @@ class SLAB():
             self.average_tearing_velocity[0,ipic] = ((self.nodes_tearing_[ipic]-self.nodes_tearing_[ipic-1])/dt)*dx_s_m
             self.average_tearing_velocity[1,ipic] = ((self.nodes_tearing_[ipic]-self.nodes_tearing_[ipic-1])/dt)*dx_s_av
             self.average_tearing_velocity[2,ipic] = ((self.nodes_tearing_[ipic]-self.nodes_tearing_[ipic-1])/dt)*dx_s_M
-            print('minumum tearing velocity is:', "{:03}".format(self.average_tearing_velocity[0,ipic]), 'km/Myrs' )
-            print('average tearing velocity is:', "{:03}".format(self.average_tearing_velocity[1,ipic]), 'km/Myrs' )
-            print('maximum tearing velocity is:', "{:03}".format(self.average_tearing_velocity[2,ipic]), 'km/Myrs' )
-
-
-
-        
-        
+            print('minumum tearing velocity is:', "{:03}".format(self.average_tearing_velocity[0,ipic]), 'km/Myr' )
+            print('average tearing velocity is:', "{:03}".format(self.average_tearing_velocity[1,ipic]), 'km/Myr' )
+            print('maximum tearing velocity is:', "{:03}".format(self.average_tearing_velocity[2,ipic]), 'km/Myr' )
+            self.average_tearing_velocity[:,ipic] = self.average_tearing_velocity[:,ipic]*(1e5)/(1e6)
         t2 =perf_counter()    
         print('time find_slab',"{:02}".format(t2-t1), 's')
     
@@ -360,7 +349,6 @@ class SLAB():
         zz,xx = np.meshgrid(z,x_s)
         it = 0 
         cm = 1/2.54  # centimeters in inches
-        plt.rcParams.update({"text.usetex": False,"font.family": "sans-serif", "font.sans-serif": "Helvetica"})
         for values in var: 
             print(values)
        
@@ -375,7 +363,7 @@ class SLAB():
             fn = os.path.join(ptsave_c,fna)
             ax1 = fg.add_axes([0.1, 0.7, 0.8, 0.2])
             ax0 = fg.add_axes([0.1, 0.05, 0.8, 0.5])   
-            cfactor = (1e3*100)/1e6
+            cfactor = 1.0
                 
             #ax1.plot((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),color='b',linewidth=0.8)
             ax1.plot((time[0:ipic]),(self.average_tearing_velocity[1,0:ipic]*cfactor),color='r',linewidth=1.2)
@@ -388,7 +376,7 @@ class SLAB():
             ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
             plt.grid(True)
             ax1.set_xlim(0, (np.max(time)))           
-            ax1.set_yscale('log')    
+            ax1.set_yscale('linear')    
             if values == 'D':
                 cor = 1/(IC.D0[0][0]/1e3)
             elif values =='tau':
@@ -454,13 +442,15 @@ class Initial_condition():
         the rheology, density, and so forth are filled up for then being saved in the 
         data base. 
         -------
-        ?) reading geometry as well? 
+        ?) reading geometry as well?
         ?) reading the python file to generate the initial setup (later on)
         """
         # Data that are input of the script 
         self.D0,self.L0 = vIC.Slab.D0*1e3,vIC.Slab.L0*1e3
         self.RB         = vIC.Slab.Boundary_B[2][2]
         self.T_av       = vIC.Slab.avTS+273.15
+        string = 'Average temperature of the slab is: %2f degC' %(vIC.Slab.avTS)
+        print(string)
         self.TP         = vIC.Slab.TP+273.15
         rho_slab         = Phase_Slab.Density.rho*(1-Phase_Slab.Density.alpha*(self.T_av-273.15))
         rho_mantle      = Phase_Mantle.Density.rho*(1-Phase_Slab.Density.alpha*(self.TP-273.15))
@@ -536,230 +526,61 @@ class Initial_condition():
         print("Reference viscosity dislocation creep of the slab is %f"%(np.log10(eta0N)))
         print("XiS %f"%(np.log10(self.xiUS)))
 
-
-def _plot_D_D0(Slab,IC,ptsave,time,Test_Name,t_lim): 
-    # 
-    fg = figure()
-
-    tick='%s' %(Test_Name)
-
-    fna = "D_vs_Analytical.png"
-    tt = np.linspace(0,1.0,num=10000)
-    analytical_solution = (1-3.5*tt)**(1/3.5)
-
-    ptsave_c=os.path.join(ptsave)
-    if not os.path.isdir(ptsave_c):
-        os.mkdir(ptsave_c)
-
-    fn = os.path.join(ptsave_c,fna)
-
-    ax0 = fg.gca()
-
-    ax0.plot(time/IC.td,Slab.D_det/(IC.D0/1e3), lw=1.2,c='k',ls='--', label = r"Simulations")
-    ax0.plot(tt/(1/3.5),analytical_solution, lw=1.5,c='k',ls='dashdot', label = r"Analytical Solution")
-    ax0.scatter(time/IC.td,Slab.D_det/(IC.D0/1e3),c='r',s=10)
-    plt.xlim(0, t_lim)
-    plt.ylim(0.1, 1.0)
-    ax2 = ax0.twinx()  
-    ax2.set_ylim(0.5,5.0)
-    ax2.plot(time/IC.td,Slab.tau_vec,lw=1.2,c='b',label=r"$\tau^{\dagger}_{SIM}$")
-    ax2.plot(time/IC.td,Slab.tau_d_min,lw=0.8,c='b',label=r"$\tau^{\dagger}_{SIM}$")
-    ax2.plot(time/IC.td,Slab.tau_d_max,lw=0.8,c='b',label=r"$\tau^{\dagger}_{SIM}$")
-    ax2.fill_between(time/IC.td, Slab.tau_d_min, Slab.tau_d_max,alpha=0.2)
-    ax2.plot(tt/(1/3.5),1/analytical_solution,lw=0.8,c='b',ls='dashdot')
-    ax2.yaxis.set_ticks(np.arange(0.5,5.0,0.5))
-
-    ax0.grid(True)
-    #plt.yscale('log')
-    ax0.set_title(tick)
-    plt.xlabel(r'$t^{\dagger}, [n.d.]$')
-    plt.ylabel(r'$D^{\dagger}, [n.d.]$')
-    ax0.tick_params(axis='both', which='major', labelsize=5)
-    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-    ax2.tick_params(axis='both', which='major', labelsize=5)
-    ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-   
-    plt.draw()    # necessary to render figure before saving
-    fg.savefig(fn,dpi=300,transparent=False)
-    ax0.plot()
-    val = [] 
-    
-    plt.close()
-    
-
-
-def _plot_F_T_F_B(Slab,IC,ptsave,time,Test_Name,t_lim,ind_z): 
-    
-    fg = figure()
-
-    tick='%s' %(Test_Name)
-
-    fna = "Buoyancy_FORCE.png"
-    tt = np.linspace(0,1.0,num=10000)
-    analytical_solution = (1-3.5*tt)**(1/3.5)
-
-    ptsave_c=os.path.join(ptsave)
-    if not os.path.isdir(ptsave_c):
-        os.mkdir(ptsave_c)
-
-    fn = os.path.join(ptsave_c,fna)
-
-    ax0 = fg.gca()
-
-    ax0.plot(time/IC.td,Slab.F_T[ind_z,:]/IC.F_B0, lw=1.2,c='k',ls='--', label = r"Simulations")
-    
-    
-    leg = plt.legend()
-    plt.xlim(0, t_lim)
-    plt.ylim(0, 1.1)
-    plt.grid(True)
-    #plt.yscale('log')
-    ax0.set_title(tick)
-    plt.xlabel(r'$\frac{t}{t_d}, [n.d.]$')
-    plt.ylabel(r'$\frac{F_T}{F_B0}, [n.d.]$')
-    ax0.tick_params(axis='both', which='major', labelsize=5)
-    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-    plt.draw()    # necessary to render figure before saving
-    fg.savefig(fn,dpi=300,transparent=False)
-    ax0.plot()
-    val = [] 
-    
-    plt.close()
-    
-
-    
-
-def _plot_vz(Slab,IC,ptsave,time,Test_Name,t_lim,ind_z): 
-    
-    fg = figure()
-
-    tick='%s' %(Test_Name)
-
-    fna = "velocity_slab_detached.png"
-    tt = np.linspace(0,1.0,num=10000)
-    analytical_solution = (1-3.5*tt)**(1/3.5)
-
-    ptsave_c=os.path.join(ptsave)
-    if not os.path.isdir(ptsave_c):
-        os.mkdir(ptsave_c)
-
-    fn = os.path.join(ptsave_c,fna)
-
-    ax0 = fg.gca()
-
-    ax0.plot(time/IC.td,Slab.vz_S[:,0], lw=1.2,c='b',ls='--', label = r"$v_z mean [cm/yrs]$")
-    ax0.plot(time/IC.td,Slab.vz_S[:,1], lw=1.2,c='b',ls=':', label = r"$v_z median [cm/yrs]$")
-    ax0.plot(time/IC.td,Slab.vz_S[:,3], lw=0.5,c='b',ls=':')
-    ax0.plot(time/IC.td,Slab.vz_S[:,4], lw=0.5,c='b',ls=':')
-    plt.axvline(x=Slab.SDet.t_det_td,c = 'r')
-    
-    ax0.fill_between(time/IC.td,Slab.vz_S[:,3],Slab.vz_S[:,4],color="b",alpha=0.1)
-
-    plt.grid(True)
-    
-    leg = plt.legend()
-    plt.xlim(0, t_lim)
-    plt.grid(True)
-    #plt.yscale('log')
-    ax0.set_title(tick)
-    plt.xlabel(r'$\frac{t}{t_d}, [n.d.]$')
-    plt.ylabel(r'$v_z, [cm/yrs]$')
-    ax0.tick_params(axis='both', which='major', labelsize=5)
-    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-    plt.draw()    # necessary to render figure before saving
-    fg.savefig(fn,dpi=300,transparent=False)
-    ax0.plot()
-    val = [] 
-    
-    plt.close()
-    
-
-def _plot_time_map_surface(x,time,buf,Field,Test_Name,cmap,ptsave,clim,t_lim):
-    import cmcrameri.cm as cmc
-    cmap2 =eval(cmap)
-    ptsave_b=os.path.join(ptsave,'Maps')
-    if not os.path.isdir(ptsave_b):
-        os.mkdir(ptsave_b)
-    
-    fg = figure()
-    ax0 = fg.gca()
-    
-    fna=('%s_%s.png' %(Test_Name,Field))
-    cbar_title = ('%s, mm/yrs' %(Field))
-    fn = os.path.join(ptsave_b,fna)
-    cf=ax0.pcolormesh(x, time, np.transpose(buf),cmap = cmap2, shading='gouraud', vmin=clim[0], vmax=clim[1])
-    cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal')
-    ax0.tick_params(axis='both', which='major', labelsize=5)
-    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-    ax0.set_ylim(np.min(time),t_lim)
-    ax0.set_xlim(np.min(x),np.max(x))
-    plt.xlabel('$x, [km]$')
-    plt.ylabel('$Time, [Myrs]$')
-    cbar.set_label(cbar_title)
- 
-    plt.draw()    # necessary to render figure before saving
-    fg.savefig(fn,dpi=300)
-    fg.clear()
-    plt.close()
-
 class Initial_Geometry():
     def __init__(self, file_mat):
         self.Continent1 = Terrane_Geo(file_mat,'Continent1')
         self.Continent2 = Terrane_Geo(file_mat,'Continent2')
         self.Slab       = Trench(file_mat,'Trench')
         self.Ocean_BG   = Terrane_Geo(file_mat,'Ocean_BG')
-        
-                 
-
 class Terrane_Geo():
       def __init__(self, file_mat,name):
-          mat = h5py.File(file_mat)
-          TB = mat['TB']
-          buf = TB[name]
-          TI = buf['Thermal_type']
-          # Thermal Information 
-          self.Age = np.array(TI['Age'])
-          self.Moho_T = np.array(TI['Moho'])
-          self.Moho_z = np.array(TI['Moho_d'])
-          string_type = []
-          aa = np.array(TI['Type'])
-          self.Type   = ''.join((str(np.string_(i))[2]) for i in aa[:])
-          try:
-              self.vel    = np.concatenate(np.array(mat[TI['vel'][0][0]]))
-          except:
-              self.vel = np.array(TI['vel'])
-          # Boundary information 
-          Bounds = buf['Boundary']
-          self.B_main_coordinate = np.array([np.array(Bounds['x1'])[0][0],np.array(Bounds['x2'])[0][0],np.array(Bounds['y1'])[0][0],np.array(Bounds['y2'])[0][0]])
-          self.Boundary_A = self._extract_boundaries(mat,Bounds,'A')
-          self.Boundary_B = self._extract_boundaries(mat,Bounds,'B')
-          self.Boundary_C = self._extract_boundaries(mat,Bounds,'C')
-          self.Boundary_D = self._extract_boundaries(mat,Bounds,'D')
-          try:
-              self.Phases     = np.concatenate(np.array(buf['Stratigraphy/phases']))
-              self.Thickness  = np.concatenate(np.array(buf['Stratigraphy/Tk']))
-          except: 
-              self.Phases     = np.concatenate(np.array(buf['Stratigraphy_Oceanic/phases']))
-              self.Thickness  = np.concatenate(np.array(buf['Stratigraphy_Oceanic/Tk']))
-          
+        mat = h5py.File(file_mat)
+        TB = mat['TB']
+        buf = TB[name]
+        TI = buf['Thermal_type']
+        # Thermal Information 
+        self.Age = np.array(TI['Age'])
+        self.Moho_T = np.array(TI['Moho'])
+        self.Moho_z = np.array(TI['Moho_d'])
+        string_type = []
+        aa = np.array(TI['Type'])
+        self.Type   = ''.join((str(np.string_(i))[2]) for i in aa[:])
+        try:
+            self.vel    = np.concatenate(np.array(mat[TI['vel'][0][0]]))
+        except:
+            self.vel = np.array(TI['vel'])
+        # Boundary information 
+        Bounds = buf['Boundary']
+        self.B_main_coordinate = np.array([np.array(Bounds['x1'])[0][0],np.array(Bounds['x2'])[0][0],np.array(Bounds['y1'])[0][0],np.array(Bounds['y2'])[0][0]])
+        self.Boundary_A = self._extract_boundaries(mat,Bounds,'A')
+        self.Boundary_B = self._extract_boundaries(mat,Bounds,'B')
+        self.Boundary_C = self._extract_boundaries(mat,Bounds,'C')
+        self.Boundary_D = self._extract_boundaries(mat,Bounds,'D')
+        try:
+            self.Phases     = np.concatenate(np.array(buf['Stratigraphy/phases']))
+            self.Thickness  = np.concatenate(np.array(buf['Stratigraphy/Tk']))
+        except: 
+            self.Phases     = np.concatenate(np.array(buf['Stratigraphy_Oceanic/phases']))
+            self.Thickness  = np.concatenate(np.array(buf['Stratigraphy_Oceanic/Tk']))
+        
       def _extract_boundaries(self,mat,Bounds,Boundary):
-         B_A = []
-         A=Bounds[Boundary]
-         ind = np.array(A)[0][0]
-         B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0],np.array(mat[ind])[3][0]]))
-         ind =  np.array(A)[1][0]
-         B_A_Buff = (''.join((str(np.string_(i))[2]) for i in np.array(mat[ind])[:]))
-         if B_A_Buff == 'none':
+        B_A = []
+        A=Bounds[Boundary]
+        ind = np.array(A)[0][0]
+        B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0],np.array(mat[ind])[3][0]]))
+        ind =  np.array(A)[1][0]
+        B_A_Buff = (''.join((str(np.string_(i))[2]) for i in np.array(mat[ind])[:]))
+        if B_A_Buff == 'none':
             B_A.append([])
             B_A.append(np.array([np.array(0),np.array(0),np.array(0)]))
 
-         else:
-             B_A.append([1])
-             ind = np.array(A)[2][0]
-             B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0]]))
-             B_A = np.array(B_A)
-            
-         return B_A
+        else:
+            B_A.append([1])
+            ind = np.array(A)[2][0]
+            B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0]]))
+            B_A = np.array(B_A)
+           
+        return B_A
     
 class Trench(Terrane_Geo):
     def __init__(self, file_mat,name):
@@ -782,26 +603,25 @@ class Free_S_Slab_break_off(FS):
         tx  = np.sum(C.ind_x)
         ty  = np.sum(C.ind_y)
         self.dH          = np.zeros((ty,tx,nstep),dtype=float)
+        self.vx_M        = np.zeros((ty,tx,nstep),dtype=float)
+        self.vy_M        = np.zeros((ty,tx,nstep),dtype=float)
         self.vz_M        = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_stress = np.zeros((ty,tx,nstep),dtype=float)
         self.thickness = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_eps = np.zeros((ty,tx,nstep),dtype=float)
-        self.mean_dx     = np.zeros((ty,tx,nstep),dtype=float)
-        self.mean_dy     = np.zeros((ty,tx,nstep),dtype=float)
-        self.mean_dz     = np.zeros((ty,tx,nstep),dtype=float)
-        self.HB           = np.ones((tx,nstep),dtype=float)*np.nan # topography boundary plates
-        self.HBy          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
-        self.HBx          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
-        self.HMax         =np.ones((tx,nstep),dtype=float)*np.nan # maximum topography within +/-200 km boundary
-        self.HMaxy        = np.ones((tx,nstep),dtype=float)*np.nan # coordinate maximum topography
-        self.Hmin       = np.ones((tx,nstep),dtype=float)*np.nan # minimum frontal topography
-        self.Hminy      = np.ones((tx,nstep),dtype=float)*np.nan # coordinate
-        self.v_z_M       = np.ones((tx,nstep),dtype=float)*np.nan # maximum velocity
-        self.v_z_m       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
-        self.v_z_mean    = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
-        self.mean_stress_1D = np.ones((tx,nstep),dtype=float)*np.nan #average crustal stress 
-        self.HMean       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
-        self.Hmeang       = np.ones((nstep),dtype=float)*np.nan #minimum velocity
+#        self.HB           = np.ones((tx,nstep),dtype=float)*np.nan # topography boundary plates
+#        self.HBy          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
+#        self.HBx          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
+#        self.HMax         =np.ones((tx,nstep),dtype=float)*np.nan # maximum topography within +/-200 km boundary
+#        self.HMaxy        = np.ones((tx,nstep),dtype=float)*np.nan # coordinate maximum topography
+#        self.Hmin       = np.ones((tx,nstep),dtype=float)*np.nan # minimum frontal topography
+#        self.Hminy      = np.ones((tx,nstep),dtype=float)*np.nan # coordinate
+#        self.v_z_M       = np.ones((tx,nstep),dtype=float)*np.nan # maximum velocity
+#        self.v_z_m       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+#        self.v_z_mean    = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+#        self.mean_stress_1D = np.ones((tx,nstep),dtype=float)*np.nan #average crustal stress 
+#        self.HMean       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
+#        self.Hmeang       = np.ones((nstep),dtype=float)*np.nan #minimum velocity
 
         self.x_s         = np.ones(tx)*np.nan
         self.x_sp         = []
@@ -813,21 +633,15 @@ class Free_S_Slab_break_off(FS):
     def _update_extra_variables(self,V:VAL,C:Coordinate_System,dt,ipic):
         self.dH[:,:,ipic]          = self._update_FS(dt,ipic,'dH')
         self.vz_M[:,:,ipic]        = self._update_FS(dt,ipic,'vz_M')
+        self.vx_M[:,:,ipic]        = self._update_FS(dt,ipic,'vx_M')
+        self.vy_M[:,:,ipic]        = self._update_FS(dt,ipic,'vy_M')
         self.mean_stress[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'tau')
         self.mean_eps[:,:,ipic]    = self.update_Mean_CC(V,C,ipic,'eps')
         self.thickness[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'thickness')
-
-        self.mean_dx[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dx')
-        self.mean_dy[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dy')
-        self.mean_dz[:,:,ipic]     = self.update_Mean_CC(V,C,ipic,'dz')
-        
-        
-        
-        
-        self.LGV = ['dH','vz_M','mean_stress','mean_eps','mean_dz','Amplitude','thickness','F_z']
-        self.Label  = ['dH','vz','tau','eps','dz','H','thickness','F_z']
-        self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.cork","cmc.oleron","cmc.bilbao","cmc.hawaii"]
-        self.Val         = [("min","max"),
+        self.LGV = ['dH','vz_M','mean_stress','mean_eps','Amplitude','thickness','F_z']
+        self.Label  = [r'$\dot{H}, [\frac{mm}{yr}]$',r'$v_z[\frac{mm}{yr}]$',r'$\bar{\tau}_{II} [MPa]$',r'$\bar{\dot{varepsilon}}_{II} [\frac{1}{s}]$','Topography, $[km]$','Lithosphere $[km]$',r'$F_z, [\frac{N}{m}]$']
+        self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.oleron","cmc.bilbao","cmc.hawaii","cmc.hawaii"]
+        self.Val         = [(-10,10),
                             ("min","max"),
                             ("min","max"),
                             (1e-16,"max"),
@@ -843,13 +657,22 @@ class Free_S_Slab_break_off(FS):
         if name_field == 'dH':
             if ipic > 0:
                 buf = (self.Topo[:,:,ipic]-self.Topo[:,:,ipic-1])/dt
+                # Convert into mm/yr [all surface velocity must be scaled using mm/yrs]
+                buf = buf*(1e6/1e6)
             else:
-                buf = self.dH[:,:,ipic]
+                buf = self.dH[:,:,ipic]*0.0
         else:
+            if name_field == 'vx_M':
+                buf_pr = self.vx
+            elif name_field == 'vy_M':
+                buf_pr = self.vy 
+            else:
+                buf_pr = self.vz
             if ipic > 0:
-                buf = (self.vz[:,:,ipic]+self.vz[:,:,ipic-1])/2
+                buf = (buf_pr[:,:,ipic]+buf_pr[:,:,ipic-1])/2 # cm/yr
+                buf = buf*10 # mm/yr
             else: 
-                buf = self.vz[:,:,ipic]
+                buf = buf_pr[:,:,ipic]
         return buf 
     
     def update_Mean_CC(self,V:VAL,C:Coordinate_System,ipic,field_name):
@@ -896,15 +719,15 @@ class Free_S_Slab_break_off(FS):
         fna='Fig'+"{:03d}".format(ipic)+'.png'       
         cf =ax0.pcolormesh(x, y, val, shading='gouraud')
         cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
-        cf0 = ax0.scatter(S.x_vec,S.y_vec,20,S.det_vec,cmap = "inferno",marker='^')
-        cf1 = ax0.plot(S.x_vec,S.y_vec,c='r',linewidth=1.2,linestyle='-.')
+        cf0 = ax0.scatter(S.x_vec,S.y_vec,5,S.det_vec,cmap = "inferno",marker='^')
+        #cf1 = ax0.plot(S.x_vec,S.y_vec,c='r',linewidth=0.8,linestyle='-.')
         try: 
             lim1_m = np.nanmin(S.det_vec)
             lim2_m = np.nanmax(S.det_vec)
         except: 
             lim1_m = 0
             lim2_m = 1
-        cbar2 = fg.colorbar(cf0, ax=ax0,orientation='vertical',extend="both")
+        cbar2 = fg.colorbar(cf0, ax=ax0,orientation='vertical',extend="both",label = r'Age of detachment,$[Myr]$')
         cf0.set_clim([lim1_m,lim2_m])
         cbar2.vmin = lim1_m 
         cbar2.vmax = lim2_m
@@ -949,7 +772,7 @@ class Free_S_Slab_break_off(FS):
                 lim_M = np.nanmax(val)
                 
                 if lm[0] != "min":
-                     lim_m = lm[0]
+                    lim_m = lm[0]
             if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
                 lim_m = 0.01
                 lim_M = +0.1
@@ -985,178 +808,215 @@ class Free_S_Slab_break_off(FS):
             ic +=1 
         fg.clear
         plt.close()
-
-    def _compute_relevant_information_topography(self,C: Coordinate_System,Slab_GEO:Trench,ipic:int):
-        # Compute the plate boundary using the data of the boundary 
-            """
-            Approach: compute x-y of the boundary of the terrane
-            -> interpolate topography at the boundary of the terrane and other variables
-            -> loop over the nodes of the point of the margin:
-                -> select the area between p(B)-200,p(B)+200 
-                    -> find the maximum topography (store its node)
-                    -> find the minimum topography:
-                        -> behind and in front the maximum topography 
-                    -> compute the averages, the wavelength (i.e. distance between the two minima)
-            """
-            # Extract information boundary and select x belongs to xa-xb 
-            boundary_geometry = Slab_GEO.Boundary_B
-            xa = boundary_geometry[0][0]
-            xb = boundary_geometry[0][2]
-            ind_boundary = (C.x>=xa) & (C.x<xb)
-            x_B = C.x[ind_boundary]
-            # Compute the boundary 
-            y_B,x_s =_compute_length_coordinatesCB(ind_boundary,boundary_geometry,C.x)
-            # function to retrieve the data. 
-            vz = self.vz_M[:,:,ipic]
-            tau_C = self.mean_stress[:,:,ipic] 
-            H  = self.Amplitude[:,:,ipic]
-            self.HBx[ind_boundary==True,ipic]=x_B[:]
-            self.HBy[ind_boundary,ipic]=y_B[:]
-            self.x_s = x_s
-            ind_boundary_p = (C.xp>=xa) & (C.xp<xb)
-            x_p = C.xp[ind_boundary_p]
-            y_Bp,x_sp =_compute_length_coordinatesCB(ind_boundary_p,boundary_geometry,C.xp)
-            self.x_sp = x_sp
+    def ASCI_FILE_ALT(self,ipic,t_cur,Test_Name,ptsave,C:Coordinate_System):
             
-            """
-            HB     topography of plate boundary  
-            HBc    coordinate of the plate boundary
-            HMax   topography of the maximum   
-            HMaxc  coordinate maximum
-            HminF  topography frontal minumum
-            HminFc topography frontal minimum coordinates
-            HminB  topography back minimum
-            Hminc  coordinate topography back mininum
-            v_z_M  max velocity     [HBc+/-200]
-            v_z_m  minumum velocity [HBc+/-200]
-            x_s    length from left to right 
-            """
-            ix_b = np.sum(ind_boundary)
-            ix_ch = np.where(ind_boundary==True)
-            for i_x in range(ix_b):
-                i = ix_ch[0][i_x]
-                yy = y_B[i_x] # 
-                iy = find1Dnodes(C.y,yy,len(C.y))
-                y1 = C.y[iy]
-                y2 = C.y[iy+1]
-                intp1 = H[iy,i]
-                intp2 = H[iy,i]
-                self.HB[i,ipic] = linearinterpolation(yy,y1,y2,intp1,intp2)
-                # find area of interest: 
-                ind_area = np.where((C.y<=self.HBy[i,ipic]+200)&(C.y>=self.HBy[i,ipic]-200))
-                # find_maximum
-                self.HMax[i,ipic] = np.max(H[ind_area,i])
-                ind_max   = np.where(H[:,i]==self.HMax[i,ipic])
-                # find_coordinate
-                if C.y[ind_max[0][0]]<self.HBy[i,ipic]-200:
-                    self.HMaxy[i,ipic]=np.nan
-                else:
-                    self.HMaxy[i,ipic]=C.y[ind_max[0][0]]
-                self.Hmeang[ipic] = np.mean(H[ind_area[0][0],ind_boundary==True])
-                # find_minimum_front
-                if self.HMaxy[:,ipic].all() == False:
-                    self.Hmin[i,ipic]  = np.min(H[ind_area,i])
-                    self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
-                    self.Hminy[i,ipic] = C.y[H[:,i]==np.min(H[ind_area,i])]
-                else:
-                    self.Hmin[i,ipic]   = np.nan
-                    self.Hminy[i,ipic]  = np.nan
-                    self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
-                
-                self.v_z_M[i,ipic] = np.max(vz[ind_area,i])
-                self.v_z_m[i,ipic] = np.min(vz[ind_area,i])
-                self.v_z_mean[i,ipic] = np.mean(vz[ind_area,i])
-                self.mean_stress_1D[i,ipic] = np.mean(tau_C[ind_area,i])
-            self.ind_boundary=ind_boundary
-            return self 
-    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB,t_cur,D0):
-        val = ['HMax','v_z']
-        ptsave=os.path.join(ptsave,'1D_surfaces')
-        if not os.path.isdir(ptsave):
-            os.mkdir(ptsave)
-        ib = self.ind_boundary
-        for v in val:
-            time_sim = "{:.3f}".format(t_cur)
-            tick = r"t = %s [Myrs]" %(time_sim)
-            ptsave_b=os.path.join(ptsave,v)
-            if not os.path.isdir(ptsave_b):
-                os.mkdir(ptsave_b)
-            fig = plt.figure()
-            ax2 = fig.gca()
-            fna='Fig'+str(ipic)+'.png'
-            fn=os.path.join(ptsave_b,fna)
-            if v=='HB':
-                for ip in range(10):
-                    it = ipic - ip
-                    alpha_v= 0.8-ip*(1/12)
-                    if ip == 0: 
-                        cc = 'r'
-                    else:
-                        cc = 'b'
-                    if (it == 0) & (ip == 0) :
-                        ax2.plot(self.x_s, self.HMax[ib==True,0]-self.Hmeang[0],c = cc,alpha = alpha_v,linewidth=alpha_v)
-                        break
-                    if (ip >0 ) & (it == 0 ):
-                        ax2.plot(self.x_s, self.HMax[ib==True,it]-self.Hmeang[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
-                        break 
-                    else: 
-                        ax2.plot(self.x_s, self.HMax[ib==True,it]-self.Hmeang[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
-                ax2.plot(self.x_s, self.HB[ib==True,ipic]-self.Hmean[ipic],c = 'r',alpha = 1.0,linewidth=1.2)
-                plt.xlabel('x, [km]')
-                plt.ylabel('H, [km]')
-                plt.xlim(0,1200)
+        """
+        Write a simple ascii file for the post processing of the free surface dat
+        This is for the the free surface data, later on I will dedicate a bit of 
+        more time on the usage of the passive tracers.     
+        """
+        file_name = str(ipic).zfill(7)+'__'+Test_Name+'Free_surface_data.txt'
+        
+        ptsave_b=os.path.join(ptsave,'DataBase_FS')
+        if not os.path.isdir(ptsave_b):
+            os.mkdir(ptsave_b)
+        
+        filename = os.path.join(ptsave_b,file_name)
+        Y,X = np.meshgrid(C.y,C.x)
+        buf_x = X.ravel()
+        buf_y = Y.ravel()
+        vx_M    = self.vx_M[:,:,ipic]
+        vy_M    = self.vy_M[:,:,ipic]
+        vz_M    = self.vz_M[:,:,ipic]
+        dHdt    = self.dH[:,:,ipic]
+        H     = self.Amplitude[:,:,ipic]
+        S        = np.array([buf_x,buf_y,vx_M.ravel(),vy_M.ravel(),vz_M.ravel(),dHdt.ravel(),H.ravel()])
+        if(os.path.isfile(filename)):
+            os.remove(filename)
+        f = open(filename, 'a+')
+        f.write('########################################\n')
+        f.write('time [Myrs] time step []\n')
+        f.write('x, y, v_x,v_y ,v_z,dHdt, Topography\n')
+        f.write('  [km],[km],  [mm/yrs], [mm/yrs],[mm/yrs],[mm/yrs], [km]\n')
+        f.write('########################################\n')
+        f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))
+        f.write('\n')
+        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+        f.close()
+        print('Free surface data of the timestep %d, has been printed' %(ipic))
+            
 
-            elif v == 'v_z':
-                p1=ax2.plot(self.x_s,self.v_z_M[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.6)
-                p2=ax2.plot(self.x_s,self.v_z_m[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.6)
-                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_M[ib==True,ipic],color='blue',alpha=0.2)
-                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'r',alpha = 1.0,linewidth=1.2)
-                ax2.set_xlabel(r'$\ell_{trench}, [km]$')
-                ax2.set_ylabel(r'$\dot{H}$, $[\frac{cm}{yrs}]$')
-                ax3 = ax2.twinx()
-                D_ = ndi.uniform_filter1d(S.dDdt_vec[:,ipic], size=20)
-                p5=ax3.plot(self.x_sp,D_/D0[0][0],c = 'k',alpha = 1.0,linewidth=1.2,linestyle='dashed')
-                ax3.set_ylim(0.1,1.0)
-                ax3.set_xlim(0.0,1200.0)
-                ax3.set_ylabel(r'$D^{\dagger}$, $[]$')
-                ax3.set_ylim()
-                fig.tight_layout()  # otherwise the right y-label is slightly clipped
-            elif v == 'HMax':
-                p1=ax2.plot(self.x_s,self.HMax[ib==True,ipic]-self.Hmeang[ipic],c = 'r',alpha = 1.0,linewidth=1.0,linestyle=':')
-                p2=ax2.plot(self.x_s,self.Hmin[ib==True,ipic]-self.Hmeang[ipic],c = 'b',alpha = 1.0,linewidth=1.2)
-                ax2.set_xlabel(r'$\ell_{trench}, [km]$')
-                ax2.set_ylabel(r'${H}$, $[\frac{cm}{yrs}]$')
-                plt.xlabel('x_s, [km]')
-                plt.ylabel('H, [km]')
-                plt.xlim(0,1200)
-            elif v == 'Maps':
-                p1=ax2.fill_between(self.HBx[ib==True,ipic], self.Hminy[ib==True,ipic],self.HMaxy[ib==True,ipic],color='blue',alpha=0.4)
-                p3=ax2.plot(self.HBx[ib==True,ipic],self.HBy[ib==True,ipic],c = 'k',alpha = 1.0,linewidth=0.8,linestyle=':')
-                plt.xlabel('x, [km]')
-                plt.ylabel('y, [km]')
-            p5 = ax2.scatter(self.x_sp,np.zeros(len(self.x_sp)),10,S.det_vec,cmap='inferno')
-            try: 
-                lim1_m = np.nanmin(S.det_vec)
-                lim2_m = np.nanmax(S.det_vec)
-            except: 
-                lim1_m = 0
-                lim2_m = 1
-            cbar2 = fig.colorbar(p5, ax=ax2,orientation='horizontal',extend="both")
-            p5.set_clim([lim1_m,lim2_m])
-            cbar2.vmin = lim1_m 
-            cbar2.vmax = lim2_m
-            ax2.set_title(tick)
-
-            #plt.grid(True)
-            #plt.xlabel(r'\ell_{trench}, [km]')
-            #plt.ylabel('H, [km]')
-            ax2.tick_params(axis='both', which='major', labelsize=5)
-            ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-        ###############################################################       
-            plt.draw()    # necessary to render figure before saving
-            fig.savefig(fn,dpi=300,transparent=False)
-            fig.clear()
-            plt.close()
+#    def _compute_relevant_information_topography(self,C: Coordinate_System,Slab_GEO:Trench,ipic:int):
+#        # Compute the plate boundary using the data of the boundary 
+#            """
+#            Approach: compute x-y of the boundary of the terrane
+#            -> interpolate topography at the boundary of the terrane and other variables
+#            -> loop over the nodes of the point of the margin:
+#                -> select the area between p(B)-200,p(B)+200 
+#                    -> find the maximum topography (store its node)
+#                    -> find the minimum topography:
+#                        -> behind and in front the maximum topography 
+#                    -> compute the averages, the wavelength (i.e. distance between the two minima)
+#            """
+#            # Extract information boundary and select x belongs to xa-xb 
+#            boundary_geometry = Slab_GEO.Boundary_B
+#            xa = boundary_geometry[0][0]
+#            xb = boundary_geometry[0][2]
+#            ind_boundary = (C.x>=xa) & (C.x<xb)
+#            x_B = C.x[ind_boundary]
+#            # Compute the boundary 
+#            y_B,x_s =_compute_length_coordinatesCB(ind_boundary,boundary_geometry,C.x)
+#            # function to retrieve the data. 
+#            vz = self.vz_M[:,:,ipic]
+#            tau_C = self.mean_stress[:,:,ipic] 
+#            H  = self.Amplitude[:,:,ipic]
+#            self.HBx[ind_boundary==True,ipic]=x_B[:]
+#            self.HBy[ind_boundary,ipic]=y_B[:]
+#            self.x_s = x_s
+#            ind_boundary_p = (C.xp>=xa) & (C.xp<xb)
+#            x_p = C.xp[ind_boundary_p]
+#            y_Bp,x_sp =_compute_length_coordinatesCB(ind_boundary_p,boundary_geometry,C.xp)
+#            self.x_sp = x_sp
+#            
+#            """
+#            HB     topography of plate boundary  
+#            HBc    coordinate of the plate boundary
+#            HMax   topography of the maximum   
+#            HMaxc  coordinate maximum
+#            HminF  topography frontal minumum
+#            HminFc topography frontal minimum coordinates
+#            HminB  topography back minimum
+#            Hminc  coordinate topography back mininum
+#            v_z_M  max velocity     [HBc+/-200]
+#            v_z_m  minumum velocity [HBc+/-200]
+#            x_s    length from left to right 
+#            """
+#            ix_b = np.sum(ind_boundary)
+#            ix_ch = np.where(ind_boundary==True)
+#            for i_x in range(ix_b):
+#                i = ix_ch[0][i_x]
+#                yy = y_B[i_x] # 
+#                iy = find1Dnodes(C.y,yy,len(C.y))
+#                y1 = C.y[iy]
+#                y2 = C.y[iy+1]
+#                intp1 = H[iy,i]
+#                intp2 = H[iy,i]
+#                self.HB[i,ipic] = linearinterpolation(yy,y1,y2,intp1,intp2)
+#                # find area of interest: 
+#                ind_area = np.where((C.y<=self.HBy[i,ipic]+200)&(C.y>=self.HBy[i,ipic]-200))
+#                # find_maximum
+#                self.HMax[i,ipic] = np.max(H[ind_area,i])
+#                ind_max   = np.where(H[:,i]==self.HMax[i,ipic])
+#                # find_coordinate
+#                if C.y[ind_max[0][0]]<self.HBy[i,ipic]-200:
+#                    self.HMaxy[i,ipic]=np.nan
+#                else:
+#                    self.HMaxy[i,ipic]=C.y[ind_max[0][0]]
+#                self.Hmeang[ipic] = np.mean(H[ind_area[0][0],ind_boundary==True])
+#                # find_minimum_front
+#                if self.HMaxy[:,ipic].all() == False:
+#                    self.Hmin[i,ipic]  = np.min(H[ind_area,i])
+#                    self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
+#                    self.Hminy[i,ipic] = C.y[H[:,i]==np.min(H[ind_area,i])]
+#                else:
+#                    self.Hmin[i,ipic]   = np.nan
+#                    self.Hminy[i,ipic]  = np.nan
+#                    self.HMean[i,ipic]  = np.mean(H[ind_area,i])  
+#                
+#                self.v_z_M[i,ipic] = np.max(vz[ind_area,i])
+#                self.v_z_m[i,ipic] = np.min(vz[ind_area,i])
+#                self.v_z_mean[i,ipic] = np.mean(vz[ind_area,i])
+#                self.mean_stress_1D[i,ipic] = np.mean(tau_C[ind_area,i])
+#            self.ind_boundary=ind_boundary
+#            return self 
+#    def _plot_1D_plots_Free_surface(self,ipic: int,ptsave,S:SLAB,t_cur,D0):
+#        val = ['HMax','v_z']
+#        ptsave=os.path.join(ptsave,'1D_surfaces')
+#        if not os.path.isdir(ptsave):
+#            os.mkdir(ptsave)
+#        ib = self.ind_boundary
+#        for v in val:
+#            time_sim = "{:.3f}".format(t_cur)
+#            tick = r"t = %s [Myrs]" %(time_sim)
+#            ptsave_b=os.path.join(ptsave,v)
+#            if not os.path.isdir(ptsave_b):
+#                os.mkdir(ptsave_b)
+#            fig = plt.figure()
+#            ax2 = fig.gca()
+#            fna='Fig'+str(ipic)+'.png'
+#            fn=os.path.join(ptsave_b,fna)
+#            if v=='HB':
+#                for ip in range(10):
+#                    it = ipic - ip
+#                    alpha_v= 0.8-ip*(1/12)
+#                    if ip == 0: 
+#                        cc = 'r'
+#                    else:
+#                        cc = 'b'
+#                    if (it == 0) & (ip == 0) :
+#                        ax2.plot(self.x_s, self.HMax[ib==True,0]-self.Hmeang[0],c = cc,alpha = alpha_v,linewidth=alpha_v)
+#                        break
+#                    if (ip >0 ) & (it == 0 ):
+#                        ax2.plot(self.x_s, self.HMax[ib==True,it]-self.Hmeang[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+#                        break 
+#                    else: 
+#                        ax2.plot(self.x_s, self.HMax[ib==True,it]-self.Hmeang[it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+#                ax2.plot(self.x_s, self.HB[ib==True,ipic]-self.Hmean[ipic],c = 'r',alpha = 1.0,linewidth=1.2)
+#                plt.xlabel('x, [km]')
+#                plt.ylabel('H, [km]')
+#                plt.xlim(0,1200)
+#
+#            elif v == 'v_z':
+#                p1=ax2.plot(self.x_s,self.v_z_M[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.6)
+#                p2=ax2.plot(self.x_s,self.v_z_m[ib==True,ipic],c = 'b',alpha = 1.0,linewidth=0.6)
+#                p3 =ax2.fill_between(self.x_s, self.v_z_m[ib==True,ipic], self.v_z_M[ib==True,ipic],color='blue',alpha=0.2)
+#                p4=ax2.plot(self.x_s,self.v_z_mean[ib==True,ipic],c = 'r',alpha = 1.0,linewidth=1.2)
+#                ax2.set_xlabel(r'$\ell_{trench}, [km]$')
+#                ax2.set_ylabel(r'$\dot{H}$, $[\frac{cm}{yrs}]$')
+#                ax3 = ax2.twinx()
+#                D_ = ndi.uniform_filter1d(S.dDdt_vec[:,ipic], size=20)
+#                p5=ax3.plot(self.x_sp,D_/D0[0][0],c = 'k',alpha = 1.0,linewidth=1.2,linestyle='dashed')
+#                ax3.set_ylim(0.1,1.0)
+#                ax3.set_xlim(0.0,1200.0)
+#                ax3.set_ylabel(r'$D^{\dagger}$, $[]$')
+#                ax3.set_ylim()
+#                fig.tight_layout()  # otherwise the right y-label is slightly clipped
+#            elif v == 'HMax':
+#                p1=ax2.plot(self.x_s,self.HMax[ib==True,ipic]-self.Hmeang[ipic],c = 'r',alpha = 1.0,linewidth=1.0,linestyle=':')
+#                p2=ax2.plot(self.x_s,self.Hmin[ib==True,ipic]-self.Hmeang[ipic],c = 'b',alpha = 1.0,linewidth=1.2)
+#                ax2.set_xlabel(r'$\ell_{trench}, [km]$')
+#                ax2.set_ylabel(r'${H}$, $[\frac{cm}{yrs}]$')
+#                plt.xlabel('x_s, [km]')
+#                plt.ylabel('H, [km]')
+#                plt.xlim(0,1200)
+#            elif v == 'Maps':
+#                p1=ax2.fill_between(self.HBx[ib==True,ipic], self.Hminy[ib==True,ipic],self.HMaxy[ib==True,ipic],color='blue',alpha=0.4)
+#                p3=ax2.plot(self.HBx[ib==True,ipic],self.HBy[ib==True,ipic],c = 'k',alpha = 1.0,linewidth=0.8,linestyle=':')
+#                plt.xlabel('x, [km]')
+#                plt.ylabel('y, [km]')
+#            p5 = ax2.scatter(self.x_sp,np.zeros(len(self.x_sp)),10,S.det_vec,cmap='inferno')
+#            try: 
+#                lim1_m = np.nanmin(S.det_vec)
+#                lim2_m = np.nanmax(S.det_vec)
+#            except: 
+#                lim1_m = 0
+#                lim2_m = 1
+#            cbar2 = fig.colorbar(p5, ax=ax2,orientation='horizontal',extend="both")
+#            p5.set_clim([lim1_m,lim2_m])
+#            cbar2.vmin = lim1_m 
+#            cbar2.vmax = lim2_m
+#            ax2.set_title(tick)
+#
+#            #plt.grid(True)
+#            #plt.xlabel(r'\ell_{trench}, [km]')
+#            #plt.ylabel('H, [km]')
+#            ax2.tick_params(axis='both', which='major', labelsize=5)
+#            ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+#        ###############################################################       
+#            plt.draw()    # necessary to render figure before saving
+#            fig.savefig(fn,dpi=300,transparent=False)
+#            fig.clear()
+#            plt.close()
 
 class Phase_det(Phase):
     def __init__(self,C,Phase_dic):
@@ -1470,7 +1330,7 @@ class Basement_Passive_Tracer():
         # interpolate topography
         topo_marker = _interpolate_topography(F.Topo[:,:,ipic],C.x,C.y,P.x,P.y)
         # Select the ID_Chosen
-        Ph_lay[(Ph_lay == 1) & (P.z<=topo_marker+levels[0]) & (P.z>=topo_marker+levels[1]) & (P.y<100)]=2
+        Ph_lay[(Ph_lay == 1) & (P.z>=topo_marker+levels[0]) & (P.z<=topo_marker+levels[1]) & (P.y<50)]=2
         ID_Chosen = np.where(Ph_lay == 2)
         ID_Chosen = ID_Chosen[0]
         print(len(ID_Chosen),' marker choosen')
@@ -1497,19 +1357,18 @@ class Basement_Passive_Tracer():
         
         dt = time[ipic]-time[ipic-1]
         
-   
         t_cur = time[ipic]
         
         dt = dt*1e6 # convert the dt
         if field == 'dTdt':
             buf = (self.T[ipic,:]-self.T[ipic-1,:])/dt
-            label = r'$\frac{dT}{dt}$,$[K yr^{-1}]$'
+            label = r'$\frac{dT}{dt}$,$[K \cdot yr^{-1}]$'
         elif field == 'dPdt':
             buf = 1e6*((self.P[ipic,:]-self.P[ipic-1,:])/dt)
-            label = r'$\frac{dP}{dt}$,$[Pa yr^{-1}]$'
+            label = r'$\frac{dP}{dt}$,$[Pa \cdot yr^{-1}]$'
         elif field == 'dzdt':
             buf = 1000*((self.z[ipic,:]-self.z[ipic-1,:])/dt)
-            label = r'$\frac{dz}{dt}$,$[m yr^{-1}]$'
+            label = r'$\frac{dz}{dt}$,$[m \cdot yr^{-1}]$'
         elif field == 'T':
             buf = self.T[ipic,:]
             label = r'$Temperature [^{\circ}C]$'
@@ -1523,7 +1382,7 @@ class Basement_Passive_Tracer():
         val = np.zeros((len(y),len(x)),dtype=float)
         fg = figure()
         ax0 = fg.gca(projection='3d')
-        ax0.view_init(-140, 60)
+        ax0.view_init(60, 30)
         fna='Fig'+"{:03d}".format(ipic)+'.png'       
         #surf=ax0.plot_surface(X,Y ,F.Topo[:,:,ipic], cmap=cmc.oleron,
         #            linewidth=0, antialiased=True)
@@ -1545,9 +1404,6 @@ class Basement_Passive_Tracer():
         fg.savefig(fn,dpi=300,transparent=False)
         fg.clear
         plt.close()        
-        
-        
-        
         
 # Decorate with numba and parallel     
 @jit(nopython=True,parallel=True)

@@ -167,37 +167,37 @@ class Phase_S():
         return Df 
     
     def _parse_thermal(self,Phase_data):
-         
-         rx_dict = {
-             'k': re.compile(r'Cp '),
-             'Cp'  : re.compile(r'k '),
-             }
-         key = ['k','Cp']
         
+        rx_dict = {
+            'k': re.compile(r'Cp '),
+            'Cp'  : re.compile(r'k '),
+            }
+        key = ['k','Cp']
+        
+        
+        Df = Thermal()
          
-         Df = Thermal()
-         
-         Df= self._parse_properties(Phase_data,key,rx_dict,Df)
+        Df= self._parse_properties(Phase_data,key,rx_dict,Df)
          
          # Make a separate function of it
 
-         return Df 
+        return Df 
      
     def _parse_Elasticity(self,Phase_data):
              
-         rx_dict = {
-             'G': re.compile(r'G '),
-             }
-         key = ['G']
+        rx_dict = {
+            'G': re.compile(r'G '),
+            }
+        key = ['G']
             
              
-         Df = Elastic()
+        Df = Elastic()
              
-         Df = self._parse_properties(Phase_data,key,rx_dict,Df)
+        Df = self._parse_properties(Phase_data,key,rx_dict,Df)
              
         # Make a separate function of it
 
-         return Df 
+        return Df 
                   
                 
         
@@ -229,7 +229,6 @@ class Phase_S():
         for line in Phase_data: 
             for k in key: 
                 buf = _parse_line_input(line,k,rx_dict)
-          
                 if(buf != "nothing"): 
                     
                     exp  = "Df.%s = %d" %(k,counter)
@@ -276,10 +275,10 @@ class Phase_S():
     def _parse_Rheological_flow_law(self,line,k,rx_dict,Df):
         # To do for the next iteration: just create an other class where to store the dictionary in a reasonable way (most likely RB database)
         if k == 'diff_prof':
-           
             rx_ = {
                 'Diffusion_DryOlivine': re.compile(r' Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003'),
                 'Diffusion_WetPlagio'  : re.compile(r' Wet_Plagioclase_RybackiDresen_2000'),
+                'Diffusion_DryPlagio'  :re.compile(r' Dry_Plagioclase_RybackiDresen_2000'),
                 'Diffusion_WetOlivine' : re.compile(r' Wet_Olivine_diff_creep-Hirth_Kohlstedt_2003')
                 }
         
@@ -288,7 +287,8 @@ class Phase_S():
             rx_ = {
                 'Dislocation_DryOlivine': re.compile(r' Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003'),
                 'Dislocation_WetPlagio'  : re.compile(r' Wet_Plagioclase_RybackiDresen_2000'),
-                'Dislocation_WetOlivine' : re.compile(r' Wet_Olivine_diff_creep-Hirth_Kohlstedt_2003')
+                'Dislocation_DryPlagio'  :re.compile(r' Dry_Plagioclase_RybackiDresen_2000'),
+                'Dislocation_WetOlivine' : re.compile(r' Wet_Olivine_disl_creep-Hirth_Kohlstedt_2003')
                 }
         elif k == 'peir_prof':
             
@@ -556,7 +556,9 @@ class Rheological_data_Base():
         q   = -1e23
         taup = -1e23
         gamma = -1e23 
-        self.Dislocation_DryOlivine = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
+        Type = 1 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Dislocation_DryOlivine = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
         # Wet Olivine
         E = 520.0e3
         V = 22e-6
@@ -566,7 +568,10 @@ class Rheological_data_Base():
         r = 1.2
         d0 = 1
         water = 1000.0
-        self.Dislocation_WetOlivine = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
+        Type = 1 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Dislocation_WetOlivine = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
+        
         # Wet Plagio
         E = 345.0e3
         V = 38e-6
@@ -576,7 +581,25 @@ class Rheological_data_Base():
         r = 1.0
         d0 = 1
         water = 158.4893
-        self.Dislocation_WetPlagio  = Rheological_flow_law(E,V,n,m,d0,B,2,1,r,water,q,gamma,taup)
+        Type = 2 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Dislocation_WetPlagio  = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
+        
+        #Dislocation Dry Plagioclase
+        
+        # Wet Plagio
+        E = 641.0e3
+        V = 24e-6
+        n = 3.0 
+        m = 0.0
+        B = 1.5849
+        r = 1.0
+        d0 = 1
+        water = 1
+        Type = 2 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Dislocation_DryPlagio  = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
+        
         # Diffusion creep 
         E = 375.0e3
         V = 5e-6
@@ -586,7 +609,11 @@ class Rheological_data_Base():
         r = 1.0
         d0 = 10e3
         water = 1.0
-        self.Diffusion_DryOlivine   = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
+        Type = 1 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Diffusion_DryOlivine   = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
+        
+        # Diffusion Wet Olivine
         E = 375.0e3
         V = 10e-6
         n = 1.0 
@@ -595,7 +622,11 @@ class Rheological_data_Base():
         r = 0.8
         d0 = 10e3
         water = 1000
-        self.Diffusion_WetOlivine   = Rheological_flow_law(E,V,n,m,d0,B,1,1,r,water,q,gamma,taup)
+        Type = 1 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Diffusion_WetOlivine   = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
+        
+        #Diffusion Plagioclase
         E = 159.0e3
         V = 38e-6
         n = 1.0 
@@ -604,7 +635,22 @@ class Rheological_data_Base():
         r = 1.0
         d0 = 100
         water = 158.4893
-        self.Diffusion_WetPlagio    = Rheological_flow_law(E,V,n,m,d0,B,2,1,r,water,q,gamma,taup)
+        Type = 2 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Diffusion_WetPlagio    = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
+        
+        #Dislocation DryPlagioclase
+        E = 460.0e3
+        V = 24e-6
+        n = 1.0 
+        m = 3.0
+        B = 1.2589e12
+        r = 0.0
+        d0 = 100
+        water = 1.0
+        Type = 2 # Uniaxial
+        MPa  = 1 # Correction 
+        self.Diffusion_DryPlagio    = Rheological_flow_law(E,V,n,m,d0,B,Type,MPa,r,water,q,gamma,taup)
 
 class Phase_Data_Base:
         
