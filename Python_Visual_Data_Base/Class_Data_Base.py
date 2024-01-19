@@ -176,41 +176,62 @@ class IC():
         self.tau_co = DB._read_variable(self.dict['tau0'],Test_name)
 
 
-
-
-
 # Class containing the information related to the detachment
 class Det():
     def __init__(self,DB:Data_Base,Test_name:str):
-        self.dict = {'D': ['/IC/L0','km', 'Length of Slab'],
-                     'Psi': ['/IC/D0','km', 'Thickness of Slab'],
-                     'T': ['/IC/T_av','C', 'Average Temperature at -100 km'],
-                     'depth_vec': ['/IC/eta_ref_S','Pas', 'Effective viscosity slab at reference condition'],
-                     'det_vec': ['/IC/eta_ref_UM','Pas', 'Average effective viscosity of the mantle at tau0'],
-                     'tau_vec': ['/IC/xiUS','n.d.', 'Dominance dislocation of the slab'],
-                     'x_vec': ['/IC/xiUM','n.d.','Dominance dislocation of the mantle'],
-                     'y_vec': ['/IC/tau0', 'Pa','Reference stress'],
-                     'vel_tear' : [],
+        self.dict = {'D': ['/Slab_Detachment/D','km', 'Thickness of the slab with time (xs-z)'],
+                     'Psi': ['/Slab_Detachment/Psi','W/m3', 'Dissipative rate energy production'],
+                     'T': ['/Slab_Detachment/T','C', 'Average Temperature of the slab with time (xs-z)'],
+                     'depth_vec': ['/Slab_Detachment/depth_vec','km', 'Depth of detachment '],
+                     'det_vec': ['/Slab_Detachment/det_vec','Myr', 'Time of detachment '],
+                     'tau_vec': ['/Slab_Detachment/tau_vec','MPa.', 'Stress at the detachment'],
+                     'x_vec': ['/Slab_Detachment/x_vec','km','x position of detachment'],
+                     'y_vec': ['/Slab_Detachment/y_vec', 'km','y position of detachment'],
+                     'vel_tear' : ['/Slab_Detachment/average_tearing_velocity', 'cm/yrs','Velocity of detachment'],
         }
-        self.D = DB._read_variable(self.dict['L0'],Test_name)
-        self.Psi = DB._read_variable(self.dict['D0'],Test_name)
-        self.T = DB._read_variable(self.dict['T_av'],Test_name)
-        self.depth_vec = DB._read_variable(self.dict['etarefS'],Test_name)
-        self.det_vec = DB._read_variable(self.dict['etarefM'],Test_name)
-        self.tau_vec = DB._read_variable(self.dict['xiS'],Test_name)
-        self.x_vec = DB._read_variable(self.dict['xiM'],Test_name)
-        self.y_vec = DB._read_variable(self.dict['tau0'],Test_name)
-        self.vel_tear = DB._read_variable(self.dict['tau0'],Test_name)
+        self.D = DB._read_variable(self.dict['D'],Test_name)
+        self.Psi = DB._read_variable(self.dict['Psi'],Test_name)
+        self.T = DB._read_variable(self.dict['T'],Test_name)
+        self.depth_vec = DB._read_variable(self.dict['depth_vec'],Test_name)
+        self.det_vec = DB._read_variable(self.dict['det_vec'],Test_name)
+        self.tau_vec = DB._read_variable(self.dict['tau_vec'],Test_name)
+        self.x_vec = DB._read_variable(self.dict['x_vec'],Test_name)
+        self.y_vec = DB._read_variable(self.dict['y_vec'],Test_name)
+        self.vel_tear = DB._read_variable(self.dict['vel_tear'],Test_name)
 
 # Class containing the information of the free surface
 class FS():
     def __init__(self,DB:Data_Base,Test_name:str):
+        self.dict = {'H': ['/FS/Amplitude','km', 'Amplitude'],
+                     'dH': ['/FS/dH','mm/yr', 'Rate of variation of Amplitude with time'],
+                     'vz_M': ['/FS/vz_M','mm/yr', 'Filtered v_z of free surface'],
+                     'Thickness': ['/FS/Thickness','km', 'Thickness of the lithosphere '],
+                     'tau_mean': ['/FS/mean_stress','MPa', 'Mean stress'],
+                     'Topo': ['/FS/Topo','km', 'Topography']
+       }
+        self.H = DB._read_variable(self.dict['D'],Test_name)
+        self.dH = DB._read_variable(self.dict['Psi'],Test_name)
+        self.vz_M = DB._read_variable(self.dict['T'],Test_name)
+        self.Thickness = DB._read_variable(self.dict['Thickness'],Test_name)
+        self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
+        self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
+
  
 # Class containing the Passive tracers information   
 class Ptr(): 
     def __init__(self,DB:Data_Base,Test_name:str):
-  
-
+        self.dict = {'x': ['/PtrBas/x','km', 'x position'],
+                     'y': ['/PtrBas/y','km', 'y position'],
+                     'z': ['/PtrBas/z','km', 'z position'],
+                     'P': ['/PtrBas/P','MPa', 'Pressure passive tracer '],
+                     'T': ['/PtrBas/T','C', 'Temperature of passive tracer'],
+                    }
+        self.H = DB._read_variable(self.dict['D'],Test_name)
+        self.dH = DB._read_variable(self.dict['Psi'],Test_name)
+        self.vz_M = DB._read_variable(self.dict['T'],Test_name)
+        self.Thickness = DB._read_variable(self.dict['Thickness'],Test_name)
+        self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
+        self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
 
 
 
