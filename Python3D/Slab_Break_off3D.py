@@ -28,13 +28,21 @@ from Parser_File import *
 from Running_script_main_function import _run_script_visualization
 from Slab_detachment import *
 
-
-
+# Parse the folder
+# 
+parser = argparse.ArgumentParser()
+parser.add_argument("PR", help="PR folder",type=str)
+parser.add_argument("Test", help="",type=str)
+args = parser.parse_args()
+PR = args.PR
+L = args.Test
 
 # Folder where the tests are contained
-Folder = r'/scratch/bt307806/3D_Numerical_suites/' 
+Folder = r'/scratch/bt307806/3D_Numerical_suites/%s/' %(PR)  
+print(PR, L)
 # Folder where the output must be saved
 ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_3'
+print(Folder)
 
 #Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 
 #ptsave1 = r'/bgi/bt307806/Marcel_project/Lukas_Project/Output'
@@ -42,30 +50,29 @@ ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_3'
 if not os.path.isdir(ptsave1):
     os.mkdir(ptsave1)
 # List of tests {Could be as well a list automatically created}
-Test_Name =['TSD2_V13','TSD2_V13_PR','TSD2_V13_PR2']#,'TSD4_V13']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
+#Test_Name =['TSD2_V13','TSD2_V13_PR','TSD2_V13_PR2']#,'TSD4_V13']#,'T1_AV0_v10_1000','T1_AV0_v3_10000','T1_AV0_v5_10000','T1_AV0_v10_10000']
 #l_path =[ os.path.join(Folder,Test_Name)]
 # In case the test are contained in a server
 List_Folder_Server = os.listdir(Folder)
 # Loop of test
-for L in Test_Name:
-    # Which test is going to be post process
+#for L in Test_Name:
+# Which test is going to be post process
+print(L)
+# Where the test is located
+l_ = os.path.join(Folder,L)
+#ptsave = os.path.join(ptsave,L)
+#Folder_DB = ptsave 
+# Is this folder existing, in case create the output folder 
+if os.path.isdir(l_):
+    ptsave = os.path.join(ptsave1,L)
+    if not os.path.isdir(ptsave):
+        os.mkdir(ptsave)
+    #try:
+    ptsave_DB = os.path.join(ptsave1,'Data_Base')
+    if not os.path.isdir(ptsave_DB):
+        os.mkdir(ptsave_DB)
+    _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,'Calibration')
+   # except:
+    #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
+else: 
     print(L)
-    # Where the test is located
-    l_ = os.path.join(Folder,L)
-    #ptsave = os.path.join(ptsave,L)
-    #Folder_DB = ptsave 
-    # Is this folder existing, in case create the output folder 
-    if os.path.isdir(l_):
-        ptsave = os.path.join(ptsave1,L)
-        if not os.path.isdir(ptsave):
-            os.mkdir(ptsave)
-        #try:
-        ptsave_DB = os.path.join(ptsave1,'Data_Base')
-        if not os.path.isdir(ptsave_DB):
-            os.mkdir(ptsave_DB)
-        _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,'Calibration')
-       # except:
-        #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
-    else: 
-        print(L)
-

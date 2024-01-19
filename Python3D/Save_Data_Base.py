@@ -55,7 +55,7 @@ def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,IG:Init
     else:
         f.create_dataset(buf_name,data = np.array(time))
     node_PtrB = node_test+"/"+"PTrBas"
-    f= save_test_data(f,node_PtrB,S)
+    f= save_test_data(f,node_PtrB,PtrB)
     f.close() 
 
     return 1 

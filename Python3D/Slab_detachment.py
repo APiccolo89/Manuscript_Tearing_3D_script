@@ -61,12 +61,13 @@ class SLAB():
         self.dDdt_vec =  np.zeros((tx,nstep),dtype=float)
         self.nodes_tearing_=np.ones(nstep,dtype=int)*np.nan
         self.average_tearing_velocity=np.ones((3,nstep),dtype=float)*np.nan
-        self.LGV         = ["D","tau_max",'eps','vis','Psi']
+        self.LGV         = ["D","tau_max",'eps','vis','Psi','T']
         self.Label       = ["$D^{\dagger} []$",
                             r"$\tau_{II,max},[MPa]$",
                             r"$\dot{\varepsilon}_{II,mean} [1/s]$",
                             r"$\eta_{S}, [Pas]$",
                             r"$\Psi, [W/m^3]$",
+                            r"$T, [^/circ C]$"
                             ]
         self.Colormap    = ["cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.oleron","cmc.oleron","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao","cmc.bilbao"]
         self.Val         = [(0.1,0.85),
@@ -371,7 +372,7 @@ class SLAB():
             #ax1.fill((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),c='b',alpha=0.3)
             ax1.set_ylabel(r'$v_{tearing}, [cm/yr]$')
             ax1.set_xlabel(r'$t, [Myrs]$')
-            ax1.set_title(tick)
+            #ax1.set_title(tick)
             ax1.tick_params(axis='both', which='major', labelsize=5)
             ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
             plt.grid(True)
@@ -411,6 +412,17 @@ class SLAB():
                 cf=ax0.pcolormesh(xx,zz,buf,cmap='inferno',vmin = lm1, vmax=lm2)
                 cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
                 cbar.label = r'%s' %(index[it])
+                if values == 'T':
+                    T_buf = self.T[:,:,0]
+                    T_buf[T_buf == -np.inf]=np.nan
+                    T_meana = np.nanmean(T_buf[(zz<-80) & (zz>-100)])
+                    tick=r'%s $Time = %s Myrs$, $T_{Mean} = %2f $, $^{deg} C$' %(index[it],time_sim,T_meana)
+                    if ipic == 0:
+                        print(tick)
+                else:
+                    tick=r'%s $Time = %s Myrs$' %(index[it],time_sim)
+                ax1.set_title(tick)
+
 
             
 
@@ -1425,12 +1437,3 @@ def _interpolate_topography(Topo:float,xg:float,yg:float,xp:float,yp:float):
         val_ = bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4)
         topo_marker[i]=val_
     return topo_marker
-    
-    
-
-
-
-
-
-            
-            
