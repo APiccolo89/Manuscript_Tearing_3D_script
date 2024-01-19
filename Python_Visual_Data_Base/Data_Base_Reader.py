@@ -20,22 +20,31 @@ from numpy.ma import masked_array
 import matplotlib.cbook as cbook
 import pandas as pd
 from Class_Data_Base import * 
+from time import perf_counter 
+
 
 
 path = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\output_3\Data_Base\Data_base_Slab_detachment_3D.hdf5'
 
 GroupName = 'Calibration' 
 # [A] Initialise the class and dictionary 
-# [A.1] Create the dictionary 
 
-variable_dictionary = {
-    "IC" : [],       # initial condition
-    "FS": [],        # Free surface variables
-    "Csystem": [],   # Coordinate system
-    "Ptr" : [],      # Passive Tracers
-    "Det" : [],      # Detachment 
-    "time": []       # Time Vector 
-}
 # [A.2] Create the database
 
-DB = Data_Base(path,GroupName,variable_dictionary)
+DB = Data_Base(path,GroupName)
+
+# Loop over the avaiable test and collect data. 
+
+# Initialise iteration
+itest = 0 
+for it in DB.Tests_Name:
+    t_INIZIO = perf_counter()
+   
+    test = Test(DB,it)
+    
+    
+    
+    t_FINE = perf_counter()
+    
+    itest = itest+1
+    print(t_FINE-t_INIZIO)

@@ -32,16 +32,14 @@ class Data_Base():
     [4] -> function that creates the numpy array for plotting, post processing and collecting data
     {Panda array to handle tables of data}
     """
-    def __init__(self,path:str,GroupName:str,variable_dict:dict): 
+    def __init__(self,path:str,GroupName:str): 
         
         self.path = path
         
         self.GroupName = GroupName
         
         self.Tests_Name, self.n_test= self._read_test(path,GroupName)
-        
-        self.variable_dict = variable_dict
-        
+                
         self.detachment_velocity = np.zeros([self.n_test],dtype = float)
         
         self.Starting_tearing   = np.zeros([self.n_test],dtype = float)
@@ -81,11 +79,11 @@ class Data_Base():
         """
         # Open Data base
         
-        f = h5py.File(self.path,self.GroupName)
+        f = h5py.File(self.path,'r')
         
         # path 2 variable
         
-        path2variable = "/%s/%s/%s" %(self.GroupName,Test_name,keys[0])
+        path2variable = "/%s/%s%s" %(self.GroupName,Test_name,keys[0])
         # Create array 
         buf = np.array(f[path2variable])
         
@@ -111,7 +109,7 @@ class Test():
         
         self.C  = C(DB, Test_name)
     
-        self.time = DB._read_variable(['/time','Myr', 'Time vector'])
+        self.time = DB._read_variable(['/time','Myr', 'Time vector'],Test_name)
         
         self.time_M = (self.time[0:1:-1]+self.time[1:1:])/2
         
@@ -129,7 +127,7 @@ class C():
                      'yp': ['/Coordinate_System/yp','km', 'Phase Grid y'],
                      'zp': ['/Coordinate_System/zp','km', 'Phase Grid z'],
                      'x_sp': ['/Slab_Detachment/x_s','km','X coordinate trench, phase'],
-                     'y_sp': ['/Slab_Detachment/y_B', 'km','Y coordinate trench, phase'],
+                     'y_sp': ['/Slab_Detachment/y_b', 'km','Y coordinate trench, phase'],
         }
         
         self.xg = DB._read_variable(self.dict['xg'],Test_name)
@@ -155,7 +153,7 @@ class IC():
                      'D0': ['/IC/D0','km', 'Thickness of Slab'],
                      'T_av': ['/IC/T_av','C', 'Average Temperature at -100 km'],
                      'etarefS': ['/IC/eta_ref_S','Pas', 'Effective viscosity slab at reference condition'],
-                     'etarefS': ['/IC/eta_ref_UM','Pas', 'Average effective viscosity of the mantle at tau0'],
+                     'etarefM': ['/IC/eta_ref_UM','Pas', 'Average effective viscosity of the mantle at tau0'],
                      'xiS': ['/IC/xiUS','n.d.', 'Dominance dislocation of the slab'],
                      'xiM': ['/IC/xiUM','n.d.','Dominance dislocation of the mantle'],
                      'tau0': ['/IC/tau0', 'Pa','Reference stress'],
@@ -205,13 +203,13 @@ class FS():
         self.dict = {'H': ['/FS/Amplitude','km', 'Amplitude'],
                      'dH': ['/FS/dH','mm/yr', 'Rate of variation of Amplitude with time'],
                      'vz_M': ['/FS/vz_M','mm/yr', 'Filtered v_z of free surface'],
-                     'Thickness': ['/FS/Thickness','km', 'Thickness of the lithosphere '],
+                     'Thickness': ['/FS/thickness','km', 'Thickness of the lithosphere '],
                      'tau_mean': ['/FS/mean_stress','MPa', 'Mean stress'],
                      'Topo': ['/FS/Topo','km', 'Topography']
        }
-        self.H = DB._read_variable(self.dict['D'],Test_name)
-        self.dH = DB._read_variable(self.dict['Psi'],Test_name)
-        self.vz_M = DB._read_variable(self.dict['T'],Test_name)
+        self.H = DB._read_variable(self.dict['H'],Test_name)
+        self.dH = DB._read_variable(self.dict['dH'],Test_name)
+        self.vz_M = DB._read_variable(self.dict['vz_M'],Test_name)
         self.Thickness = DB._read_variable(self.dict['Thickness'],Test_name)
         self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
         self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
@@ -220,18 +218,17 @@ class FS():
 # Class containing the Passive tracers information   
 class Ptr(): 
     def __init__(self,DB:Data_Base,Test_name:str):
-        self.dict = {'x': ['/PtrBas/x','km', 'x position'],
-                     'y': ['/PtrBas/y','km', 'y position'],
-                     'z': ['/PtrBas/z','km', 'z position'],
-                     'P': ['/PtrBas/P','MPa', 'Pressure passive tracer '],
-                     'T': ['/PtrBas/T','C', 'Temperature of passive tracer'],
+        self.dict = {'x': ['/PTrBas/x','km', 'x position'],
+                     'y': ['/PTrBas/y','km', 'y position'],
+                     'z': ['/PTrBas/z','km', 'z position'],
+                     'P': ['/PTrBas/P','MPa', 'Pressure passive tracer '],
+                     'T': ['/PTrBas/T','C', 'Temperature of passive tracer'],
                     }
-        self.H = DB._read_variable(self.dict['D'],Test_name)
-        self.dH = DB._read_variable(self.dict['Psi'],Test_name)
-        self.vz_M = DB._read_variable(self.dict['T'],Test_name)
-        self.Thickness = DB._read_variable(self.dict['Thickness'],Test_name)
-        self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
-        self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
+        self.x = DB._read_variable(self.dict['x'],Test_name)
+        self.y = DB._read_variable(self.dict['y'],Test_name)
+        self.z = DB._read_variable(self.dict['z'],Test_name)
+        self.P = DB._read_variable(self.dict['P'],Test_name)
+        self.T = DB._read_variable(self.dict['T'],Test_name)
 
 
 
