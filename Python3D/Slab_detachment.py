@@ -1088,7 +1088,7 @@ def function_interpolate(xp,yp,zp,x,y,z,buf,buf2):
 @jit(nopython=True,parallel=True)
 def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom,switch):    #(self,C,Values,ph,ipic,ix,ix1):
 
-    for i in prange(tz):
+    for i in range(tz):#prange(tz):
         buf = ph[i,:]
         buf2 = buf_var_ph[i,:]
         condition = 0.0
@@ -1116,11 +1116,10 @@ def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom,switch
                 x1[i]=-np.inf
                 buf_var[i] = -np.inf
                 D[i] = -np.inf
-            
         else:
             z_bottom[i]=z[i]
             i1 = 0
-            i2 = -np.inf
+            i2 = 0
             i1,i2 = _find_index(buf,i1,i2)
             x1[i]= x[i1]
             x2[i] = x[np.int(i2)]
@@ -1174,7 +1173,7 @@ def _find_index(buf,i1,i2):
         1. Discrete field -> [not valid, valid, not valid, valid:10,not valid] (i2) is 1 
     """
     # Thanks Arne for the tip. 
-    for ib in range(len(buf)):
+    for ib in range(len(buf)-1):
         if (buf[ib]>0.95) & (i1 == 0):
             c1 = ib+1
             c2 = ib+2
@@ -1188,7 +1187,7 @@ def _find_index(buf,i1,i2):
                 i2 = 0
                 break 
 
-    for ib in range(len(buf),-1,-1):
+    for ib in range(len(buf)-1,-1,-1):
         if (buf[ib]>0.95) & (i2 == 0):
             c1 = ib-1
             c2 = ib-2
@@ -1201,7 +1200,7 @@ def _find_index(buf,i1,i2):
             else:
                 i2 = ib
                 break 
-        
+
     return i1,i2
 
 def _compute_length_coordinatesCB(ind_boundary,boundary_geometry,x):

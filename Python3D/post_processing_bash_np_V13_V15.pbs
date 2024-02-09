@@ -37,9 +37,9 @@ echo $PBS_O_WORKDIR
 cd $PBS_O_WORKDIR
 echo
 
-PR=("PR_200")
+PR=("PR_r")
 
-test=("TSD2_PR" "TSD3_PR" "TSD4_PR" "TSD2_V10_PR" "TSD3_V10_PR" "TSD4_V10_PR") # "TSD2_V10" "TSD3_V10" "TSD4_V10" "TSD2_V13" "TSD3_V13" "TSD4_V13")
+test=( "TSD2_V13" "TSD3_V13" "TSD4_V13" "TSD2_V15"  "TSD3_V15" "TSD4_V15" "TSD2_HC" "TSD2_HC_2" "TSD2_HC_3" ) # "TSD2_V10" "TSD3_V10" "TSD4_V10" "TSD2_V13" "TSD3_V13" "TSD4_V13")
 for (( i = 0; i < ${#test[@]}; i++)); do
     python Slab_Break_off3D.py ${PR} ${test[$i]} > ${test[$i]}.txt 
 

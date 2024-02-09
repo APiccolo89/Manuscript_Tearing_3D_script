@@ -7,7 +7,9 @@ from Slab_detachment import *
 def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,IG:Initial_Geometry,C:Coordinate_System,Fs:FS,Ph_DB:Phase_Data_Base,PtrB:Basement_Passive_Tracer,time):
 
     import h5py
-    data_base_name = os.path.join(ptsave,"Data_base_Slab_detachment_3D.hdf5")
+    data_name = "Data_base_Slab_detachment_3D_%s.hdf5" %(Group)
+    print(data_name)
+    data_base_name = os.path.join(ptsave,data_name)
     print(data_base_name)
     f = h5py.File(data_base_name, 'a')
     e = False

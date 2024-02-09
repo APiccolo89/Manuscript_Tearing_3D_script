@@ -39,7 +39,7 @@ echo
 
 PR=("PR_200")
 
-test=("TSD2_PR" "TSD3_PR" "TSD4_PR" "TSD2_V10_PR" "TSD3_V10_PR" "TSD4_V10_PR") # "TSD2_V10" "TSD3_V10" "TSD4_V10" "TSD2_V13" "TSD3_V13" "TSD4_V13")
+test=("TSD2_V13_PR" "TSD3_V13_PR" "TSD4_V13_PR" "TSD2_V15_PR" "TSD3_V15_PR" "TSD4_V15_PR") # "TSD2_V10" "TSD3_V10" "TSD4_V10" "TSD2_V13" "TSD3_V13" "TSD4_V13")
 for (( i = 0; i < ${#test[@]}; i++)); do
     python Slab_Break_off3D.py ${PR} ${test[$i]} > ${test[$i]}.txt 
 

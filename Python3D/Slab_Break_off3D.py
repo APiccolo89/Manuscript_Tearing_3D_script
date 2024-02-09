@@ -30,12 +30,16 @@ from Slab_detachment import *
 
 # Parse the folder
 # 
-parser = argparse.ArgumentParser()
-parser.add_argument("PR", help="PR folder",type=str)
-parser.add_argument("Test", help="",type=str)
-args = parser.parse_args()
-PR = args.PR
-L = args.Test
+try:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("PR", help="PR folder",type=str)
+    parser.add_argument("Test", help="",type=str)
+    args = parser.parse_args()
+    PR = args.PR
+    L = args.Test
+except:
+    PR = 'PR_200'
+    L = 'TSD2_PR'
 
 # Folder where the tests are contained
 Folder = r'/scratch/bt307806/3D_Numerical_suites/%s/' %(PR)  
@@ -71,7 +75,7 @@ if os.path.isdir(l_):
     ptsave_DB = os.path.join(ptsave1,'Data_Base')
     if not os.path.isdir(ptsave_DB):
         os.mkdir(ptsave_DB)
-    _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,'Calibration')
+    _run_script_visualization(ptsave,Folder,L,l_,ptsave_DB,PR)
    # except:
     #    print(L, 'has problem to be post processed, file corrupted, or simply empty folder go futher')
 else: 

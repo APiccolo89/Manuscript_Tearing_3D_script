@@ -1,8 +1,11 @@
-# Let's copy some module that I've used before. 
+#%%
+
+# Import all the variable
+
 import sys,os,fnmatch
 import numpy as np
 import matplotlib.pyplot as plt
-plt.switch_backend('agg')
+#plt.switch_backend('agg')
 import matplotlib
 from matplotlib import cm
 import vtk
@@ -24,27 +27,19 @@ from time import perf_counter
 
 
 
-path = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\output_3\Data_Base\Data_base_Slab_detachment_3D.hdf5'
+path = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\output_4\Data_Base\Data_base_Slab_detachment_3D.hdf5'
 
-GroupName = 'Calibration' 
-# [A] Initialise the class and dictionary 
+path_save = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\Data_Base_pics'
+if not os.path.isdir(path_save):
+    os.mkdir(path_save)
 
 # [A.2] Create the database
+DB = Data_Base(path)
 
-DB = Data_Base(path,GroupName)
 
 # Loop over the avaiable test and collect data. 
+DB._post_process_data(path,path_save)
 
-# Initialise iteration
-itest = 0 
-for it in DB.Tests_Name:
-    t_INIZIO = perf_counter()
-   
-    test = Test(DB,it)
-    
-    
-    
-    t_FINE = perf_counter()
-    
-    itest = itest+1
-    print(t_FINE-t_INIZIO)
+
+
+# %%

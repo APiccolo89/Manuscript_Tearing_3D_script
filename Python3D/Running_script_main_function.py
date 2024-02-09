@@ -147,7 +147,6 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         t1= perf_counter()
         FSurf._Update_(Filename_s,C,ipic)
         FSurf._update_extra_variables(DYN,C,dt,ipic)
-#        FSurf._compute_relevant_information_topography(C,IG.Slab,ipic)
         FSurf.ASCI_FILE_ALT(ipic,t_cur,Test_Name,ptsave,C)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
@@ -156,12 +155,12 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         levels     = [-15.0,-14.0]
         if ipic == 0:
             BSPT = Basement_Passive_Tracer(PT,C,FSurf,list_phase,levels,len(time),ipic)
-            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'T')
+            #BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'T')
         else:
             BSPT._update_PTDB(PT,ipic,time)
-            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dzdt')
-            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dPdt')
-            BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dTdt')
+            #BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dzdt')
+            #BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dPdt')
+            #BSPT._plot_passive_tracers(FSurf,C.x,C.y,time,ipic,ptsave,'dTdt')
 
             
 
@@ -169,7 +168,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         t1 = perf_counter()
         Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
         Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
-        FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
+        #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
         #FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur,Initial_Condition.D0/1e3)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
