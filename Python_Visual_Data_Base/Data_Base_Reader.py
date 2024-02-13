@@ -23,18 +23,33 @@ from numpy.ma import masked_array
 import matplotlib.cbook as cbook
 import pandas as pd
 from Class_Data_Base import * 
+from Class_Data_Base import _merge_database
 from time import perf_counter 
 
 
 
-path = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\output_4\Data_Base\Data_base_Slab_detachment_3D.hdf5'
+
+path = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\output_3\Data_Base'
+name_PR = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
+name_PR200 = 'Data_base_Slab_detachment_3D_PR_200.hdf5'
+name_PR600 ='Data_base_Slab_detachment_3D_PR_600.hdf5'
+name_DB    = '3D_numerical_suites.hd5f'
+file_A = os.path.join(path,name_PR)
+file_B = os.path.join(path,name_PR200)
+file_C = os.path.join(path,name_PR600)
+file_DB = os.path.join(path,name_DB)
+
+#_merge_database(file_A,file_B,file_C,file_DB)
+
 
 path_save = r'C:\Users\Andrea Piccolo\Dropbox\Bayreuth_Marcel\Conference_Abstract_Poster_Presentation\Manuscript_2\Picture_Folder_Raw\Data_Base_pics'
 if not os.path.isdir(path_save):
     os.mkdir(path_save)
+# Merge Data Base
+
 
 # [A.2] Create the database
-DB = Data_Base(path)
+DB = Data_Base(file_DB)
 
 
 # Loop over the avaiable test and collect data. 

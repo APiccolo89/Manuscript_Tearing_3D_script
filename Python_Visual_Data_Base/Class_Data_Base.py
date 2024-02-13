@@ -26,6 +26,8 @@ from functools import wraps
 import matplotlib as mpl
 
 
+
+
 def timer(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -61,6 +63,8 @@ class Data_Base():
         self.Ending_tearing    = np.zeros([self.n_test-1],dtype = float)
         
         self.uplift            = np.zeros([self.n_test-1,3],dtype=float) 
+        
+        self.dt             = np.zeros([self.n_test-1,3],dtype=float) 
         
         self.Avolume = np.zeros([self.n_test-1],dtype = float)
         
@@ -120,66 +124,109 @@ class Data_Base():
         itest = 0 
         for it in range(self.n_test-1):
             test_name = self.Tests_Name[it]
-            path_save_b = os.path.join(path_save,test_name[1])
-            if not os.path.isdir(path_save_b):
-                os.mkdir(path_save_b)
-            
-            print(test_name)
-            if test_name[1] == 'TSD2_HC':
-                print('Check')
-            test = Test(self,test_name)
-            # Collect initial data
-            self.Avolume[itest] = test.IC.VnM*1e6
-            
-            self.StressLimit[itest] = test.IC.tau_co
-            
-            self.Temp[itest] = test.IC.T_av
-            
-            # Compute the average velocity of the slab tearing
-            # Plot Slab surface
-            #
-            _detect_detachment(test.time,test.C,test.Det.D,test.Det.x1,test.Det.x2,path_save)
-            
-            x_sp = test.C.x_sp 
+            if test_name[1] == 'TSD2':
+                path_save_b = os.path.join(path_save,test_name[1])
+                if not os.path.isdir(path_save_b):
+                    os.mkdir(path_save_b)
 
-            v_test = test.Det.vel_tear[0,:]
-            
-            det_vec = test.Det.det_vec
-            
-            det_vec[test.Det.depth_vec>=-60.0]=np.nan
-            
-            corrected_depth = test.Det.depth_vec
-            
-            corrected_depth[test.Det.depth_vec>=-60.0]=np.nan
-                        
-            mean_v = (1000.0*1000*100)/(np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6-np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6)
-            
-            self.detachment_velocity[itest] = mean_v
-            
-            print(mean_v)
-            
-            # Collect starting time of detachment 
-            
-            self.Starting_tearing[itest] = np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])
-            
-            self.Ending_tearing[itest]  = np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])
+                print(test_name)
 
-            # Plot figure of current test
-            path_save_c = os.path.join(path_save_b,'FreeSurface')
-            if not os.path.isdir(path_save_c):
-                os.mkdir(path_save_c)
-            
-            label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$\bar{\dot{\varepsilon}}_{II}$,[$\frac{1}{s}$]','yes','Average lithospheric strain rate',[30,90])
-            
-           # _plot_2D_surface(test.time,test.FS,it,test.C,path_save_c,'eps','cmc.devon',label)
-            
-            label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$H$,[$km$]','no','Topography',[5,95])
-            
-           # _plot_2D_surface(test.time,test.FS,it,test.C,path_save_c,'H','cmc.oleron',label)
+                test = Test(self,test_name)
+                # Collect initial data
+                self.Avolume[itest] = test.IC.VnM*1e6
 
-            # Delete the variable and start all over again. 
+                self.StressLimit[itest] = test.IC.tau_co
+
+                self.Temp[itest] = test.IC.T_av
+
+                # Compute the average velocity of the slab tearing
+                # Plot Slab surface
+
+                x_sp = test.C.x_sp 
+
+                v_test = test.Det.vel_tear[0,:]
+
+                det_vec = test.Det.det_vec
+
+                det_vec[test.Det.depth_vec>=-60.0]=np.nan
+
+                corrected_depth = test.Det.depth_vec
+
+                corrected_depth[test.Det.depth_vec>=-60.0]=np.nan
+
+                mean_v = (1000.0*1000*100)/(np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6-np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6)
+
+                self.detachment_velocity[itest] = mean_v
+
+                print(mean_v)
+
+                # Collect starting time of detachment 
+
+                self.Starting_tearing[itest] = np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])
+
+                self.Ending_tearing[itest]  = np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])
+
+                # Plot the difference of topography between starting and ending detachment 
+
+
+
+                i1 = np.where(test.time==self.Starting_tearing[itest])[0][0]
+                i2 = np.where(test.time==self.Ending_tearing[itest])[0][0]
+
+                # Here I do not have a clear measure for assessing the impact of the tearing. 
+                # The uplift associated to the tearing seems to starts before the actual geometrical tearing
+                # So, during the first iteration I would like to plot the following picture: 
+                # [A] Total dH during the geometrical tearing
+                # [B] Total dH from 0.1->End of the tearing 
+                # [C] Total dH with different time between 0.1->Beginning of tearing 
+                # =============================================
+                uplift_G,uplift_2,uplift_T,dH_A,dH_B,dH_C,dtA,dtB,dtC=_compute_dH_tearing(i1,i2,test.FS,test.C,test.Det,test.time)
+
+                self.uplift[itest,0]= uplift_G
+                self.uplift[itest,1]= uplift_2
+                self.uplift[itest,2]= uplift_T
+
+                self.dt[itest,0]    = dtA
+                self.dt[itest,1]    = dtB 
+                self.dt[itest,2]    = dtC 
+                ipic = 0 
+                for i in range(len(test.time)-1):
+                    ASCI_FILE_ALT(test.FS,ipic,test.time[ipic],test_name,path_save_b,test.C)
+                    ipic+=1 
+    
+                
+                path_save_c = os.path.join(path_save_b,'FreeSurface')
+                
+                if not os.path.isdir(path_save_c):
+                    os.mkdir(path_save_c)
+                
+                label = Label('$x$, [$km$]','$y$, [$km$]','$Uplift$',r'$\bar{dH} [m]$','yes','Uplift',[30,90])
+                
+                scale = 1000 #km to meter
+                _plot_Uplift([test.time[i1], test.time[i2]],dH_A*scale,test_name[1],test.C,path_save_c,'Uplift','nipy_spectral',label,'Geometric')
+                _plot_Uplift([test.time[i1]-2, test.time[i2]],dH_B*scale,test_name[1],test.C,path_save_c,'Uplift','nipy_spectral',label,'2Myr')
+                _plot_Uplift([0.5, test.time[i2]],dH_C*scale,test_name[1],test.C,path_save_c,'Uplift','nipy_spectral',label,'Beginning')
+                
+                scale = (1000*100)/1e6
+                
+                label = Label('$x$, [$km$]','$y$, [$km$]','$Uplift rate$',r'${\dot{dH}} [\frac{cm}{yrs}]$','yes','Uplift',[30,90])
+                _plot_Uplift([test.time[i1], test.time[i2]],((dH_A)/dtA)*scale,test_name[1],test.C,path_save_c,'Uplift_r','cmc.lapaz',label,'Geometric')
+                _plot_Uplift([test.time[i1]-2, test.time[i2]],((dH_B)/dtB)*scale,test_name[1],test.C,path_save_c,'Uplift_r','cmc.lapaz',label,'2Myr')
+                _plot_Uplift([0.5, test.time[i2]],((dH_C/dtC)*scale),test_name[1],test.C,path_save_c,'Uplift_r','cmc.lapaz',label,'Beginning')
+
+                # Plot figure of current test
+                
+                label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$\bar{\dot{\varepsilon}}_{II}$,[$\frac{1}{s}$]','yes','Average lithospheric strain rate',[30,90])
+
+           #     _plot_2D_surface(test.time,test.FS,it,test.C,path_save_c,'eps','cmc.devon',label)
+
+                label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$H$,[$km$]','no','Topography',[5,95])
+
+           #     _plot_2D_surface(test.time,test.FS,it,test.C,path_save_c,'H','cmc.oleron',label)
+
+                # Delete the variable and start all over again. 
             itest = itest+1
-        
+
         
         print(itest)
         # Print the global data base pictures 
@@ -358,6 +405,40 @@ class Label():
         self.min = lim[0]
         self.max = lim[1] 
         
+def _merge_database(FileA:str,FileB:str,FileC:str,Dest_file:str):
+        import h5py 
+
+        with h5py.File(Dest_file,'w') as f_dest:
+            with h5py.File(FileA,'r') as f_src:
+                f_src.copy(f_src["/PR_r"],f_dest["/"],"PR_r")
+                with h5py.File(FileB,'r') as f_src2:
+                    f_src.copy(f_src2["/PR_200"],f_dest["/"],"PR_200")
+                    with h5py.File(FileC,'r') as f_src3:
+                        f_src3.copy(f_src3["/PR_600"],f_dest["/"],"PR_600")
+                        
+                        
+def _compute_dH_tearing(i1:int,i2:int,Surf:FS,C:C,D:Det,time:float):
+    
+    i1_t_2Ma = np.max(np.where(time<time[i1]-2.0))
+    i1_0_5  = np.min(np.where(time>0.5))
+    # Compute anomaly
+    dH_A = Surf.Topo[:,:,i2]-Surf.Topo[:,:,i1]
+    dH_B = Surf.Topo[:,:,i2]-Surf.Topo[:,:,i1_t_2Ma]
+    dH_C = Surf.Topo[:,:,i2]-Surf.Topo[:,:,i1_0_5]
+    # 
+    iA   = np.abs(dH_A)>np.mean(np.abs(dH_A))
+    iB   = np.abs(dH_B)>np.mean(np.abs(dH_B))
+    iC   = np.abs(dH_C)>np.mean(np.abs(dH_C))
+    uplift_G = np.nanmean(dH_A[iA==1])
+    uplift_2 = np.nanmean(dH_B[iB==1])
+    uplift_T = np.nanmean(dH_C[iC==1])
+    dtA      = time[i2]-time[i1]
+    dtB      = time[i2]-time[i1_t_2Ma]
+    dtC      = time[i2]-time[i1_0_5]
+    
+    return uplift_G,uplift_2,uplift_T,dH_A,dH_B,dH_C,dtA,dtB,dtC
+    
+
 
 
 class MidpointNormalize(mpl.colors.Normalize):
@@ -384,7 +465,6 @@ class label_scatter():
         self.colormap         =  colormap
         self.cbar_label       = cbar_label 
 
-@timer
 def _plot_2D_surface(time:float,Data,Test_name,C:C,path_save:str,field:str,colorbar:str,label:Label):
     import cmcrameri as cmc 
     
@@ -472,7 +552,9 @@ def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fie
     z =  eval(z_f,globals(),Data.__dict__)
     m =  eval(m_f,globals(),Data.__dict__)
     m_u = np.unique(m) 
-    s = ax0.scatter(x,y,60,z,marker=label_scatter.markers[0],cmap = label_scatter.colormap,edgecolors='k')
+    for im in range(len(m_u)):
+        plt.scatter(x[m==m_u[im]],y[m==m_u[im]],60,z[m==m_u[im]],marker=label_scatter.markers[im],cmap = label_scatter.colormap,edgecolors='k')
+        
     cbar = fg.colorbar(s, ax=ax0,orientation='horizontal',extend="both",label=label_scatter.cbar_label)
     s.set_clim([820,np.max(z)])
     cbar.vmin = 820 
@@ -490,15 +572,82 @@ def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fie
     #plt.show()
             
     fg.savefig(fn,dpi=300)
-
-def _detect_detachment(time:float,C:C,D:float,x1:float,x2:float,ptsave:str):
     
-    itl = len(time)
-    x_sp = C.x_sp
-    z_p  = C.zp
     
-    for i in range(itl)-1:
-        D_ = D[:,:,i]
-        x1_ = x1[:,:,i]
-        x2_ = x2[:,:,i]
+def _plot_Uplift(time_v:float,dH,Test_name,C:C,path_save:str,field:str,colorbar:str,label:Label,type:str):
+    import cmcrameri as cmc 
+    
+    plt.rcParams.update({
+        "text.usetex": True,
+        "font.family": "sans-serif",
+        "font.sans-serif": "Helvetica",
+    })
+    buf = dH 
+    buf[np.abs(dH)<np.mean(np.abs(dH))] = np.nan
+    # Find the most reliable limits for the colorbar
+    ptsave_c = os.path.join(path_save,field)
+    if not os.path.isdir(ptsave_c):
+            os.mkdir(ptsave_c)
+    min = np.nanpercentile(buf,label.min)
+    max = np.nanpercentile(buf,label.max)
+    print('color maps limits are %2f  and %2f' %(min,max))
+    x = C.xg 
+    y = C.yg
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(15*cm, 15*cm))
+    ax0 = fg.gca()
         
+    tick = r"Average uplift from %s to %s [Myrs]" %("{:.3f}".format(time_v[0]),"{:.3f}".format(time_v[1]))
+    fna='Fig'+type+'.png'
+    fn = os.path.join(ptsave_c,fna)
+   
+    cf =ax0.contourf(x, y, buf,)
+    cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both",label=label.cbar_label)
+    cf.set_cmap(colorbar)
+    cbar.update_normal(cf)
+    ax0.tick_params(axis='both', which='major', labelsize=14)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_ylim(np.min(y),np.max(y))
+    ax0.set_xlim(np.min(x),np.max(x))
+    cbar.set_label(label.cbar_label)
+    plt.title(tick,fontsize=15)
+    fg.patch.set_facecolor('white')
+    
+    #plt.show()
+        
+    fg.savefig(fn,dpi=300)
+    
+def ASCI_FILE_ALT(S,ipic,t_cur,Test_Name,ptsave,C:C):
+            
+    """
+    Write a simple ascii file for the post processing of the free surface dat
+    This is for the the free surface data, later on I will dedicate a bit of 
+    more time on the usage of the passive tracers.     
+    """
+    file_name = str(ipic).zfill(7)+'__'+Test_Name[1]+'Free_surface_data.txt'
+    
+    ptsave_b=os.path.join(ptsave,'DataBase_FS')
+    if not os.path.isdir(ptsave_b):
+        os.mkdir(ptsave_b)
+    
+    filename = os.path.join(ptsave_b,file_name)
+    Y,X = np.meshgrid(C.xg,C.yg)
+    buf_x = X.ravel()
+    buf_y = Y.ravel()
+    vz_M    = S.vz_M[:,:,ipic]
+    dH    = S.dH[:,:,ipic]
+    H     = S.H[:,:,ipic]
+    S        = np.array([buf_x*1e3,buf_y*1e3,vz_M.ravel(),dH.ravel()*1000,H.ravel()*1000])
+    if(os.path.isfile(filename)):
+        os.remove(filename)
+    f = open(filename, 'a+')
+    f.write('########################################\n')
+    f.write('time [Myrs] time step []\n')
+    f.write('x, y,v_z,dHdt, Topography\n')
+    f.write('  [m],[m],[mm/yrs],[mm/yrs], [m]\n')
+    f.write('########################################\n')
+    f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))
+    f.write('\n')
+    np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+    f.close()
+    print('Free surface data of the timestep %d, has been printed' %(ipic))
