@@ -24,6 +24,10 @@ import h5py
 import time
 from functools import wraps
 import matplotlib as mpl
+from Auxilary_function import *
+
+
+
 
 
 
@@ -124,7 +128,7 @@ class Data_Base():
         itest = 0 
         for it in range(self.n_test-1):
             test_name = self.Tests_Name[it]
-            if test_name[1] == 'TSD2':
+            if (test_name[1] != 'TSD2_HC_3') & (test_name[1] != 'TSD2_PR'):
                 path_save_b = os.path.join(path_save,test_name[1])
                 if not os.path.isdir(path_save_b):
                     os.mkdir(path_save_b)
@@ -168,8 +172,6 @@ class Data_Base():
 
                 # Plot the difference of topography between starting and ending detachment 
 
-
-
                 i1 = np.where(test.time==self.Starting_tearing[itest])[0][0]
                 i2 = np.where(test.time==self.Ending_tearing[itest])[0][0]
 
@@ -190,15 +192,55 @@ class Data_Base():
                 self.dt[itest,1]    = dtB 
                 self.dt[itest,2]    = dtC 
                 ipic = 0 
+                ASCI_time_Vec(test.time,test_name,path_save_b)
+                topo_t = np.zeros([len(test.C.x_sp),len(test.time)],dtype=float)
+                dH_t = np.zeros([len(test.C.x_sp),len(test.time)],dtype=float)
+                Lithos_FB = np.zeros([len(test.C.x_sp),len(test.time)],dtype=float)
+                dF = np.zeros([len(test.C.x_sp),len(test.time)],dtype=float)
+
+                
+
+                path_save_c = os.path.join(path_save_b,'FreeSurface')
+                if not os.path.isdir(path_save_c):
+                    os.mkdir(path_save_c)                
+
+                # Compute the initial y-coordinate of the slab
+                x_trench, y_trench = _compute_initial_slab_position(test.C); 
                 for i in range(len(test.time)-1):
                     ASCI_FILE_ALT(test.FS,ipic,test.time[ipic],test_name,path_save_b,test.C)
+                    # Plot figure
+                    # 1. Find topography at the trench {interpolate topography and uplift}
+                    # 2. Create the figure
+                    # ============ Post Process data ============================
+                    # 1. -> Per each point belonging to the trench 
+                    # -> compute anomaly of uplift with time 
+                        # a. Compute the amplitude 
+                        # b. Compute the wave length 
+                        # c. plot 2D maps with time 
+                        # d. collect data along profile for Paul 
+                        # e. create table and figure 
+                    topo_t[:,ipic],dH_t[:,ipic],Lithos_FB[:,ipic],x_trench,y_trench = find_topography_uplift_trench(test.FS,test.C,ipic,x_trench,y_trench)
+                    if i > 0:
+                        dF[:,ipic] = np.abs((Lithos_FB[:,ipic]-Lithos_FB[:,ipic-1])/((test.time[ipic]-test.time[ipic-1])*1e6))
+                    _plot_detachment_topography(ipic,test.time[ipic],os.path.join(path_save_b,'uplift_detachment'),test.Det,dH_t,test.C.x_sp,r'$\dot{H}, [mm \cdot yr^{-1}]$',test.C,dF,r'$\dot{F^{lit}_z}, [N/m/yr]$')
+                    _plot_detachment_topography(ipic,test.time[ipic],os.path.join(path_save_b,'Topo_detachment'),test.Det,topo_t,test.C.x_sp,r'${H}, [km]$',test.C,Lithos_FB,r'${F^{lit}_z}$ [10^{12} N/m]')
+                    label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$H$,[$km$]','no','Topography',[5,95])
+                    _plot_2D_surface(test.time[i],test.FS,it,test.C,path_save_c,'H','cmc.oleron',label,ipic,x_trench,y_trench)
+                    label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$\bar{\dot{\varepsilon}}_{II}$,[$\frac{1}{s}$]','yes','Average lithospheric strain rate',[30,90])
+                    _plot_2D_surface(test.time[i],test.FS,it,test.C,path_save_c,'eps','cmc.devon',label,ipic,x_trench,y_trench)
+                    _scatter_dH_dF(dF[:,ipic],dH_t[:,ipic],ipic,test.time[ipic],os.path.join(path_save_b,'scatterdF'))
+                    # find anomaly # 
+                    find_anomaly_wave_length(test.C,test.FS,ipic, path_save_c)
+                    
+
+                
                     ipic+=1 
     
                 
                 path_save_c = os.path.join(path_save_b,'FreeSurface')
                 
-                if not os.path.isdir(path_save_c):
-                    os.mkdir(path_save_c)
+
+
                 
                 label = Label('$x$, [$km$]','$y$, [$km$]','$Uplift$',r'$\bar{dH} [m]$','yes','Uplift',[30,90])
                 
@@ -209,20 +251,10 @@ class Data_Base():
                 
                 scale = (1000*100)/1e6
                 
-                label = Label('$x$, [$km$]','$y$, [$km$]','$Uplift rate$',r'${\dot{dH}} [\frac{cm}{yrs}]$','yes','Uplift',[30,90])
+                label = Label('$x$, [$km$]','$y$, [$km$]','$Uplift rate$',r'${\dot{dH}} [\frac{mm}{yrs}]$','yes','Uplift',[30,90])
                 _plot_Uplift([test.time[i1], test.time[i2]],((dH_A)/dtA)*scale,test_name[1],test.C,path_save_c,'Uplift_r','cmc.lapaz',label,'Geometric')
                 _plot_Uplift([test.time[i1]-2, test.time[i2]],((dH_B)/dtB)*scale,test_name[1],test.C,path_save_c,'Uplift_r','cmc.lapaz',label,'2Myr')
                 _plot_Uplift([0.5, test.time[i2]],((dH_C/dtC)*scale),test_name[1],test.C,path_save_c,'Uplift_r','cmc.lapaz',label,'Beginning')
-
-                # Plot figure of current test
-                
-                label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$\bar{\dot{\varepsilon}}_{II}$,[$\frac{1}{s}$]','yes','Average lithospheric strain rate',[30,90])
-
-           #     _plot_2D_surface(test.time,test.FS,it,test.C,path_save_c,'eps','cmc.devon',label)
-
-                label = Label('$x$, [$km$]','$y$, [$km$]','$none$',r'$H$,[$km$]','no','Topography',[5,95])
-
-           #     _plot_2D_surface(test.time,test.FS,it,test.C,path_save_c,'H','cmc.oleron',label)
 
                 # Delete the variable and start all over again. 
             itest = itest+1
@@ -243,7 +275,16 @@ class Data_Base():
                                 r'$\bar{T}^{S}$ $[^{\circ}C]$')
         fields = ['Avolume','detachment_velocity','Temp','StressLimit']
         _scatter_plot_(self,path_save,label_s,fields,'Average_velocity_global_dataset')
-    
+        markers = ["d","o","s","P"]
+        label_s = label_scatter(r'$\bar{v}_{tearing}$ $[\frac{cm}{yr}]$',
+                                r'$\bar{\frac{dH}{dt}},$mm/yrs$',
+                                r'Average tearing velocity',
+                                markers
+                                ,'yes',
+                                'cmc.bilbao',
+                                r'$\bar{T}^{S}$ $[^{\circ}C]$')
+        fields = ['detachment_velocity','Uplift_rate','Temp','StressLimit']
+        _scatter_plot_(self,path_save,label_s,fields,'Average_velocity_global_dataset')
         
 
 
@@ -284,6 +325,8 @@ class C():
                      'zp': ['/Coordinate_System/zp','km', 'Phase Grid z'],
                      'x_sp': ['/Slab_Detachment/x_s','km','X coordinate trench, phase'],
                      'y_sp': ['/Slab_Detachment/y_b', 'km','Y coordinate trench, phase'],
+                     'y_1': ['/Slab_Detachment/x1','km','Y coordinate center slab, phase'],
+                     'y_2': ['/Slab_Detachment/x2','km','Y coordinate center slab, phase']
         }
         
         self.xg = DB._read_variable(self.dict['xg'],Test_name)
@@ -301,6 +344,11 @@ class C():
         self.x_sp = DB._read_variable(self.dict['x_sp'],Test_name)
         
         self.y_sp = DB._read_variable(self.dict['y_sp'],Test_name)
+        
+        self.y_1 = DB._read_variable(self.dict['y_1'],Test_name)
+        
+        self.y_2 = DB._read_variable(self.dict['y_2'],Test_name)
+
         
 # Class containing the Initial condition information  
 class IC():
@@ -465,16 +513,10 @@ class label_scatter():
         self.colormap         =  colormap
         self.cbar_label       = cbar_label 
 
-def _plot_2D_surface(time:float,Data,Test_name,C:C,path_save:str,field:str,colorbar:str,label:Label):
+def _plot_2D_surface(time:float,Data,Test_name,C:C,path_save:str,field:str,colorbar:str,label:Label,ipic,xs,ys):
     import cmcrameri as cmc 
+
     
-    plt.rcParams.update({
-        "text.usetex": True,
-        "font.family": "sans-serif",
-        "font.sans-serif": "Helvetica",
-    })
-    
-    timestep = len(time)
     buf = eval(field,globals(),Data.__dict__)
     if label.log == 'yes':
         buf = np.log10(buf)
@@ -503,49 +545,48 @@ def _plot_2D_surface(time:float,Data,Test_name,C:C,path_save:str,field:str,color
         cf =ax0.pcolormesh(x, y, val,norm=norm ,shading='gouraud')
     else: 
         cf =ax0.pcolormesh(x, y, val,shading='gouraud')
+    cf1 = ax0.plot(xs,ys,linewidth=1.5,color='r')
     cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both",label=label.cbar_label)
-    for ipic in range(timestep): 
-        val = buf[:,:,ipic]
-        tick = r"Time =  %s [$Myr$]" %("{:.3f}".format(time[ipic]))
-        fna='Fig'+"{:03d}".format(ipic)+'.png'
-        fn = os.path.join(ptsave_c,fna)
+    val = buf[:,:,ipic]
+    tick = r"Time =  %s [$Myr$]" %("{:.3f}".format(time))
+    fna='Fig'+"{:03d}".format(ipic)+'.png'
+    fn = os.path.join(ptsave_c,fna)
    
-        cf.set_array(val.ravel())
-        cf.set_cmap(colorbar)
+    cf.set_array(val.ravel())
+    cf.set_cmap(colorbar)
 
-        cf.set_clim([min,max])
-        cbar.vmin = min 
-        cbar.vmax = max
-        cbar.update_normal(cf)
-        ax0.tick_params(axis='both', which='major', labelsize=14)
-        ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-        ax0.set_ylim(np.min(y),np.max(y))
-        ax0.set_xlim(np.min(x),np.max(x))
-        cbar.set_label(label.cbar_label)
-        plt.title(tick,fontsize=15)
-        fg.patch.set_facecolor('white')
+    cf.set_clim([min,max])
+    cbar.vmin = min 
+    cbar.vmax = max
+    cbar.update_normal(cf)
+    ax0.tick_params(axis='both', which='major', labelsize=14)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_ylim(np.min(y),np.max(y))
+    ax0.set_xlim(np.min(x),np.max(x))
+    cbar.set_label(label.cbar_label)
+    plt.title(tick,fontsize=15)
+    fg.patch.set_facecolor('white')
+    
+    #plt.show()
         
-        #plt.show()
-            
-        fg.savefig(fn,dpi=300)
+    fg.savefig(fn,dpi=300)
 
 #@timer          
 def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fields:list,name_figure):
     import cmcrameri as cmc 
-    
-    
-    plt.rcParams.update({
-        "text.usetex": True,
-        "font.family": "sans-serif",
-        "font.sans-serif": "Helvetica",
-    })
+
     
     x_f,y_f,z_f,m_f = fields # unpack the field 
     cm = 1/2.54  # centimeters in inches
     fg = figure(figsize=(15*cm, 15*cm))
     ax0 = fg.gca()
     x =  eval(x_f,globals(),Data.__dict__)
-    y =  eval(y_f,globals(),Data.__dict__)
+    if y_f == 'Uplift_rate':
+        du =  eval('uplift',globals(),Data.__dict__)*1000*1000
+        dt = eval('dt',globals(),Data.__dict__)*1e6
+        y  = du[:,0]/dt[:,0]
+    else: 
+        y = eval(y_f,globals(),Data.__dict__)
    # if label_scatter.log == 'yes':
         #y = np.log10(y)
    
@@ -555,8 +596,8 @@ def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fie
     for im in range(len(m_u)):
         plt.scatter(x[m==m_u[im]],y[m==m_u[im]],60,z[m==m_u[im]],marker=label_scatter.markers[im],cmap = label_scatter.colormap,edgecolors='k')
         
-    cbar = fg.colorbar(s, ax=ax0,orientation='horizontal',extend="both",label=label_scatter.cbar_label)
-    s.set_clim([820,np.max(z)])
+    cbar = fg.colorbar( ax=ax0,orientation='horizontal',extend="both",label=label_scatter.cbar_label)
+    ax0.set_clim([820,np.max(z)])
     cbar.vmin = 820 
     cbar.vmax = np.max(z)
     ax0.tick_params(axis='both', which='major', labelsize=14)
@@ -577,11 +618,7 @@ def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fie
 def _plot_Uplift(time_v:float,dH,Test_name,C:C,path_save:str,field:str,colorbar:str,label:Label,type:str):
     import cmcrameri as cmc 
     
-    plt.rcParams.update({
-        "text.usetex": True,
-        "font.family": "sans-serif",
-        "font.sans-serif": "Helvetica",
-    })
+
     buf = dH 
     buf[np.abs(dH)<np.mean(np.abs(dH))] = np.nan
     # Find the most reliable limits for the colorbar
@@ -612,8 +649,8 @@ def _plot_Uplift(time_v:float,dH,Test_name,C:C,path_save:str,field:str,colorbar:
     cbar.set_label(label.cbar_label)
     plt.title(tick,fontsize=15)
     fg.patch.set_facecolor('white')
-    
-    #plt.show()
+    plt.draw()
+    plt.show()
         
     fg.savefig(fn,dpi=300)
     
@@ -650,4 +687,190 @@ def ASCI_FILE_ALT(S,ipic,t_cur,Test_Name,ptsave,C:C):
     f.write('\n')
     np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
     f.close()
-    print('Free surface data of the timestep %d, has been printed' %(ipic))
+    #print('Free surface data of the timestep %d, has been printed' %(ipic))
+    
+def ASCI_time_Vec(time,Test_Name,ptsave):
+            
+    """
+    Write a simple ascii file for the post processing of the free surface dat
+    This is for the the free surface data, later on I will dedicate a bit of 
+    more time on the usage of the passive tracers.     
+    """
+    file_name = 'Time_Vector'+'__'+Test_Name[1]+'.txt'
+    
+    ptsave_b=os.path.join(ptsave,'DataBase_FS')
+    if not os.path.isdir(ptsave_b):
+        os.mkdir(ptsave_b)
+    
+    filename = os.path.join(ptsave_b,file_name)
+    dt = np.diff(time)
+    dt_s = 0.0*time
+    dt_s[1:]=dt[:]
+    S        = np.array([time,dt_s])
+
+    if(os.path.isfile(filename)):
+        os.remove(filename)
+    f = open(filename, 'a+')
+    f.write('########################################\n')
+    f.write('Time_Vector\n')
+    f.write('time dt\n')
+    f.write('  [Myrs],[Myrs]\n')
+    f.write('########################################\n')
+    f.write('\n')
+    np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+    f.close()
+    
+# Auxilary function
+
+
+def _plot_detachment_topography(ipic,time_sim,ptsave_b,D:Det,field:float,x_s:float,field_name,C:C,FB,label_2):
+    fna='Fig'+str(ipic)+'.png'
+    fg = figure()
+    tick=r'$Time = %s Myrs$' %(time_sim)
+    if not os.path.isdir(ptsave_b):
+        os.mkdir(ptsave_b)
+    fn = os.path.join(ptsave_b,fna)
+    ax1 = fg.add_axes([0.1, 0.7, 0.8, 0.2])
+    ax0 = fg.add_axes([0.1, 0.05, 0.8, 0.5])
+#    for ip in range(20):
+#        it = ipic - ip
+#        alpha_v= 0.8-(ip+1)*(1/29)
+#        if ip == 0: 
+#            cc = 'r'
+#        else:
+#            cc = 'b'
+#        if (it == 0) & (ip == 0) :
+#            ax1.plot(x_s,field[:,it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+#            break
+#        if (ip >0 ) & (it == 0 ):
+#            ax1.plot(x_s,field[:,it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+#            break 
+#        else:
+#            ax1.plot(x_s, field[:,it],c = cc,alpha = alpha_v,linewidth=alpha_v)
+
+    ax1.plot(x_s,field[:,ipic],color='r',linewidth=1.2)
+    ax1.set_ylabel(field_name)
+    ax1.set_xlabel(r'$x_s, [km]$')
+ 
+ 
+    
+    #ax1.set_title(tick)
+    ax1.set_xlim(0, 1200)           
+    ax1.set_yscale('linear')    
+    ax3= ax1.twinx()
+    ax3.plot(x_s,FB[:,ipic]/1e12,color='k',linewidth=1.2) 
+    ax3.set_ylabel(label_2)
+    ax3.set_xlabel(r'$x_s, [km]$')
+ 
+    
+    buf = D.D[:,:,ipic]/100 # Hard coded value i know. 
+    levels = np.linspace(np.round(0.1), np.round(0.85), num=10, endpoint=True, retstep=False, dtype=float)
+    cf=ax0.pcolormesh(x_s,C.zp,np.transpose(buf),cmap='inferno',vmin = 0.1, vmax=0.85)
+    cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
+    ax1.set_title(tick)
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_ylabel(r'$z, [km]$')
+    ax0.set_xlabel(r'$x_s, [Myrs]$')
+    fg.tight_layout()    
+    plt.draw()    # necessary to render figure before saving
+    fg.savefig(fn,dpi=600)
+    plt.close()
+
+def find_topography_uplift_trench(F:FS,C:C,ipic:int,x_trench,y_trench):
+    Topography = F.H[:,:,ipic]
+    dH         = F.dH[:,:,ipic]
+    # Interpolate topography to x_trench y_trench 
+    topo_trench = _interpolate_2D(Topography,C.xg,C.yg,x_trench,y_trench)
+    dH_trench = _interpolate_2D(dH,C.xg,C.yg,x_trench,y_trench)
+    tau_trench = _interpolate_2D(F.tau_mean[:,:,ipic],C.xg,C.yg,x_trench,y_trench)
+    thickness = _interpolate_2D(F.Thickness[:,:,ipic],C.xg,C.yg,x_trench,y_trench)
+    FB_trench = tau_trench*1e6*thickness*1e3 
+
+    return topo_trench,dH_trench,FB_trench,x_trench,y_trench
+
+
+
+
+
+def _interpolate_2D(Topo:float,xg:float,yg:float,xp:float,yp:float):
+    topo_marker = np.zeros([len(xp)],dtype = float)
+    for i in range(len(xp)):
+        xx = xp[i]
+        yy = yp[i]
+        ix = find1Dnodes(xg,xx,len(xg))
+        iy = find1Dnodes(yg,yy,len(yg))
+        x1 = xg[ix]
+        x2 = xg[ix+1]
+        y1 = yg[iy]
+        y2 = yg[iy+1]
+        intp1=Topo[iy,ix]
+        intp2=Topo[iy,ix+1]
+        intp3=Topo[iy+1,ix+1]
+        intp4=Topo[iy+1,ix]
+        val_ = bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4)
+        topo_marker[i]=val_
+    return topo_marker
+
+def find1Dnodes(cord,cordm,number):
+    # I was fucking up a few stuff:
+    #buf = cordm-cord 
+    #min = np.min(np.abs(buf))
+    for index in range(number):
+        if (cord[index]>cordm):
+            break 
+    return index-1    
+
+def bilinearinterpolation(xx,yy,x1,x2,y1,y2,intp1,intp2,intp3,intp4):
+    wx=(xx-x1)/(x2-x1)
+    wy=(yy-y1)/(y2-y1)
+
+    # FUCKING BUG: intp4 -> 1-x*intp4
+    R=intp1*(1-wx)*(1-wy)+intp2*wx*(1-wy)+intp3*wx*wy+intp4*wy*(1-wx)
+
+    return R    
+
+
+def _compute_initial_slab_position(C:C):
+    
+    y1 = C.y_1[:,:,0]
+    y2 = C.y_2[:,:,0]
+    y1[y1 == -np.inf] = np.nan 
+    y2[y2== -np.inf] = np.nan 
+    y1_mean = np.nanmean(y1,1)
+    y2_mean = np.nanmean(y2,1)
+    y_trench = (y1_mean+y2_mean)/2
+    x_trench  = C.xp[(C.xp>=-600)& (C.xp<=600)]
+    
+
+    return x_trench, y_trench
+
+
+def _scatter_dH_dF(dF,dH,ipic,time_sim,ptsave_b):
+    
+    fna='Fig'+str(ipic)+'.png'
+    fg = figure()
+    fn = os.path.join(ptsave_b,fna)
+
+    tick=r'$Time = %s Myrs$' %(time_sim)
+    if not os.path.isdir(ptsave_b):
+        os.mkdir(ptsave_b)
+    ax0 = fg.gca()
+    ax0.set_title(tick)
+
+    cf=ax0.scatter(dF,dH,s=10,color='#a4c330',edgecolors='k')
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_xlabel(r'$\dot{F}, [N/m/yr]$')
+    ax0.set_ylabel(r'$\dot{H}, [mm/yr]$')
+    fg.tight_layout()    
+    plt.draw()    # necessary to render figure before saving
+    fg.savefig(fn,dpi=600)
+    ax0.plot()
+
+"""
+find_anomaly_dH
+function 
+
+"""
+def find_anomaly_wave_length(C:C, F:FS, ipic:int,path_save_c):
