@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 #plt.switch_backend('agg')
 import matplotlib
 from matplotlib import cm
+import scipy as scp 
 import vtk
 from vtk.util.numpy_support import vtk_to_numpy
 import re
@@ -128,7 +129,7 @@ class Data_Base():
         itest = 0 
         for it in range(self.n_test-1):
             test_name = self.Tests_Name[it]
-            if (test_name[1] != 'TSD2_HC_3') & (test_name[1] != 'TSD2_PR'):
+            if (test_name[1] != 'TSD2_HC_3'):
                 path_save_b = os.path.join(path_save,test_name[1])
                 if not os.path.isdir(path_save_b):
                     os.mkdir(path_save_b)
@@ -230,7 +231,7 @@ class Data_Base():
                     _plot_2D_surface(test.time[i],test.FS,it,test.C,path_save_c,'eps','cmc.devon',label,ipic,x_trench,y_trench)
                     _scatter_dH_dF(dF[:,ipic],dH_t[:,ipic],ipic,test.time[ipic],os.path.join(path_save_b,'scatterdF'))
                     # find anomaly # 
-                    find_anomaly_wave_length(test.C,test.FS,ipic, path_save_c)
+                    find_anomaly_wave_length(test.C,test.FS,ipic,test.time[ipic] ,path_save_c)
                     
 
                 
@@ -528,7 +529,6 @@ def _plot_2D_surface(time:float,Data,Test_name,C:C,path_save:str,field:str,color
             os.mkdir(ptsave_c)
     min = np.nanpercentile(buf,label.min)
     max = np.nanpercentile(buf,label.max)
-    print('color maps limits are %2f  and %2f' %(min,max))
     if isinstance(Data,FS):
         val = np.zeros((len(C.yg),len(C.xg)),dtype=float)
         x = C.xg 
@@ -570,6 +570,7 @@ def _plot_2D_surface(time:float,Data,Test_name,C:C,path_save:str,field:str,color
     #plt.show()
         
     fg.savefig(fn,dpi=300)
+    plt.close()
 
 #@timer          
 def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fields:list,name_figure):
@@ -613,6 +614,7 @@ def  _scatter_plot_(Data:Data_Base,path_save:str,label_scatter:label_scatter,fie
     #plt.show()
             
     fg.savefig(fn,dpi=300)
+    plt.close()
     
     
 def _plot_Uplift(time_v:float,dH,Test_name,C:C,path_save:str,field:str,colorbar:str,label:Label,type:str):
@@ -653,6 +655,7 @@ def _plot_Uplift(time_v:float,dH,Test_name,C:C,path_save:str,field:str,colorbar:
     plt.show()
         
     fg.savefig(fn,dpi=300)
+    plt.close()
     
 def ASCI_FILE_ALT(S,ipic,t_cur,Test_Name,ptsave,C:C):
             
@@ -866,11 +869,190 @@ def _scatter_dH_dF(dF,dH,ipic,time_sim,ptsave_b):
     fg.tight_layout()    
     plt.draw()    # necessary to render figure before saving
     fg.savefig(fn,dpi=600)
-    ax0.plot()
-
+    plt.close()
 """
 find_anomaly_dH
-function 
+function that looks within the trench area (x_trench) and analyse the apparent uplift of the topography
+and detect the anomaly for retrieving the maximum amplitude, and wavelength of the anomaly. 
+new portion of the function: 17.03.2024
+
+1) first part -> Filtering data: There are a few oddities on the topography that makes difficult to a clean detection of 
+the anomaly
+2) additionally plot the amplitude of the topography
+
+================
+C   : coordinate system
+F   : Fress surface data set
+ipic: the actual timestep
+path_save_c: saving path
+time : time of the simulation 
+================
+Output: 
+max_Amplitude [vector of size(x_trench)]
+wave_length   [vector of size(x_trench)]
+figure anomaly for reference. 
 
 """
-def find_anomaly_wave_length(C:C, F:FS, ipic:int,path_save_c):
+def find_anomaly_wave_length(C:C, F:FS, ipic:int,time_sim,path_save_c):
+    
+    # Definition of Area of interest 
+    y_interest = C.yg[(C.yg>=-300) & (C.yg<=400)]
+    x_trench = C.xg[(C.xg>=-600) & (C.xg<=600)]
+    # Selection of the portion of the model to explore
+    dH = F.dH[:,:,ipic]
+    dx = np.mean(np.diff(C.xg))
+    dy = np.mean(np.diff(C.yg))
+    w_x = np.floor(100/dx)+1
+    w_y = np.floor(100/dy)+1
+
+    
+    dH=scp.ndimage.uniform_filter(dH, size=(w_y))
+  
+    dH = dH[(C.yg>=-300) & (C.yg<=400),:]
+    dH = dH[:,(C.xg>=-600) & (C.xg<=600)]
+    Amp = F.Topo[:,:,ipic]
+    Amp = Amp[(C.yg>=-300) & (C.yg<=400),:]
+    Amp = Amp[:,(C.xg>=-600) & (C.xg<=600)]
+    
+
+    mean_dH = np.nanmean(dH)
+    std_dH  = np.nanstd(dH)
+    dH_norm = (dH-mean_dH)/std_dH 
+    # Anomaly detection: 
+    anomaly = np.zeros(np.shape(dH),dtype = float)
+    anomaly[(dH_norm>=0.25)] = 1.0 
+    anomaly[(dH_norm <=-0.25) & (dH<0.0)] = -1.0 
+    amplitude = np.zeros([len(x_trench),3],dtype=float)
+    wl       = np.zeros([len(x_trench)],dtype=float)
+    y_min = np.zeros([len(x_trench)],dtype=float)
+    y_max = np.zeros([len(x_trench)],dtype=float)
+
+    for i in range(len(x_trench)):
+        
+        dh = dH[:,i]
+        an = anomaly[:,i]
+        if len(an[(an!=0)]) != 0:
+            amplitude[i,0]=np.max(dh)
+            amplitude[i,2]=np.mean(dh)
+            ind_max = np.where(dh==np.max(dh))
+            amplitude[i,1] = np.min(dh[ind_max[0][0]:])
+            ind_min = np.where(dh == np.min(dh[ind_max[0][0]:]))
+            y_min[i] = y_interest[ind_min[0][0]]
+            y_max[i] = y_interest[ind_max[0][0]]
+            wl[i]    = abs(y_min[i]-y_max[i])
+        else:
+            amplitude[i,:] = np.nan
+            y_min[i] = np.nan 
+            y_max[i] = np.nan
+           
+
+    _print_amplitude(x_trench,amplitude,ipic,time_sim,path_save_c)
+    _print_lambda(x_trench,wl,ipic,time_sim,path_save_c)
+    _print_figure(y_interest,x_trench,anomaly,ipic,time_sim,path_save_c,y_min,y_max,Amp,'Anomaly_Maps')
+    _print_figure(y_interest,x_trench,dH_norm,ipic,time_sim,path_save_c,y_min,y_max,Amp,'Norm_uplift')
+    _print_figure(y_interest,x_trench,dH,ipic,time_sim,path_save_c,y_min,y_max,Amp,'Filtered_uplift')
+
+    
+    
+    
+def fmt(x):
+    s = f"{x:.1f}"
+    if s.endswith("0"):
+        s = f"{x:.0f}"
+    return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
+
+
+
+    
+def _print_figure(y_trench,x_trench,anomaly,ipic,time_sim,ptsave_b,y_min,y_max,Amp,folder):
+    
+    ptsave_c = os.path.join(ptsave_b,folder)
+    if not os.path.isdir(ptsave_c):
+        os.mkdir(ptsave_c)
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(15*cm, 15*cm))
+    ax0 = fg.gca()
+    cf =ax0.pcolormesh(x_trench, y_trench, anomaly,shading='gouraud')
+    cf2 = ax0.contour(x_trench,y_trench,Amp, levels=[-1,  0, 1],colors='k',linewidths=0.5)
+    ax0.clabel(cf2, cf2.levels, inline=True, fmt=fmt, fontsize=6)
+    cf2 = plt.plot(x_trench,y_min,color='k',linewidth=1.4,linestyle = 'dashed')
+    cf3 = plt.plot(x_trench,y_max,color='k',linewidth=1.4)
+
+    if folder == 'Filtered_uplift':
+        cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both",label=r'$\dot{H}_{fil} [mm/yr]$')
+    elif folder == 'Filtered_uplift':
+        cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both",label=r'$Anomaly []$')
+    else: 
+        cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both",label=r'$\dot{H}_{Znorm} []$')
+
+
+    tick = r"Time =  %s [$Myr$]" %("{:.3f}".format(time_sim))
+    fna='Fig'+"{:03d}".format(ipic)+'.png'
+    fn = os.path.join(ptsave_c,fna)
+   
+    cf.set_cmap('coolwarm')
+    if folder != 'Filtered_uplift':
+        cf.set_clim([-1,1])
+        cbar.vmin = -1 
+        cbar.vmax = 1
+    ax0.tick_params(axis='both', which='major', labelsize=14)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    plt.title(tick,fontsize=15)
+    fg.patch.set_facecolor('white')
+    
+    #plt.show()
+        
+    fg.savefig(fn,dpi=300)
+    plt.close()
+
+def  _print_amplitude(x_trench,amplitude,ipic,time_sim,ptsave_b):
+    fna='Fig'+str(ipic)+'.png'
+    fg = figure()
+
+    tick=r'$Time = %s Myrs$' %(time_sim)
+    ptsave_c = os.path.join(ptsave_b,'Profile')
+
+    if not os.path.isdir(ptsave_c):
+        os.mkdir(ptsave_c)
+    fn = os.path.join(ptsave_c,fna)
+
+    ax0 = fg.gca()
+    ax0.set_title(tick)
+
+    cf=ax0.plot(x_trench,amplitude[:,0],color='r')
+    cf=ax0.plot(x_trench,amplitude[:,1],color='k')
+
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_xlabel(r'$x, [km]$')
+    ax0.set_ylabel(r'$\dot{H}, [mm/yr]$')
+    fg.tight_layout()    
+    plt.draw()    # necessary to render figure before saving
+    fg.savefig(fn,dpi=600)
+    ax0.plot()
+
+
+def  _print_lambda(x_trench,wl,ipic,time_sim,ptsave_b):
+    fna='Fig'+str(ipic)+'.png'
+    fg = figure()
+
+    tick=r'$Time = %s Myrs$' %(time_sim)
+    ptsave_c = os.path.join(ptsave_b,'Profile_lambda')
+
+    if not os.path.isdir(ptsave_c):
+        os.mkdir(ptsave_c)
+    fn = os.path.join(ptsave_c,fna)
+
+    ax0 = fg.gca()
+    ax0.set_title(tick)
+
+    cf=ax0.plot(x_trench,wl,color='r',linewidth=1.2)
+
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_xlabel(r'$x, [km]$')
+    ax0.set_ylabel(r'$\lambda, [km]$')
+    fg.tight_layout()    
+    plt.draw()    # necessary to render figure before saving
+    fg.savefig(fn,dpi=600)
+    plt.close()

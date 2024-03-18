@@ -27,7 +27,7 @@ from time import perf_counter
 
 
 
-path = r'../../Data_Base'
+path = r'../../output_def/Data_Base'
 name_PR = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
 name_PR200 = 'Data_base_Slab_detachment_3D_PR_200.hdf5'
 name_PR600 ='Data_base_Slab_detachment_3D_PR_600.hdf5'
