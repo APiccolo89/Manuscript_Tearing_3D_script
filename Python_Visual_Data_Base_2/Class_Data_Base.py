@@ -177,6 +177,10 @@ class Data_Base():
                 i1 = np.where(test.time==self.Starting_tearing[itest])[0][0]
                 i2 = np.where(test.time==self.Ending_tearing[itest])[0][0]
 
+                print_det_prof(test.C.x_sp,test.Det.D_x_t_det[:,i1-4:i2]/100,os.path.join(path_save,test_name[1]),'Tk')
+                print_det_prof(test.C.x_sp,test.Det.tau_x_t_det[:,i1-4:i2],os.path.join(path_save,test_name[1]),'tau')
+
+
                 # Here I do not have a clear measure for assessing the impact of the tearing. 
                 # The uplift associated to the tearing seems to starts before the actual geometrical tearing
                 # So, during the first iteration I would like to plot the following picture: 
@@ -300,27 +304,28 @@ class Data_Base():
 @timer
 class Test():
     def __init__(self,DB:Data_Base,Test_name:str):
-        
-        self.IC = IC(DB,Test_name)
-        
-        self.Det = Det(DB,Test_name)
-        
-        self.FS = FS(DB, Test_name)
-        
-        self.Ptr = Ptr(DB, Test_name)
-        
-        self.C  = C(DB, Test_name)
-    
+
         self.time = DB._read_variable(['/time','Myr', 'Time vector'],Test_name)
         
         self.time_M = (self.time[0:1:-1]+self.time[1:1:])/2
+
+        self.C  = C(DB, Test_name,self)
+        
+        self.IC = IC(DB,Test_name,self)
+        
+        self.Det = Det(DB,Test_name,self)
+        
+        self.FS = FS(DB, Test_name,self)
+        
+        self.Ptr = Ptr(DB, Test_name,self)
+            
         
 
 
 
 # Class containing the coordinate system information 
 class C():
-    def __init__(self,DB:Data_Base,Test_name:str):
+    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
         
         self.dict = {'xg': ['/Coordinate_System/x','km', 'Numerical Grid x'],
                      'yg': ['/Coordinate_System/y','km', 'Numerical Grid y'],
@@ -357,7 +362,7 @@ class C():
         
 # Class containing the Initial condition information  
 class IC():
-    def __init__(self,DB:Data_Base,Test_name:str):
+    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
         self.dict = {'L0': ['/IC/L0','km', 'Length of Slab'],
                      'D0': ['/IC/D0','km', 'Thickness of Slab'],
                      'T_av': ['/IC/T_av','C', 'Average Temperature at -100 km'],
@@ -385,10 +390,11 @@ class IC():
 
 # Class containing the information related to the detachment
 class Det():
-    def __init__(self,DB:Data_Base,Test_name:str):
+    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
         self.dict = {'D': ['/Slab_Detachment/D','km', 'Thickness of the slab with time (xs-z)'],
                      'Psi': ['/Slab_Detachment/Psi','W/m3', 'Dissipative rate energy production'],
                      'T': ['/Slab_Detachment/T','C', 'Average Temperature of the slab with time (xs-z)'],
+                     'tau': ['/Slab_Detachment/tau','MPa', 'Average Stress of the slab with time (xs-z)'],
                      'depth_vec': ['/Slab_Detachment/depth_vec','km', 'Depth of detachment '],
                      'det_vec': ['/Slab_Detachment/det_vec','Myr', 'Time of detachment '],
                      'tau_vec': ['/Slab_Detachment/tau_vec','MPa.', 'Stress at the detachment'],
@@ -401,19 +407,64 @@ class Det():
         self.D = DB._read_variable(self.dict['D'],Test_name)
         self.Psi = DB._read_variable(self.dict['Psi'],Test_name)
         self.T = DB._read_variable(self.dict['T'],Test_name)
+        self.tau = DB._read_variable(self.dict['tau'],Test_name)
         self.depth_vec = DB._read_variable(self.dict['depth_vec'],Test_name)
         self.det_vec = DB._read_variable(self.dict['det_vec'],Test_name)
         self.tau_vec = DB._read_variable(self.dict['tau_vec'],Test_name)
         self.x_vec = DB._read_variable(self.dict['x_vec'],Test_name)
         self.y_vec = DB._read_variable(self.dict['y_vec'],Test_name)
         self.vel_tear = DB._read_variable(self.dict['vel_tear'],Test_name)
-        self.x1 = DB._read_variable(self.dict['x_slab1'],Test_name)
-        self.x2 = DB._read_variable(self.dict['x_slab2'],Test_name)
+        self.y1 = DB._read_variable(self.dict['x_slab1'],Test_name)
+        self.y2 = DB._read_variable(self.dict['x_slab2'],Test_name)
+        # Derivative values 
+        self.D_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
+        self.tau_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
+        
+        i_along_x        = np.zeros(len(self.x_vec),dtype = int) 
+        
+        #Find_index 
+        
+        for i in range(len(i_along_x)):
+            ind = np.where(T.C.zp == self.depth_vec[i])
+            if len(ind[0])>0:
+                i_along_x[i]=ind[0][0]
+            else:
+                i_along_x[i]=-1 
+        
+        # find time evolution thickness, stress along the depth at which the detachment is occuring 
+        
+        self.time_evolution_necking(i_along_x)
+    
+    def time_evolution_necking(self,i_along_x):
+        """
+        Function that simply select the nodes of the array that corresponds to the depth of detachment and saves the entire 
+        timeseries.
+
+        i_along_x = the depth index at which detachment occurs. 
+
+        """
+
+        for i in range(len(i_along_x)):
+            if i_along_x[i] != -1:
+                self.D_x_t_det[i,:] = self.D[i,i_along_x[i],:]
+                self.tau_x_t_det[i,:] = self.tau[i,i_along_x[i],:]
+            else:
+                self.D_x_t_det[i,:] = -np.inf
+                self.tau_x_t_det[i,:] = -np.inf
+        
+        return self 
+
+
+        
+
+        
+
+
 
 
 # Class containing the information of the free surface
 class FS():
-    def __init__(self,DB:Data_Base,Test_name:str):
+    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
         self.dict = {'H': ['/FS/Amplitude','km', 'Amplitude'],
                      'dH': ['/FS/dH','mm/yr', 'Rate of variation of Amplitude with time'],
                      'vz_M': ['/FS/vz_M','mm/yr', 'Filtered v_z of free surface'],
@@ -427,16 +478,40 @@ class FS():
         self.dH = DB._read_variable(self.dict['dH'],Test_name)
         self.vz_M = DB._read_variable(self.dict['vz_M'],Test_name)
         self.vz = DB._read_variable(self.dict['vz'],Test_name)
-
         self.Thickness = DB._read_variable(self.dict['Thickness'],Test_name)
         self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
         self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
         self.eps = DB._read_variable(self.dict['eps'],Test_name)
+        self.dH_fil =  np.zeros(np.shape(self.dH),dtype=float)
+        self.vz_fil =  np.zeros(np.shape(self.dH),dtype=float)
+        self.dH_fil = self.filter_array('dH')
+        self.vz_fil = self.filter_array('vz')
+    
+    def filter_array(self,key):
+        """
+        Internal function that creates a filtered array
+        Input argument: 
+        key = the array that needs to be filtered. 
+        self = the class 
+        """
+        # access to the variable 
+        buf_array = eval(key,globals(),self.__dict__)
+        # create new variable 
+        new_array = np.zeros(np.shape(buf_array),dtype=float)
+        # Prepare loop
+        nit = len(new_array[0,0,:])
+        # Loop 
+        for i in range(nit):
+            new_array[:,:,i]=scp.ndimage.median_filter(buf_array[:,:,i], size=(7))
+    
+        return new_array 
+    
+
 
  
 # Class containing the Passive tracers information   
 class Ptr(): 
-    def __init__(self,DB:Data_Base,Test_name:str):
+    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
         self.dict = {'x': ['/PTrBas/x','km', 'x position'],
                      'y': ['/PTrBas/y','km', 'y position'],
                      'z': ['/PTrBas/z','km', 'z position'],
@@ -1227,5 +1302,21 @@ def _write_asci_file(time:float,max_dh,det1,det2,field,path,Testname):
     np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
     f.close()
     
-    
-    
+def  print_det_prof(x,Data,ptsave_b,field):
+    fna='%s.png' %(field)
+    fg = figure()
+    ptsave_c = os.path.join(ptsave_b,'Det')
+    if not os.path.isdir(ptsave_c):
+        os.mkdir(ptsave_c)
+    fn = os.path.join(ptsave_c,fna)
+    ax0 = fg.gca()
+    cf=ax0.plot(x,Data,color='r',linewidth=0.8)
+    ax0.tick_params(axis='both', which='major', labelsize=5)
+    ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+    ax0.set_xlabel(r'$x, [km]$')
+    ax0.set_ylabel(r'$D, []$')
+    fg.tight_layout()    
+    plt.draw()    # necessary to render figure before saving
+    fg.savefig(fn,dpi=600)
+    plt.close()
+
