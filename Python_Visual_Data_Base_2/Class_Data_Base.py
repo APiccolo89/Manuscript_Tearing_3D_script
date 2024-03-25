@@ -176,11 +176,7 @@ class Data_Base():
 
                 i1 = np.where(test.time==self.Starting_tearing[itest])[0][0]
                 i2 = np.where(test.time==self.Ending_tearing[itest])[0][0]
-
-                print_det_prof(test.C.x_sp,test.Det.D_x_t_det[:,i1-4:i2]/100,os.path.join(path_save,test_name[1]),'Tk')
-                print_det_prof(test.C.x_sp,test.Det.tau_x_t_det[:,i1-4:i2],os.path.join(path_save,test_name[1]),'tau')
-
-
+                
                 # Here I do not have a clear measure for assessing the impact of the tearing. 
                 # The uplift associated to the tearing seems to starts before the actual geometrical tearing
                 # So, during the first iteration I would like to plot the following picture: 
@@ -268,35 +264,7 @@ class Data_Base():
                 # Delete the variable and start all over again. 
             itest = itest+1
 
-        
         print(itest)
-        # Print the global data base pictures 
-        # Plot average velocity of tearing w.r.t. activation volume, 
-        # Diamonds Pr = 200, circle = 400, square = 600 MPa stress limiter
-        # Average temperature colorbar
-        markers = ["d","o","s","P"]
-        label_s = label_scatter(r'$V^{a}_{dis}$ $[10^6 \frac{m^3}{Pa}]$',
-                                r'$\bar{v}_{tearing}$ $[\frac{cm}{yr}]$',
-                                r'Average tearing velocity',
-                                markers
-                                ,'yes',
-                                'cmc.bilbao',
-                                r'$\bar{T}^{S}$ $[^{\circ}C]$')
-        fields = ['Avolume','detachment_velocity','Temp','StressLimit']
-        _scatter_plot_(self,path_save,label_s,fields,'Activationvsdetachment','PR_r')
-        markers = ["d","o","s","P"]
-        label_s = label_scatter(r'$\bar{v}_{tearing}$ $[\frac{cm}{yr}]$',
-                                r'$\bar{\frac{dH}{dt}}$,$mm/yrs$',
-                                r'Average tearing velocity',
-                                markers
-                                ,'yes',
-                                'cmc.bilbao',
-                                r'$\bar{T}^{S}$ $[^{\circ}C]$')
-        fields = ['detachment_velocity','Uplift_rate','Temp','StressLimit']
-        _scatter_plot_(self,path_save,label_s,fields,'Average_velocity_global_dataset','PR_r')
-        
-
-
 
 
 
@@ -482,10 +450,23 @@ class FS():
         self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
         self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
         self.eps = DB._read_variable(self.dict['eps'],Test_name)
+        # Derivative Data Set [filtered and post processed]
         self.dH_fil =  np.zeros(np.shape(self.dH),dtype=float)
         self.vz_fil =  np.zeros(np.shape(self.dH),dtype=float)
+       
+        self.dH_long_term = np.zeros(np.shape(self.dH[:,:,0]),dtype = float)
+        self.dH_detachment = np.zeros(np.shape(self.dH[:,:,0]),dtype = float)
+       
+        self.Uplift_LT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.Uplift_det = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+
+        
         self.dH_fil = self.filter_array('dH')
         self.vz_fil = self.filter_array('vz')
+        
+        
+        
+        
     
     def filter_array(self,key):
         """
@@ -505,10 +486,42 @@ class FS():
             new_array[:,:,i]=scp.ndimage.median_filter(buf_array[:,:,i], size=(7))
     
         return new_array 
+
+    def _compute_dH_tearing(self,T:Test):
+        """
+        Input: FS and T:test 
+        ===============================
+        Output: updated FS
+        
+        Function that selects:
+        1) the topography at the beginning of the tearing 
+        and its end, and create an array containing
+        the total variation of topography
+        2) the topography after the isostatic rebound,and the end of tearging
+        and creating an array containing the total variation of topography
+        during the long term history of the model
+        Function that compute the associated average uplift. 
+        """
+        # Find when do the tearing starts: 
+        i1 = np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        # Find when do the tearing end: 
+        i2 = np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        # Filter isostatic 
+        i_iso = np.where(T.time>1.0)
+        i_iso = i_iso[0][0]
+
+        dt_det = T.time[i2[0][0]]-T.time[i1[0][0]]
+        dt_long = T.time[i2[0][0]]-T.time[i_iso]
+        # Compute anomaly
+        self.dH_detachment= self.Topo[:,:,i2]-self.Topo[:,:,i1]
+        self.dH_long_term = self.Topo[:,:,i2]-self.Topo[:,:,i_iso]
+       
+        self.Uplift_det = self.dH_detachment/dt_det
+        self.Uplift_LT  = self.dH_long_term/dt_long
+        
+        return self
     
 
-
- 
 # Class containing the Passive tracers information   
 class Ptr(): 
     def __init__(self,DB:Data_Base,Test_name:str,T:Test):
