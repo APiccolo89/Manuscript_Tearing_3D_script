@@ -103,6 +103,49 @@ class Data_Base():
         # Return the data needed
         
         return List, n_test
+    """
+    Function to save a smaller data base for the Karlsruhe and Glasgow group
+    """
+    def _write_h5_database(self,ptsave,TestName,T):
+       data_name = "Data_base_KIT_GLA.hdf5"
+       data_base_name = os.path.join(ptsave,data_name)
+       print(data_base_name)
+       f = h5py.File(data_base_name, 'a')
+       node = "/"+TestName
+       e = False
+       if node in f.keys():
+               f[node]
+               e = True
+       if e == False: 
+           f.create_group(node)
+       node_coordinate_system = node+"/"+"Coordinate_System"
+       # function to save the initial coordinate system 
+       f = self.save_test_data(f,node_coordinate_system,T.C)
+       # function to save the slab detachment 
+       node_S = node+"/"+"Det"
+       f= self.save_test_data(f,node_S,T.Det)
+       # function to save the free surface
+       node_FS = node+"/"+"FS"
+       f= self.save_test_data(f,node_FS,T.FS)
+       buf_name = node+"/time"
+       if buf_name in f.keys():
+           del f[buf_name]      # load the data
+           f.create_dataset(buf_name,data = np.array(time))
+       else:
+           f.create_dataset(buf_name,data = np.array(time))
+       f.close() 
+    
+    def save_test_data(self,f,path_DB,Type_DATA):
+
+        keys_data=Type_DATA.__dict__.keys()
+
+        for v in keys_data:
+            buf_name = path_DB+"/"+v
+            buf_cl  = eval(v,globals(),Type_DATA.__dict__)
+            f.create_dataset(buf_name,data=buf_cl)
+            
+        return f
+
     
     def _read_variable(self,keys:list,Test_name): 
         """_read_variable:
@@ -125,7 +168,7 @@ class Data_Base():
         
         f.close()
         return buf
-    def _post_process_data(self,path:str,path_save:str):
+    def _post_process_data(self,path:str,path_save:str,save_data:bool):
         itest = 0 
         for it in range(self.n_test-1):
             test_name = self.Tests_Name[it]
@@ -184,13 +227,11 @@ class Data_Base():
                                                                     np.nanmean(test.FS.Uplift_det)])
                 self.uplift[itest,2] = self.uplift[itest,0]/self.uplift[itest,1]
                 
-                print_det_prof(test.C.x_sp,test.Det.D_x_t_det_F,path_save_b,'detachment')
-                print_det_prof(test.C.x_sp,test.Det.tau_x_t_det_F,path_save_b,'tau')
-
-
                 ipic = 0 
                 ASCI_time_Vec(test.time,test_name,path_save_b)
-
+                
+                if save_data:
+                    self._write_h5_database(path_save,test_name[1],test)
 
             itest = itest+1
 
