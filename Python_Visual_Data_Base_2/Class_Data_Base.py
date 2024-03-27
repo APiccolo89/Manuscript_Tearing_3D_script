@@ -25,7 +25,9 @@ import h5py
 import time
 from functools import wraps
 import matplotlib as mpl
-from Auxilary_function import *
+from typing import Literal
+from abc import ABCMeta, abstractmethod
+#from Auxilary_function import *
 
 
 
@@ -44,8 +46,7 @@ def timer(func):
     return wrapper
 
 # Main class where to collect all the data related to a specific test. 
-@timer
-class Data_Base():
+class Data_Base(object):
     """
     [1] -> Initial draft of the class: instead of collecting all the data and storing, creating dynamic variable field
     i store the path to the variable and generate the variable whenever I need. 
@@ -76,7 +77,7 @@ class Data_Base():
         
         self.Temp      = np.zeros([self.n_test-1],dtype = float)
         
-        
+    @timer   
     def _read_test(self,path:str):
         
         # Read File Data base 
@@ -106,6 +107,7 @@ class Data_Base():
     """
     Function to save a smaller data base for the Karlsruhe and Glasgow group
     """
+    @timer
     def _write_h5_database(self,ptsave,TestName,T):
        data_name = "Data_base_KIT_GLA.hdf5"
        data_base_name = os.path.join(ptsave,data_name)
@@ -130,23 +132,25 @@ class Data_Base():
        buf_name = node+"/time"
        if buf_name in f.keys():
            del f[buf_name]      # load the data
-           f.create_dataset(buf_name,data = np.array(time))
+           f.create_dataset(buf_name,data = np.array(T.time))
        else:
-           f.create_dataset(buf_name,data = np.array(time))
+           f.create_dataset(buf_name,data = np.array(T.time))
        f.close() 
-    
+    @timer
     def save_test_data(self,f,path_DB,Type_DATA):
 
         keys_data=Type_DATA.__dict__.keys()
-
+        # Loop over the several field of the sub classes 
         for v in keys_data:
-            buf_name = path_DB+"/"+v
-            buf_cl  = eval(v,globals(),Type_DATA.__dict__)
-            f.create_dataset(buf_name,data=buf_cl)
-            
+            if v != 'dict':
+                buf_name = path_DB+"/"+v
+                buf_cl  = eval(v,globals(),Type_DATA.__dict__)
+                # Check if the node exist, and in case delete for overwritting it. 
+                if buf_name in f.keys():
+                    del f[buf_name]      # load the data                
+                f.create_dataset(buf_name,data=buf_cl)
         return f
 
-    
     def _read_variable(self,keys:list,Test_name): 
         """_read_variable:
         function that has a list containing the name of the variable and the path within the
@@ -168,7 +172,8 @@ class Data_Base():
         
         f.close()
         return buf
-    def _post_process_data(self,path:str,path_save:str,save_data:bool):
+    @timer
+    def _post_process_data(self,path:str,path_save:str,save_data:bool,print_topography:bool):
         itest = 0 
         for it in range(self.n_test-1):
             test_name = self.Tests_Name[it]
@@ -179,7 +184,7 @@ class Data_Base():
 
                 print(test_name)
 
-                test = Test(self,test_name)
+                test = Test(self.path,test_name)
                 # Collect initial data
                 self.Avolume[itest] = test.IC.VnM*1e6
 
@@ -228,43 +233,124 @@ class Data_Base():
                 self.uplift[itest,2] = self.uplift[itest,0]/self.uplift[itest,1]
                 
                 ipic = 0 
-                ASCI_time_Vec(test.time,test_name,path_save_b)
-                
-                if save_data:
+                if save_data == True:
                     self._write_h5_database(path_save,test_name[1],test)
-
+                if print_topography == True:
+                    test._print_topographic_data_ASCI(test_name[1],path_save_b)
+                
             itest = itest+1
 
         print(itest)
 
 
-
-
 @timer
-class Test():
-    def __init__(self,DB:Data_Base,Test_name:str):
+class Test(Data_Base):
+    def __init__(self,path:str,Test_name:str):
 
-        self.time = DB._read_variable(['/time','Myr', 'Time vector'],Test_name)
+        super().__init__(path)
+
+        self.time = self._read_variable(['/time','Myr', 'Time vector'],Test_name)
         
         self.time_M = (self.time[0:1:-1]+self.time[1:1:])/2
 
-        self.IC = IC(DB,Test_name,self)
+        self.IC = IC(Test_name,self)
 
-        self.C  = C(DB, Test_name,self)
+        self.C  = C(Test_name,self)
                 
-        self.Det = Det(DB,Test_name,self)
+        self.Det = Det(Test_name,self)
         
-        self.FS = FS(DB, Test_name,self)
+        self.FS = FS(Test_name,self)
         
-        self.Ptr = Ptr(DB, Test_name,self)
-            
+        self.Ptr = Ptr(Test_name,self)
+    def _print_topographic_data_ASCI(self,Testname:str,path_save):
         
+        itime = len(self.time)
+        
+        # Print Time vector
+        self.ASCI_time_Vec(Testname,path_save)
+        
+        for i in range(itime):
+            self.ASCI_FILE_ALT(i,self.time[i],Testname,path_save)
+        
+        print('Topographic data of % has been printed.'%(Testname))
+
+    def ASCI_FILE_ALT(self,ipic,t_cur,Test_Name,ptsave):
+
+        """
+        Write a simple ascii file for the post processing of the free surface dat
+        This is for the the free surface data, later on I will dedicate a bit of 
+        more time on the usage of the passive tracers.     
+        """
+        file_name = str(ipic).zfill(7)+'__'+Test_Name[1]+'Free_surface_data.txt'
+
+        ptsave_b=os.path.join(ptsave,'DataBase_FS')
+        if not os.path.isdir(ptsave_b):
+            os.mkdir(ptsave_b)
+
+        filename = os.path.join(ptsave_b,file_name)
+        Y,X = np.meshgrid(self.C.xg,self.C.yg)
+        buf_x = X.ravel()
+        buf_y = Y.ravel()
+        vz_M    = self.FS.vz_M[:,:,ipic]
+        dH    = self.FS.dH[:,:,ipic]
+        H     = self.FS.H[:,:,ipic]
+        dH_fil  = self.FS.dH_fil[:,:,ipic]
+        vz_fil  = self.FS.vz_fil[:,:,ipic]
+        S        = np.array([buf_x*1e3,buf_y*1e3,vz_M.ravel(),dH.ravel(),dH_fil.ravel(),vz_fil.ravel(),H.ravel()])
+        if(os.path.isfile(filename)):
+            os.remove(filename)
+        f = open(filename, 'a+')
+        f.write('########################################\n')
+        f.write('time [Myrs] time step []\n')
+        f.write('x, y,v_z,dHdt, dHdt_fil,v_z_fil ,Topography\n')
+        f.write('  [m],[m],[mm/yrs],[mm/yrs],[mm/yrs],[mm/yrs], [m]\n')
+        f.write('dH_fil and vz_fil: array that has been filtered with a median \n')
+        f.write('filter (scipy) with a kernel size of 7.\n')
+        f.write('########################################\n')
+        f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))
+        f.write('\n')
+        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+        f.close()
+        #print('Free surface data of the timestep %d, has been printed' %(ipic))
+
+    def ASCI_time_Vec(self,Test_Name,ptsave):
+
+        """
+        Write a simple ascii file for the post processing of the free surface dat
+        This is for the the free surface data, later on I will dedicate a bit of 
+        more time on the usage of the passive tracers.     
+        """
+        file_name = 'Time_Vector'+'__'+Test_Name+'.txt'
+
+        ptsave_b=os.path.join(ptsave,'DataBase_FS')
+        if not os.path.isdir(ptsave_b):
+            os.mkdir(ptsave_b)
+
+        filename = os.path.join(ptsave_b,file_name)
+        dt = np.diff(self.time)
+        dt_s = 0.0*self.time
+        dt_s[1:]=dt[:]
+        S        = np.array([self.time,dt_s])
+
+        if(os.path.isfile(filename)):
+            os.remove(filename)
+        f = open(filename, 'a+')
+        f.write('########################################\n')
+        f.write('Time_Vector\n')
+        f.write('time dt\n')
+        f.write('  [Myrs],[Myrs]\n')
+        f.write('########################################\n')
+        f.write('\n')
+        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+        f.close()
+
+    
 
 
 
 # Class containing the coordinate system information 
 class C():
-    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
+    def __init__(self,Test_name:str,T:Test):
         
         self.dict = {'xg': ['/Coordinate_System/x','km', 'Numerical Grid x'],
                      'yg': ['/Coordinate_System/y','km', 'Numerical Grid y'],
@@ -282,27 +368,27 @@ class C():
                      
         }
         
-        self.xg = DB._read_variable(self.dict['xg'],Test_name)
+        self.xg = T._read_variable(self.dict['xg'],Test_name)
         
-        self.yg = DB._read_variable(self.dict['yg'],Test_name)
+        self.yg = T._read_variable(self.dict['yg'],Test_name)
         
-        self.zg = DB._read_variable(self.dict['zg'],Test_name)
+        self.zg = T._read_variable(self.dict['zg'],Test_name)
         
-        self.xp = DB._read_variable(self.dict['xp'],Test_name)
+        self.xp = T._read_variable(self.dict['xp'],Test_name)
         
-        self.yp = DB._read_variable(self.dict['yp'],Test_name)
+        self.yp = T._read_variable(self.dict['yp'],Test_name)
         
-        self.zp = DB._read_variable(self.dict['zp'],Test_name)
+        self.zp = T._read_variable(self.dict['zp'],Test_name)
         
-        self.x_sp = DB._read_variable(self.dict['x_sp'],Test_name)
+        self.x_sp = T._read_variable(self.dict['x_sp'],Test_name)
         
-        self.y_sp = DB._read_variable(self.dict['y_sp'],Test_name)
+        self.y_sp = T._read_variable(self.dict['y_sp'],Test_name)
         
         # Compute the initial position of the slab 
         
-        y_1 = DB._read_variable(self.dict['y_1'],Test_name)
+        y_1 = T._read_variable(self.dict['y_1'],Test_name)
         
-        y_2 = DB._read_variable(self.dict['y_2'],Test_name)
+        y_2 = T._read_variable(self.dict['y_2'],Test_name)
 
         self.ind_x_trench_g,self.y_trench_p,self.x_trench_p=self._compute_initial_slab_position(y_1,y_2,T)
         
@@ -339,7 +425,7 @@ class C():
         
 # Class containing the Initial condition information  
 class IC():
-    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
+    def __init__(self,Test_name:str,T:Test):
         self.dict = {'L0': ['/IC/L0','km', 'Length of Slab'],
                      'D0': ['/IC/D0','km', 'Thickness of Slab'],
                      'T_av': ['/IC/T_av','C', 'Average Temperature at -100 km'],
@@ -353,24 +439,24 @@ class IC():
                      'VnS' : ['/Phase_DB/Phase_6_/Rheology/Dislocation/V','m3/J','Activation volume Slab'],
                      'tau_co':['/Phase_DB/Phase_6_/Rheology/Plastic/ch','Pa','Stress limiter slab'],
         }
-        self.L0 = DB._read_variable(self.dict['L0'],Test_name)
-        self.D0 = DB._read_variable(self.dict['D0'],Test_name)
-        self.T_av = DB._read_variable(self.dict['T_av'],Test_name)
-        self.etarefS = DB._read_variable(self.dict['etarefS'],Test_name)
-        self.etarefM = DB._read_variable(self.dict['etarefM'],Test_name)
-        self.xiS = DB._read_variable(self.dict['xiS'],Test_name)
-        self.xiM = DB._read_variable(self.dict['xiM'],Test_name)
-        self.tau0 = DB._read_variable(self.dict['tau0'],Test_name)
-        self.VnM = DB._read_variable(self.dict['VnM'],Test_name)
-        self.VnS = DB._read_variable(self.dict['VnS'],Test_name)
-        self.tau_co = DB._read_variable(self.dict['tau_co'],Test_name)
-        coordinate = DB._read_variable(self.dict['Coord_Slab'],Test_name)
+        self.L0 = T._read_variable(self.dict['L0'],Test_name)
+        self.D0 = T._read_variable(self.dict['D0'],Test_name)
+        self.T_av = T._read_variable(self.dict['T_av'],Test_name)
+        self.etarefS = T._read_variable(self.dict['etarefS'],Test_name)
+        self.etarefM = T._read_variable(self.dict['etarefM'],Test_name)
+        self.xiS = T._read_variable(self.dict['xiS'],Test_name)
+        self.xiM = T._read_variable(self.dict['xiM'],Test_name)
+        self.tau0 = T._read_variable(self.dict['tau0'],Test_name)
+        self.VnM = T._read_variable(self.dict['VnM'],Test_name)
+        self.VnS = T._read_variable(self.dict['VnS'],Test_name)
+        self.tau_co = T._read_variable(self.dict['tau_co'],Test_name)
+        coordinate = T._read_variable(self.dict['Coord_Slab'],Test_name)
         self.coordinate_Slab = coordinate[0:1] 
 
 
 # Class containing the information related to the detachment
 class Det():
-    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
+    def __init__(self,Test_name:str,T:Test):
         self.dict = {'D': ['/Slab_Detachment/D','km', 'Thickness of the slab with time (xs-z)'],
                      'Psi': ['/Slab_Detachment/Psi','W/m3', 'Dissipative rate energy production'],
                      'T': ['/Slab_Detachment/T','C', 'Average Temperature of the slab with time (xs-z)'],
@@ -384,18 +470,18 @@ class Det():
                      'x_slab1'  : ['/Slab_Detachment/x1', 'km','Position slab x1'] , 
                      'x_slab2'  :  ['/Slab_Detachment/x2', 'km','Position slab x2'],
                      }
-        self.D = DB._read_variable(self.dict['D'],Test_name)
-        self.Psi = DB._read_variable(self.dict['Psi'],Test_name)
-        self.T = DB._read_variable(self.dict['T'],Test_name)
-        self.tau_max = DB._read_variable(self.dict['tau_max'],Test_name)
-        self.depth_vec = DB._read_variable(self.dict['depth_vec'],Test_name)
-        self.det_vec = DB._read_variable(self.dict['det_vec'],Test_name)
-        self.tau_vec = DB._read_variable(self.dict['tau_vec'],Test_name)
-        self.x_vec = DB._read_variable(self.dict['x_vec'],Test_name)
-        self.y_vec = DB._read_variable(self.dict['y_vec'],Test_name)
-        self.vel_tear = DB._read_variable(self.dict['vel_tear'],Test_name)
-        self.y1 = DB._read_variable(self.dict['x_slab1'],Test_name)
-        self.y2 = DB._read_variable(self.dict['x_slab2'],Test_name)
+        self.D = T._read_variable(self.dict['D'],Test_name)
+        self.Psi = T._read_variable(self.dict['Psi'],Test_name)
+        self.T = T._read_variable(self.dict['T'],Test_name)
+        self.tau_max = T._read_variable(self.dict['tau_max'],Test_name)
+        self.depth_vec = T._read_variable(self.dict['depth_vec'],Test_name)
+        self.det_vec = T._read_variable(self.dict['det_vec'],Test_name)
+        self.tau_vec = T._read_variable(self.dict['tau_vec'],Test_name)
+        self.x_vec = T._read_variable(self.dict['x_vec'],Test_name)
+        self.y_vec = T._read_variable(self.dict['y_vec'],Test_name)
+        self.vel_tear = T._read_variable(self.dict['vel_tear'],Test_name)
+        self.y1 = T._read_variable(self.dict['x_slab1'],Test_name)
+        self.y2 = T._read_variable(self.dict['x_slab2'],Test_name)
         # Derivative values 
         self.D_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         self.tau_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
@@ -437,24 +523,14 @@ class Det():
 
         # Beautyfing the array. 
         for i in range(itime):
-            self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(30)/30, mode='same')
-            self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(30)/30, mode='same')
-
-        
-        
+            self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(40)/40, mode='same')
+            self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(40)/40, mode='same')
         return self 
-
-
-        
-
-        
-
-
 
 
 # Class containing the information of the free surface
 class FS():
-    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
+    def __init__(self,Test_name:str,T:Test):
         self.dict = {'H': ['/FS/Amplitude','km', 'Amplitude'],
                      'dH': ['/FS/dH','mm/yr', 'Rate of variation of Amplitude with time'],
                      'vz_M': ['/FS/vz_M','mm/yr', 'Filtered v_z of free surface'],
@@ -462,16 +538,16 @@ class FS():
                      'tau_mean': ['/FS/mean_stress','MPa', 'Mean stress'],
                      'Topo': ['/FS/Topo','km', 'Topography'],
                      'eps' : ['/FS/mean_eps','1/s','strain rate'],
-                     'vz' : ['/FS/vz','mm/yr','strain rate'],
+                     'vz' : ['/FS/vz','mm/yr','raw data'],
        }
-        self.H = DB._read_variable(self.dict['H'],Test_name)
-        self.dH = DB._read_variable(self.dict['dH'],Test_name)
-        self.vz_M = DB._read_variable(self.dict['vz_M'],Test_name)
-        self.vz = DB._read_variable(self.dict['vz'],Test_name)
-        self.Thickness = DB._read_variable(self.dict['Thickness'],Test_name)
-        self.tau_mean = DB._read_variable(self.dict['tau_mean'],Test_name)
-        self.Topo = DB._read_variable(self.dict['Topo'],Test_name)
-        self.eps = DB._read_variable(self.dict['eps'],Test_name)
+        self.H = T._read_variable(self.dict['H'],Test_name)
+        self.dH = T._read_variable(self.dict['dH'],Test_name)
+        self.vz_M = T._read_variable(self.dict['vz_M'],Test_name)
+        self.vz = T._read_variable(self.dict['vz'],Test_name)
+        self.Thickness = T._read_variable(self.dict['Thickness'],Test_name)
+        self.tau_mean = T._read_variable(self.dict['tau_mean'],Test_name)
+        self.Topo = T._read_variable(self.dict['Topo'],Test_name)
+        self.eps = T._read_variable(self.dict['eps'],Test_name)
         # Derivative Data Set [filtered and post processed]
         self.dH_fil =  np.zeros(np.shape(self.dH),dtype=float)
         self.vz_fil =  np.zeros(np.shape(self.dH),dtype=float)
@@ -484,7 +560,7 @@ class FS():
 
         
         self.dH_fil = self.filter_array('dH')
-        self.vz_fil = self.filter_array('vz')
+        self.vz_fil = self.filter_array('vz_M')
         
         
         
@@ -546,18 +622,18 @@ class FS():
 
 # Class containing the Passive tracers information   
 class Ptr(): 
-    def __init__(self,DB:Data_Base,Test_name:str,T:Test):
+    def __init__(self,Test_name:str,T:Test):
         self.dict = {'x': ['/PTrBas/x','km', 'x position'],
                      'y': ['/PTrBas/y','km', 'y position'],
                      'z': ['/PTrBas/z','km', 'z position'],
                      'P': ['/PTrBas/P','MPa', 'Pressure passive tracer '],
                      'T': ['/PTrBas/T','C', 'Temperature of passive tracer'],
                     }
-        self.x = DB._read_variable(self.dict['x'],Test_name)
-        self.y = DB._read_variable(self.dict['y'],Test_name)
-        self.z = DB._read_variable(self.dict['z'],Test_name)
-        self.P = DB._read_variable(self.dict['P'],Test_name)
-        self.T = DB._read_variable(self.dict['T'],Test_name)
+        self.x = T._read_variable(self.dict['x'],Test_name)
+        self.y = T._read_variable(self.dict['y'],Test_name)
+        self.z = T._read_variable(self.dict['z'],Test_name)
+        self.P = T._read_variable(self.dict['P'],Test_name)
+        self.T = T._read_variable(self.dict['T'],Test_name)
 
         
 def _merge_database(FileA:str,FileB:str,FileC:str,Dest_file:str):
@@ -579,7 +655,6 @@ def _merge_database(FileA:str,FileB:str,FileC:str,Dest_file:str):
 
 
 # Auxilary function
-
 
 
 def find_topography_uplift_trench(F:FS,C:C,ipic:int,x_trench,y_trench):
