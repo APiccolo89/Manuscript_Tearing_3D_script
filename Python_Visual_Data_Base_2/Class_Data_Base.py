@@ -77,7 +77,6 @@ class Data_Base(object):
         
         self.Temp      = np.zeros([self.n_test-1],dtype = float)
         
-    @timer   
     def _read_test(self,path:str):
         
         # Read File Data base 
@@ -107,7 +106,6 @@ class Data_Base(object):
     """
     Function to save a smaller data base for the Karlsruhe and Glasgow group
     """
-    @timer
     def _write_h5_database(self,ptsave,TestName,T):
        data_name = "Data_base_KIT_GLA.hdf5"
        data_base_name = os.path.join(ptsave,data_name)
@@ -123,24 +121,35 @@ class Data_Base(object):
        node_coordinate_system = node+"/"+"Coordinate_System"
        # function to save the initial coordinate system 
        f = self.save_test_data(f,node_coordinate_system,T.C)
+       print("Size coordinate system is %2f" %(sys.getsizeof(f)))
        # function to save the slab detachment 
        node_S = node+"/"+"Det"
        f= self.save_test_data(f,node_S,T.Det)
+       print("Size Det is %2f" %(sys.getsizeof(f)))
        # function to save the free surface
        node_FS = node+"/"+"FS"
        f= self.save_test_data(f,node_FS,T.FS)
+       print("Size free surface is %2f" %(sys.getsizeof(f)))
        buf_name = node+"/time"
        if buf_name in f.keys():
            del f[buf_name]      # load the data
            f.create_dataset(buf_name,data = np.array(T.time))
        else:
            f.create_dataset(buf_name,data = np.array(T.time))
+        
+       print("Size free surface is %2f" %(sys.getsizeof(f)))
+
        f.close() 
-    @timer
+
     def save_test_data(self,f,path_DB,Type_DATA):
 
         keys_data=Type_DATA.__dict__.keys()
         # Loop over the several field of the sub classes 
+        size_array = 0
+        
+        if isinstance(Type_DATA,FS):
+            keys_data = ['dH','dH_fil','H','vz','vz_fil']
+        
         for v in keys_data:
             if v != 'dict':
                 buf_name = path_DB+"/"+v
@@ -148,7 +157,9 @@ class Data_Base(object):
                 # Check if the node exist, and in case delete for overwritting it. 
                 if buf_name in f.keys():
                     del f[buf_name]      # load the data                
-                f.create_dataset(buf_name,data=buf_cl)
+                f.create_dataset(buf_name,data=np.float32(buf_cl))
+                size_array += sys.getsizeof(buf_cl)
+        print('Size of the database %2f' %(size_array))
         return f
 
     def _read_variable(self,keys:list,Test_name): 
@@ -228,8 +239,8 @@ class Data_Base(object):
                 
                 self.uplift[itest,0]= np.nanmean(test.FS.Uplift_det[test.FS.Uplift_det>
                                                                     np.nanmean(test.FS.Uplift_det)])
-                self.uplift[itest,1]= np.nanmean(test.FS.Uplift_LT[test.FS.Uplift_det>
-                                                                    np.nanmean(test.FS.Uplift_det)])
+                self.uplift[itest,1]= np.nanmean(test.FS.Uplift_LT[test.FS.Uplift_LT>
+                                                                    np.nanmean(test.FS.Uplift_LT)])
                 self.uplift[itest,2] = self.uplift[itest,0]/self.uplift[itest,1]
                 
                 ipic = 0 
@@ -451,7 +462,7 @@ class IC():
         self.VnS = T._read_variable(self.dict['VnS'],Test_name)
         self.tau_co = T._read_variable(self.dict['tau_co'],Test_name)
         coordinate = T._read_variable(self.dict['Coord_Slab'],Test_name)
-        self.coordinate_Slab = coordinate[0:1] 
+        self.coordinate_Slab = coordinate[0:2] 
 
 
 # Class containing the information related to the detachment
@@ -536,7 +547,6 @@ class FS():
                      'vz_M': ['/FS/vz_M','mm/yr', 'Filtered v_z of free surface'],
                      'Thickness': ['/FS/thickness','km', 'Thickness of the lithosphere '],
                      'tau_mean': ['/FS/mean_stress','MPa', 'Mean stress'],
-                     'Topo': ['/FS/Topo','km', 'Topography'],
                      'eps' : ['/FS/mean_eps','1/s','strain rate'],
                      'vz' : ['/FS/vz','mm/yr','raw data'],
        }
@@ -546,7 +556,6 @@ class FS():
         self.vz = T._read_variable(self.dict['vz'],Test_name)
         self.Thickness = T._read_variable(self.dict['Thickness'],Test_name)
         self.tau_mean = T._read_variable(self.dict['tau_mean'],Test_name)
-        self.Topo = T._read_variable(self.dict['Topo'],Test_name)
         self.eps = T._read_variable(self.dict['eps'],Test_name)
         # Derivative Data Set [filtered and post processed]
         self.dH_fil =  np.zeros(np.shape(self.dH),dtype=float)
@@ -562,6 +571,7 @@ class FS():
         self.dH_fil = self.filter_array('dH')
         self.vz_fil = self.filter_array('vz_M')
         
+        self._compute_dH_tearing(T)
         
         
         
@@ -601,9 +611,9 @@ class FS():
         Function that compute the associated average uplift. 
         """
         # Find when do the tearing starts: 
-        i1 = np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        i1 = np.where(T.time==np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
         # Find when do the tearing end: 
-        i2 = np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        i2 = np.where(T.time==np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
         # Filter isostatic 
         i_iso = np.where(T.time>1.0)
         i_iso = i_iso[0][0]
@@ -611,8 +621,8 @@ class FS():
         dt_det = T.time[i2[0][0]]-T.time[i1[0][0]]
         dt_long = T.time[i2[0][0]]-T.time[i_iso]
         # Compute anomaly
-        self.dH_detachment= self.Topo[:,:,i2]-self.Topo[:,:,i1]
-        self.dH_long_term = self.Topo[:,:,i2]-self.Topo[:,:,i_iso]
+        self.dH_detachment= self.H[:,:,i2]-self.H[:,:,i1]
+        self.dH_long_term = self.H[:,:,i2]-self.H[:,:,i_iso]
        
         self.Uplift_det = self.dH_detachment/dt_det
         self.Uplift_LT  = self.dH_long_term/dt_long
