@@ -60,13 +60,16 @@ DB = Data_Base(file_DB)
 
 # Loop over the avaiable test and collect data, save a smaller database, and ascii file {TIP: if you want 
 # to create a subclasses you do not have to put a decorator for the classes}
-DB._post_process_data(path,path_save,False,False)
+#DB._post_process_data(path,path_save,False,False)
 path_figure = os.path.join(path_save,'figure_manuscript')
 
-make_figure6(DB,path_figure,'figure6')
+#make_figure6(DB,path_figure,'figure6')
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
-
+TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
+TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
+TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
+TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 
 if not os.path.isdir(path_figure):
@@ -84,7 +87,13 @@ Observation: [Fast tearing ] Fast tearing is characterized by the development of
 within the slab at ca 200 km 
 
 """
-make_figure_3(TSD2,TSD2_V15,path_figure,'figure3')
+make_figure_3(TSD2,path_figure,'figure3a',[0.1,1.0],[0.1,1.0])
+make_figure_3(TSD2_V10,path_figure,'figure3b',[0.1,1.0],[0.1,0.6])
+make_figure_3(TSD2_V11,path_figure,'figure3c',[0.1,1.0],[0.1,0.5])
+make_figure_3(TSD2_V12,path_figure,'figure3d',[0.1,1.0],[0.1,0.5])
+make_figure_3(TSD2_V13,path_figure,'figure3e',[0.1,1.0],[0.0,0.4])
+make_figure_3(TSD2_V15,path_figure,'figure3g',[0.1,.2],[0.0,0.1])
+
 """
 Figure 4: 
 Figure depicting the total uplift within the tearing processes in the upper row 

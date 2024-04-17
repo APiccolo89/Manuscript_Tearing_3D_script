@@ -94,44 +94,78 @@ class MidpointNormalize(mpl.colors.Normalize):
         x, y = [self.vmin, self.midpoint, self.vmax], [normalized_min, normalized_mid, normalized_max]
         return np.ma.masked_array(np.interp(value, x, y))
 
-def make_figure_3(A,B,path_figure,figure_name):
+"""
+Figure 3/4: 
+Stress and Thickness profile of a given test. 
+-> input parameter 
+A = Test database
+path_figure = path for the figure
+figure_name = figure name
+= 
+output the figure. 
+"""
+def make_figure_3(A,path_figure,figure_name,lm1,lm2):
     # figure name
     fn = os.path.join(path_figure,'%s.png'%(figure_name))
     
     # Prepare variables
     b0 = A.Det.D_x_t_det_F
-    b1 = B.Det.D_x_t_det_F
+    b1 = A.Det.tau_x_t_det_F
 
     a0 = A.C.x_sp
 
     i10,i20 = np.where(A.time==np.nanmin(A.Det.det_vec)),np.where(A.time==np.nanmax(A.Det.det_vec))
-    i11,i21 = np.where(B.time==np.nanmin(B.Det.det_vec)),np.where(B.time==np.nanmax(B.Det.det_vec))
     string_title0 = r'$t = %s$ \textendash \ $%s$, $[Myrs]$' %("{:10.2f}".format(A.time[i10[0][0]-10]),"{:10.2f}".format(A.time[i20[0][0]]))
-    string_title1 = r'$t = %s$ \textendash \ $%s$, $[Myrs]$' %("{:10.2f}".format(B.time[i11[0][0]-10]),"{:10.2f}".format(B.time[i21[0][0]]))
 
     # Prepare figure layout 
     cm = 1/2.54  # centimeters in inches
     fg = figure(figsize=(15*cm, 15*cm))  
     bx = 0.07
     by = 0.1
-    sx = 0.40
-    dx = 0.03
+    sx = 0.35
+    dx = 0.08
     sy = 0.8
     dy = []
     # Prepare axis of the two end member 
     ax0 = fg.add_axes([bx, by, sx, sy])
     ax1 = fg.add_axes([bx+sx+dx, by, sx, sy])
-    # 
+    #cbm = fg.add_axes([bx+2*sx, 0.25, 0.01, 0.8])
+    # -> coloring the plot as a function of the time
+    # Solution: https://gist.github.com/charlottenosam/c63b6caa68bd117e35a4c6a7ca98007d
+    # Normalize the array vals so they can be mapped to a color
+    c_norm = mpl.colors.Normalize(vmin=np.nanpercentile(A.Det.det_vec,5), vmax=np.nanpercentile(A.Det.det_vec,95)) #MidpointNormalize(vmin=-0.1, vmax=A.time[i20[0][0]]-A.time[i10[0][0]],midpoint=0)#
 
-    # Print figure
-    ax0.plot(a0,b0[:,i10[0][0]-10:i20[0][0]]/(A.IC.D0/1000),linewidth = 1.0,color = 'k') 
-    ax1.plot(a0,b1[:,i11[0][0]-10:i21[0][0]]/(B.IC.D0/1000),linewidth = 1.0,color = 'k')
-    ax0.set_ylim(0.05,1.0)
+    # Pick a colormap
+    c_map  = mpl.cm.turbo
+
+    # Scalar mappable of normalized array to colormap
+    s_map  = mpl.cm.ScalarMappable(cmap=c_map, norm=c_norm)
+    s_map.set_array([])
+    time_det = A.time[i10[0][0]:i20[0][0]+1]
+    it = i10[0][0]
+    for v in time_det:
+        a00=ax0.plot(a0,b0[:,it]/(A.IC.D0[0][0]/1000),linewidth = 1.0,color = s_map.to_rgba(v))
+        a10=ax1.plot(a0,b1[:,it]/(A.IC.tau_co/1e6),linewidth = 1.0,color=s_map.to_rgba(v))
+        it +=1 
+
+    a01=ax0.plot(a0,b0[:,i10[0][0]-10:i10[0][0]-1]/(A.IC.D0[0][0]/1000),linewidth = 0.3,color = 'k',alpha = 0.2)
+    a11=ax1.plot(a0,b1[:,i10[0][0]-10:i10[0][0]-1]/(A.IC.tau_co/1e6),linewidth = 0.3,color='k',alpha = 0.2)
+
+
+    cb_ax = fg.add_axes([.88,0.25,.04,0.5])
+   # cbar0 = fg.colorbar(s_map,ax=ax1,orientation='vertical',extend="both",label=r't, [Myr]',location = 'right',shrink=0.5)
+
+   # cax = ax1.inset_axes([1.2, 0.25, 0.01, 1.0])
+    #cbm.set_axis_off()
+    cbar0 = fg.colorbar(s_map,cax=cb_ax,orientation='vertical',extend="both",location = 'right')
+    cbar0.set_label(r't, [Myr]', labelpad=-20, y=1.1, rotation=0)
+
+    ax0.set_ylim(lm1[0],lm1[1])
     #ax0.set_ytick(0.1,0.5,0.9)
     ax0.tick_params(axis="y",direction="in")
     ax0.tick_params(axis="x",direction="in")
-    ax1.set_ylim(0.05,1.0)
-    ax1.tick_params(left=True,right=True,labelleft=False) 
+    ax1.set_ylim(lm2[0],lm2[1])
+    ax1.tick_params(left=True,right=True,labelleft=True) 
     ax1.tick_params(axis="y",direction="in")
     ax1.tick_params(axis="x",direction="in")
     
@@ -144,17 +178,19 @@ def make_figure_3(A,B,path_figure,figure_name):
     ax0.set_xlabel(r'$x_s, [km]$',fontsize=fnt_g.label_)
     ax1.set_xlabel(r'$x_s, [km]$',fontsize=fnt_g.label_)
     ax0.set_ylabel(r'$D^{\dagger}, []$',loc='bottom',fontsize=18)
+    ax1.set_ylabel(r'$\frac{\tau_{max}}{\tau_{lim}}, []$',loc='bottom',fontsize=18)
+
     ax0.set_xticks([200,600,1000])
     ax1.set_xticks([200,600,1000])
-    ax1.set_yticks([0.1,0.5,1.0])
-    ax0.set_yticks([0.1,0.5,1.0])
+    ax1.set_yticks([lm2[0],(lm2[0]+lm2[1])/2,lm2[1]])
+    ax0.set_yticks([lm1[0],(lm1[0]+lm1[1])/2,lm1[1]])
     ax0.yaxis.set_label_coords(-0.01,0.3)
+    ax1.yaxis.set_label_coords(-0.01,0.3)
+
     ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
     ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
     ax1.xaxis.set_tick_params(labelsize=fnt_g.axis_)
     ax1.yaxis.set_tick_params(labelsize=fnt_g.axis_)
-    ax0.set_title(string_title0,fontsize=fnt_g.title_)    #ax0.yaxis.set_label
-    ax1.set_title(string_title1,fontsize=fnt_g.title_)    #ax0.yaxis.set_label
 
     props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
     ax0.text(0.90, 0.98, '$[a]$', transform=ax0.transAxes, fontsize=fnt_g.label_,

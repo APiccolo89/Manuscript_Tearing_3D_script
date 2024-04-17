@@ -534,8 +534,16 @@ class Det():
 
         # Beautyfing the array. 
         for i in range(itime):
-            self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(40)/40, mode='same')
-            self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(40)/40, mode='same')
+            a = self.D_x_t_det[:,i]
+            a[a==-np.inf]=np.nan 
+            b = self.tau_x_t_det[:,i]
+            n = int(np.floor(len(a[np.isnan(a)!=1]))/10)
+            if n!= 0:
+                self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(n)/n, mode='same')
+                self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(n)/n, mode='same')
+            else:
+                self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(2)/2, mode='same')
+                self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(2)/2, mode='same')
         return self 
 
 
