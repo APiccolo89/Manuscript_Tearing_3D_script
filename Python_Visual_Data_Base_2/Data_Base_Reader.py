@@ -60,16 +60,22 @@ DB = Data_Base(file_DB)
 
 # Loop over the avaiable test and collect data, save a smaller database, and ascii file {TIP: if you want 
 # to create a subclasses you do not have to put a decorator for the classes}
-DB._post_process_data(path,path_save,False,False)
+#DB._post_process_data(path,path_save,False,False)
 path_figure = os.path.join(path_save,'figure_manuscript')
 
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
-#TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
-#TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
-#TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
-#TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
+TSD2.print_topography_timeseries(path_save,0.0)
+TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
+TSD2_V10.print_topography_timeseries(path_save,0.0)
+TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
+TSD2_V11.print_topography_timeseries(path_save,0.0)
+TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
+TSD2_V12.print_topography_timeseries(path_save,0.0)
+TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
+TSD2_V13.print_topography_timeseries(path_save,0.0)
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
+TSD2_V15.print_topography_timeseries(path_save,0.0)
 
 if not os.path.isdir(path_figure):
     os.mkdir(path_figure)

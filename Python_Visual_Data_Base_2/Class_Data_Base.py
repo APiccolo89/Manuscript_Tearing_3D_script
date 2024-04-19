@@ -259,7 +259,9 @@ class Test(Data_Base):
     def __init__(self,path:str,Test_name:str):
 
         super().__init__(path)
-
+        
+        self.Test_Name = Test_name[1]
+        
         self.time = self._read_variable(['/time','Myr', 'Time vector'],Test_name)
         
         self.time_M = (self.time[0:1:-1]+self.time[1:1:])/2
@@ -273,6 +275,97 @@ class Test(Data_Base):
         self.FS = FS(Test_name,self)
         
         self.Ptr = Ptr(Test_name,self)
+        
+        
+    def print_topography_timeseries(self,path_save,coord_x):
+        """
+        Input:
+        self. 
+        path_save = destination where to save the profiles
+        coord_x = what is the collect the profile
+        Output: 
+        -> txt file: 1D timeseries of the filtered uplift of the given profile along y
+        -> txt file: 0D timeseries of the maximum of the filtered uplift for a given profile
+        -> plot that illustrate where is the slab and the profile
+        """
+        def fmt(x):
+            s = f"{x:.1f}"
+            if s.endswith("0"):
+                s = f"{x:.0f}"
+            return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
+
+
+        save_folder = os.path.join(path_save,"Profiles")
+        if not os.path.isdir(save_folder):
+            os.mkdir(save_folder)
+        
+        save_folder = os.path.join(path_save,"Profiles",self.Test_Name)
+        if not os.path.isdir(save_folder):
+            os.mkdir(save_folder)
+
+        
+        file_name = os.path.join(save_folder,'Profile_%d'%int(coord_x))
+        #[Prepare the time vector]
+        
+        time_v = self.time
+        
+        #[Select the coordinate where to envaluate]
+        # Select the indexes that are higher than this value 
+        ind_x = np.where(self.C.xg >= coord_x)
+        # Select the index that best represent the coord_x
+        ind_x = ind_x[0][0]
+        # Select the time series 
+        time_series_1D = self.FS.dH_fil[:,ind_x,:]
+        T,Y = np.meshgrid(time_v,self.C.yg)
+        S = np.array([T.ravel(),Y.ravel(),time_series_1D.ravel()])
+        if(os.path.isfile(file_name)):
+            os.remove(file_name)
+        f = open(file_name, 'a+')
+        f.write('########################################\n')
+        f.write('time [Myr], y [km], dH [mm/yr]\n')
+        f.write('The profile is take perpendicular to the trench at x = %3f [km]'%coord_x)
+        f.write('dH array that has been filtered with a median \n')
+        f.write('filter (scipy) with a kernel size of 7.\n')
+        f.write('########################################\n')
+        f.write('\n')
+        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+        f.close()
+        
+        # Print maximum uplift for the profile 
+        time_0D_series = np.zeros(len(time_v),dtype=float)
+        for i in range(len(time_v)):
+            time_0D_series[i] = np.max(time_series_1D[:,i])
+        
+        file_name = file_name+'_0D_time_series'
+        
+        if(os.path.isfile(file_name)):
+            os.remove(file_name)
+        f = open(file_name, 'a+')
+        S = []
+        S = np.array([time_v,time_0D_series])
+        f.write('########################################\n')
+        f.write('time [Myr], max(dH) [mm/yr]\n')
+        f.write('The profile is take perpendicular to the trench at x = %3f [km], and the value represents the maximum uplift'%coord_x)
+        f.write('dH array that has been filtered with a median \n')
+        f.write('filter (scipy) with a kernel size of 7.\n')
+        f.write('########################################\n')
+        f.write('\n')
+        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
+        f.close()
+        
+        fg = figure()
+        
+        fn = os.path.join(save_folder,'Simplified_initial_topographyx_%d_km'%int(coord_x))
+        ax = fg.gca()
+        p1 = ax.contour(self.C.xg,self.C.yg,self.FS.H[:,:,10],levels = [-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0],colors = 'k',linewidths=0.5)
+        ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=6)
+        ax.axvline(x=coord_x,linewidth = 1.5,color='firebrick',label = r'Profile')
+        ax.plot(self.C.x_trench_p,self.C.y_trench_p,linewidth = 1.5,linestyle = 'dashdot',label = r'Slab position',color = 'rebeccapurple')
+        ax.set_xlabel(r'$x$/[km]')
+        ax.set_ylabel(r'$y$/[km]')
+        ax.legend(loc='upper right')
+        fg.savefig(fn,dpi=600,transparent=False)
+
     def _print_topographic_data_ASCI(self,Testname:str,path_save):
         
         itime = len(self.time)
