@@ -499,6 +499,14 @@ class Det():
         # Filtered {these data are horrible to see without a moving average filter}
         self.D_x_t_det_F = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         self.tau_x_t_det_F = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
+        self.deltaD = np.zeros([len(T.time)],dtype = float)
+        self.meanD = np.zeros([len(T.time)],dtype = float)
+        self.minD = np.zeros([len(T.time)],dtype = float)
+        self.maxD = np.zeros([len(T.time)],dtype = float)
+
+
+
+
         i_along_x        = np.zeros(len(self.x_vec),dtype = int) 
         #Find_index 
         for i in range(len(i_along_x)):
@@ -510,9 +518,9 @@ class Det():
         
         # find time evolution thickness, stress along the depth at which the detachment is occuring 
         
-        self.time_evolution_necking(i_along_x,len(T.time))
+        self.time_evolution_necking(i_along_x,(T.time),T.C.x_sp)
     
-    def time_evolution_necking(self,i_along_x,itime):
+    def time_evolution_necking(self,i_along_x,time_d,x):
         """
         Function that simply select the nodes of the array that corresponds to the depth of detachment and saves the entire 
         timeseries.
@@ -523,7 +531,11 @@ class Det():
         self 
 
         """
+        itime = len(time_d)
+        
+        start_detaching = np.nanmin(self.det_vec[(x>=100) & (x<=1100)])
 
+        end_detaching = np.nanmax(self.det_vec[(x>=100) & (x<=1100)])
         for i in range(len(i_along_x)):
             if i_along_x[i] != -1:
                 self.D_x_t_det[i,:] = self.D[i,i_along_x[i],:]
@@ -536,14 +548,32 @@ class Det():
         for i in range(itime):
             a = self.D_x_t_det[:,i]
             a[a==-np.inf]=np.nan 
+            a = a[(x>=100) & (x<=1100)]
             b = self.tau_x_t_det[:,i]
+            b=b[(x>=100) & (x<=1100)]
             n = int(np.floor(len(a[np.isnan(a)!=1]))/10)
+            self.meanD[i]=np.nanmean(a)/100
+            self.maxD[i]=np.nanmax(a)/100
+            self.minD[i]=np.nanmin(a)/100
             if n!= 0:
-                self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(n)/n, mode='same')
-                self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(n)/n, mode='same')
+                self.D_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(a, np.ones(n)/n, mode='same')
+                self.tau_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(b, np.ones(n)/n, mode='same')
             else:
-                self.D_x_t_det_F[:,i] = np.convolve(self.D_x_t_det[:,i], np.ones(2)/2, mode='same')
-                self.tau_x_t_det_F[:,i] = np.convolve(self.tau_x_t_det[:,i], np.ones(2)/2, mode='same')
+                self.D_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(a, np.ones(2)/2, mode='same')
+                self.tau_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(b, np.ones(2)/2, mode='same')
+            if time_d[i] < start_detaching:
+                self.deltaD[i] = np.nanmax(a)/100-np.nanmin(a)/100
+            if time_d[i] >= start_detaching:
+                self.minD[i] = 0.1
+
+            elif time_d[i]> end_detaching:
+                self.deltaD[i] = 0.0
+                self.meanD[i] = 0.0
+                self.minD[i] = 0.0
+                self.maxD[i]=0.0
+            a = []
+            b = []
+            
         return self 
 
 

@@ -735,7 +735,130 @@ def compute_ribe_theta(l0,l1,theta):
     
     return np.sin(theta_m),np.cos(theta_m)
 
+def make_plot_dD(path_save,A,B):
     
+    fn = os.path.join(path_save,'Test.png')
+    D0 = 100 
+    
+    a0 = A.time
+    a1 = A.Det.deltaD
+    a2 = A.Det.minD
+    a3 = A.Det.maxD 
+    a4 = A.Det.meanD
+
+    b0 = B.time
+    b1 = B.Det.deltaD
+    b2 = B.Det.minD
+    b3 = B.Det.maxD 
+    b4 = B.Det.meanD  
+  
+
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(12*cm, 6*cm))  
+    bx = 0.15
+    by = 0.2
+    sx = 0.35
+    dx = 0.10
+    sy = 0.7
+    
+    ax0 = fg.add_axes([bx,by,sx,sy])
+    ax0b = ax0.twinx()
+    ax1 = fg.add_axes([bx+sx+dx,by,sx,sy])
+    ax1b = ax1.twinx()
+
+    ax0.plot(a0,a1,linewidth = 1.2, color = 'k')
+    ax0b.fill_between(a0,a2,a3,alpha=0.7,color='firebrick')
+    ax0b.plot(a0,a4,linewidth = 0.5,alpha=1.0,color='firebrick')
+    
+
+    ax1.plot(b0,b1,linewidth = 1.2, color = 'k')
+    ax1b.fill_between(b0,b2,b3,alpha=0.7,color='firebrick')
+    ax1b.plot(b0,b4,linewidth = 0.5,alpha=1.0,color='firebrick')
+
+
+    plt.setp(ax0.spines.values(), linewidth=1.4)
+    plt.setp(ax1.spines.values(), linewidth=1.4)
+    
+    plt.setp(ax0b.spines.values(), linewidth=1.4)
+    plt.setp(ax1b.spines.values(), linewidth=1.4)
+    
+
+    ax0.tick_params(axis="y",direction="in")
+    ax0.tick_params(axis="x",direction="in")
+    
+    ax1.tick_params(axis="y",direction="in")
+    ax1.tick_params(axis="x",direction="in")
+
+
+    ax0.set_ylabel(r'$\Delta D^{\dagger}$, $[]$',fontsize=fnt_g.label_)
+    ax1b.set_ylabel(r'$D^{\dagger}$, $[]$',fontsize=fnt_g.label_)
+    ax0.set_xlabel(r'$t$, $[Myr]$',fontsize=fnt_g.label_)
+    ax1.set_xlabel(r'$t$, $[Myr]$',fontsize=fnt_g.label_)
+
+
+
+    
+    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0b.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1b.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+
+    ax0.set_yticks([0.0,round(np.max(a1),1)])
+    ax1.set_yticks([0.0,round(np.max(b1),1)])
+    ax0b.set_yticks([0.0,1.0])
+    ax1b.set_yticks([0.0,1.0])
+
+
+    ax0.yaxis.set_label_coords(-0.01,0.5)
+    ax1b.yaxis.set_label_coords(1.01,0.5)
+
+
+    ax0.spines['bottom'].set_color('k')
+    ax0.spines['top'].set_color('w') 
+    ax0.spines['right'].set_color('firebrick')
+    ax0.spines['left'].set_color('k')
+
+    ax1.spines['bottom'].set_color('k')
+    ax1.spines['top'].set_color('w') 
+    ax1.spines['right'].set_color('firebrick')
+    ax1.spines['left'].set_color('k')
+
+    ax0b.spines['bottom'].set_color('k')
+    ax0b.spines['top'].set_color('w') 
+    ax0b.spines['right'].set_color('firebrick')
+    ax0b.spines['left'].set_color('k')
+
+    ax1b.spines['bottom'].set_color('k')
+    ax1b.spines['top'].set_color('w') 
+    ax1b.spines['right'].set_color('firebrick')
+    ax1b.spines['left'].set_color('k')
+
+
+    ax0.spines[['right', 'top']].set_visible(False)
+    ax1.spines[['right', 'top']].set_visible(False)
+    ax0b.spines[[ 'top']].set_visible(False)
+    ax1b.spines[[ 'top']].set_visible(False)
+
+
+    ax1b.yaxis.label.set_color('firebrick')
+    ax1b.tick_params(axis='y', colors='firebrick')
+    ax0b.tick_params(axis='y', colors='firebrick')
+
+
+
+    props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.5)
+    ax0.text(0.82, 1.03, '$[a]$', transform=ax0.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+    ax1.text(0.82, 1.03, '$[b]$', transform=ax1.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+
+    
+    fg.savefig(fn,dpi=600,transparent=False)
     
     
     
