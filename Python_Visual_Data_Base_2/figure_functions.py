@@ -149,7 +149,7 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
         it +=1 
 
     a01=ax0.plot(a0,b0[:,i10[0][0]-10:i10[0][0]-1]/(A.IC.D0[0][0]/1000),linewidth = 0.3,color = 'k',alpha = 0.2)
-    a11=ax1.plot(a0,b1[:,i10[0][0]-10:i10[0][0]-1]/(A.IC.tau_co/1e6),linewidth = 0.3,color='k',alpha = 0.2)
+    a11=ax1.plot(a0,b1[:,10:i10[0][0]-1]/(A.IC.tau_co/1e6),linewidth = 0.3,color='k',alpha = 0.2)
 
 
     cb_ax = fg.add_axes([.88,0.25,.04,0.5])
@@ -208,13 +208,18 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
 
     fg.savefig(fn,dpi=600)
 
-def make_figure_4(A,B,path_figure,figure_name):
+def make_figure_4(A,B,path_figure,figure_name,det):
     # figure name
     fn = os.path.join(path_figure,'%s.png'%(figure_name))
     
     # Prepare variables
-    c0 = A.FS.Uplift_det[:,:,0,0]
-    c1 = B.FS.Uplift_det[:,:,0,0]
+    if det == True: 
+        c0 = A.FS.Uplift_det[:,:,0,0]
+        c1 = B.FS.Uplift_det[:,:,0,0]
+    else:
+        c0 = A.FS.Uplift_LT[:,:,0,0]
+        c1 = B.FS.Uplift_LT[:,:,0,0]
+ 
     c0[c0<=np.nanmean(c0)]=np.nan
     c1[c1<=np.nanmean(c1)]=np.nan
     
@@ -244,7 +249,7 @@ def make_figure_4(A,B,path_figure,figure_name):
     fg = figure(figsize=(15*cm, 8*cm))  
     bx = 0.07
     by = 0.1
-    sx = 0.35
+    sx = 0.45
     dx = 0.03
     sy = 0.7
     dy = []
@@ -767,12 +772,12 @@ def make_plot_dD(path_save,A,B):
     ax1b = ax1.twinx()
 
     ax0.plot(a0,a1,linewidth = 1.2, color = 'k')
-    ax0b.fill_between(a0,a2,a3,alpha=0.7,color='firebrick')
+    ax0b.fill_between(a0,a2,a3,alpha=0.4,color='firebrick')
     ax0b.plot(a0,a4,linewidth = 0.5,alpha=1.0,color='firebrick')
     
 
     ax1.plot(b0,b1,linewidth = 1.2, color = 'k')
-    ax1b.fill_between(b0,b2,b3,alpha=0.7,color='firebrick')
+    ax1b.fill_between(b0,b2,b3,alpha=0.4,color='firebrick')
     ax1b.plot(b0,b4,linewidth = 0.5,alpha=1.0,color='firebrick')
 
 
@@ -859,6 +864,167 @@ def make_plot_dD(path_save,A,B):
 
     
     fg.savefig(fn,dpi=600,transparent=False)
+ 
+def make_figure7(DB,path_save,figure_name):
+    
+    # figure name
+    fn = os.path.join(path_save,'%s.png'%(figure_name))
+    
+    # Prepare variables
+    vel_tearing = (DB.detachment_velocity)
+    AVol        = DB.Avolume 
+    T           = DB.Temp 
+    uplift = DB.uplift[:,0]
+    SLim        = DB.tau_max
+    
+    # Prepare axis of the figures 
+    
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(9*cm, 9*cm))  
+    bx = 0.2
+    by = 0.2
+    sx = 0.6
+    dx = 0.00
+    sy = 0.6
+    dy = 0.01
+    ax0 = fg.add_axes([bx, by, sx, sy])
+    
+    colors = ['royalblue','goldenrod','tomato']
+    label_fig = [r'$v_c = 10 [\mathrm{cm/yr}$]','$v_c = 5.0 [\mathrm{cm/yr}$]','$v_c = 2.5 [\mathrm{cm/yr}]$']
+
+    T_u = np.sort(np.unique(T))
+
+    for i in range(len(T_u)):
+        ax0.scatter(AVol[(T == T_u[i])],SLim[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+    
+    ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.15),ncol=3, columnspacing=0.02,handletextpad=0.005, shadow=True,fontsize=8)
+    
+    ax0.tick_params(axis="y",direction="in")
+    ax0.tick_params(axis="x",direction="in")
+    ax0.tick_params(left=True,right=True,labelbottom=True) 
+
+    
+    plt.setp(ax0.spines.values(), linewidth=1.4)
+   
+
+    ax0.tick_params(width=1.2)
+   
+    
+    ax0.set_xlabel(r'$V_{a,\mathrm{dis}}$, $[\mathrm{\mu m^3/Pa}]$',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$\tau_{\mathrm{max}}/\tau_{\mathrm{lim}}$, $[]$',fontsize=fnt_g.label_)
+
+    
+    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+    ax0.set_xscale('linear')
+    ax0.set_yscale('linear')
+
+    
+    fg.savefig(fn,dpi=600)
+       
+    
+def make_figure8(DB,path_save,figure_name):
+    
+    # figure name
+    fn = os.path.join(path_save,'%s.png'%(figure_name))
+    
+    # Prepare variables
+    vel_tearing = (DB.detachment_velocity)
+    AVol        = DB.Avolume 
+    T           = DB.Temp 
+    SLim        = DB.StressLimit/1e6
+    tau_M       = DB.tau_max
+    
+    # Prepare axis of the figures 
+    
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(9*cm, 18*cm))  
+    bx = 0.15
+    by = 0.08
+    sx = 0.8
+    dx = 0.00
+    sy = 0.27
+    dy = 0.01
+    ax0 = fg.add_axes([bx, by+2*dy+2*sy, sx, sy])
+    ax1 = fg.add_axes([bx, by+1*dy+1*sy, sx, sy])
+    ax2 = fg.add_axes([bx, by, sx, sy]) 
+    
+    colors = ['royalblue','goldenrod','tomato']
+    label_fig = [r'$v_c = 10, [cm/yr$]','$v_c = 5.0, [cm/yr$]','$v_c = 2.5, [cm/yr$]']
+
+    T_u = np.sort(np.unique(T))
+
+    for i in range(len(T_u)):
+        ax0.scatter(AVol[(SLim==200.0) & (T == T_u[i])],tau_M[(SLim==200.0) & (T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+    
+    ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.20),ncol=3, columnspacing=0.05,handletextpad=0.01, shadow=True,fontsize=8)
+    for i in range(len(T_u)):
+        ax1.scatter(AVol[(SLim==400.0) & (T == T_u[i])],tau_M[(SLim==400.0) & (T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+    
+    for i in range(len(T_u)):
+        ax2.scatter(AVol[(SLim==600.0) & (T == T_u[i])],tau_M[(SLim==600.0) & (T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
     
     
+    #ax0.set_ytick(0.1,0.5,0.9)
+    ax0.tick_params(axis="y",direction="in")
+    ax0.tick_params(axis="x",direction="in")
+    ax1.tick_params(left=True,right=True,labelbottom=False) 
+    ax0.tick_params(left=True,right=True,labelbottom=False) 
+
+    ax1.tick_params(axis="y",direction="in")
+    ax1.tick_params(axis="x",direction="in")
+    
+    ax2.tick_params(axis="y",direction="in")
+    ax2.tick_params(axis="x",direction="in")
+    
+    plt.setp(ax0.spines.values(), linewidth=1.4)
+    plt.setp(ax1.spines.values(), linewidth=1.4)
+    plt.setp(ax2.spines.values(), linewidth=1.4)
+
+
+    ax0.tick_params(width=1.2)
+    ax1.tick_params(width=1.2)
+    ax2.tick_params(width=1.2)
+
+    
+    ax2.set_xlabel(r'$V_{a,dis}$, $[\mu m^3/Pa]$',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$\tau_{\mathrm{max}}/\tau_{\mathrm{lim}}$',fontsize=fnt_g.label_)
+    ax1.set_ylabel(r'$\tau_{\mathrm{max}}/\tau_{\mathrm{lim}}$',fontsize=fnt_g.label_)
+    ax2.set_ylabel(r'$\tau_{\mathrm{max}}/\tau_{\mathrm{lim}}$',fontsize=fnt_g.label_)
+
+    
+    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax2.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax2.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+    ax0.set_yscale('linear')
+    ax1.set_yscale('linear')
+    ax2.set_yscale('linear')
+
+
+    
+    props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+    ax0.text(0.87, 0.95, '$[a]$', transform=ax0.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+    ax1.text(0.87, 0.94, '$[b]$', transform=ax1.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+    ax2.text(0.87, 0.94, '$[c]$', transform=ax2.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+    
+    ax0.text(0.05, 0.15, r'$\tau_{lim} = 200 [MPa]$', transform=ax0.transAxes, fontsize=fnt_g.axis_,
+        verticalalignment='top', bbox=props,color='white')
+    ax1.text(0.05, 0.15, r'$\tau_{lim} = 400 [MPa]$', transform=ax1.transAxes, fontsize=fnt_g.axis_,
+        verticalalignment='top', bbox=props,color='white')
+    ax2.text(0.05, 0.15, r'$\tau_{lim} = 600 [MPa]$', transform=ax2.transAxes, fontsize=fnt_g.axis_,
+        verticalalignment='top', bbox=props,color='white')
+    
+
+    
+    fg.savefig(fn,dpi=600)
+    
+def _make_gif(test,path_save_gif):
     

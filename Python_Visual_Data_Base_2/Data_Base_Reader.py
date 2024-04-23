@@ -37,13 +37,16 @@ path = r'../../Data_Bases'
 name_PR = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
 name_PR200 = 'Data_base_Slab_detachment_3D_PR_200.hdf5'
 name_PR600 ='Data_base_Slab_detachment_3D_PR_600.hdf5'
+name_PRNO ='Data_base_Slab_detachment_3D_PR_no.hdf5'
+
 name_DB    = '3D_numerical_suites.hd5f'
 file_A = os.path.join(path,name_PR)
 file_B = os.path.join(path,name_PR200)
 file_C = os.path.join(path,name_PR600)
+file_D = os.path.join(path,name_PRNO)
 file_DB = os.path.join(path,name_DB)
 
-#_merge_database(file_A,file_B,file_C,file_DB)
+#_merge_database(file_A,file_B,file_C,file_D,file_DB)
 
 
 path_save = r'../../Data_Base_KIT_GLA'
@@ -65,17 +68,18 @@ path_figure = os.path.join(path_save,'figure_manuscript')
 
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
-TSD2.print_topography_timeseries(path_save,0.0)
-TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
-TSD2_V10.print_topography_timeseries(path_save,0.0)
-TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
-TSD2_V11.print_topography_timeseries(path_save,0.0)
-TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
-TSD2_V12.print_topography_timeseries(path_save,0.0)
-TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
-TSD2_V13.print_topography_timeseries(path_save,0.0)
+#TSD2.print_topography_timeseries(path_save,0.0)
+#TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
+#TSD2_V10.print_topography_timeseries(path_save,0.0)
+#TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
+#TSD2_V11.print_topography_timeseries(path_save,0.0)
+#TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
+#TSD2_V12.print_topography_timeseries(path_save,0.0)
+#TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
+#TSD2_V13.print_topography_timeseries(path_save,0.0)
+#TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
+#TSD2_V15.print_topography_timeseries(path_save,0.0)
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
-TSD2_V15.print_topography_timeseries(path_save,0.0)
 
 if not os.path.isdir(path_figure):
     os.mkdir(path_figure)
@@ -93,10 +97,7 @@ within the slab at ca 200 km
 
 """
 make_figure_3(TSD2,path_figure,'figure3a',[0.1,1.0],[0.1,1.0])
-#make_figure_3(TSD2_V10,path_figure,'figure3b',[0.1,1.0],[0.1,0.6])
-#make_figure_3(TSD2_V11,path_figure,'figure3c',[0.1,1.0],[0.1,0.5])
-#make_figure_3(TSD2_V12,path_figure,'figure3d',[0.1,1.0],[0.1,0.5])
-#make_figure_3(TSD2_V13,path_figure,'figure3e',[0.1,1.0],[0.0,0.4])
+
 make_figure_3(TSD2_V15,path_figure,'figure3g',[0.1,.2],[0.0,0.1])
 
 """
@@ -105,7 +106,9 @@ Figure depicting the total uplift within the tearing processes in the upper row
 Figure depicting the total uplift within 1->end of tearing 
 
 """
-make_figure_4(TSD2,TSD2_V15,path_figure,'figure4')
+make_figure_4(TSD2,TSD2_V15,path_figure,'figure4',True)
+make_figure_4(TSD2,TSD2_V15,path_figure,'figure4b',False)
+
 
 """
 Figure 5: 
@@ -115,6 +118,12 @@ Figure 5:
 make_figure5(DB,path_figure,'figure5')
 
 make_figure6(DB,path_figure,'figure6')
+
+make_figure7(DB,path_figure,'figure7')
+
+make_figure8(DB,path_figure,'figure8')
+
+
 
 
 

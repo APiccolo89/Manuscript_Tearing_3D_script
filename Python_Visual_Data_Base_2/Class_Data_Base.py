@@ -77,6 +77,8 @@ class Data_Base(object):
         
         self.Temp      = np.zeros([self.n_test-1],dtype = float)
         
+        self.tau_max   = np.zeros([self.n_test-1],dtype = float)
+        
     def _read_test(self,path:str):
         
         # Read File Data base 
@@ -188,7 +190,7 @@ class Data_Base(object):
         itest = 0 
         for it in range(self.n_test-1):
             test_name = self.Tests_Name[it]
-            if (test_name[1] != 'TSD2_HC_3'):
+            if (test_name[0] != 'PR_no'):
                 path_save_b = os.path.join(path_save,test_name[1])
                 if not os.path.isdir(path_save_b):
                     os.mkdir(path_save_b)
@@ -242,6 +244,10 @@ class Data_Base(object):
                 self.uplift[itest,1]= np.nanmean(test.FS.Uplift_LT[test.FS.Uplift_LT>
                                                                     np.nanmean(test.FS.Uplift_LT)])
                 self.uplift[itest,2] = self.uplift[itest,0]/self.uplift[itest,1]
+                
+                self.tau_max[itest] = test.Det.maxtau/(self.StressLimit[itest]/1e6)
+
+                print("Maximum stress is %2f and the dimensionless is %2f "%(test.Det.maxtau, self.tau_max[itest]))
                 
                 ipic = 0 
                 if save_data == True:
@@ -309,6 +315,11 @@ class Test(Data_Base):
         
         time_v = self.time
         
+        start_detachment = np.min(self.Det.det_vec[(self.C.x_sp>=100) & (self.C.x_sp<=1100)])
+        end_detachment   = np.max(self.Det.det_vec[(self.C.x_sp>=100) & (self.C.x_sp<=1100)])
+
+        det_ = np.asarray(time_v*0,dtype=int)
+        det_[(time_v>=start_detachment) & (time_v<=end_detachment)] = 1
         #[Select the coordinate where to envaluate]
         # Select the indexes that are higher than this value 
         ind_x = np.where(self.C.xg >= coord_x)
@@ -342,9 +353,9 @@ class Test(Data_Base):
             os.remove(file_name)
         f = open(file_name, 'a+')
         S = []
-        S = np.array([time_v,time_0D_series])
+        S = np.array([time_v,time_0D_series,det_])
         f.write('########################################\n')
-        f.write('time [Myr], max(dH) [mm/yr]\n')
+        f.write('time [Myr], max(dH) [mm/yr], Det (1=YES,0 = NO)\n')
         f.write('The profile is take perpendicular to the trench at x = %3f [km], and the value represents the maximum uplift'%coord_x)
         f.write('dH array that has been filtered with a median \n')
         f.write('filter (scipy) with a kernel size of 7.\n')
@@ -359,11 +370,14 @@ class Test(Data_Base):
         ax = fg.gca()
         p1 = ax.contour(self.C.xg,self.C.yg,self.FS.H[:,:,10],levels = [-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0],colors = 'k',linewidths=0.5)
         ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=6)
-        ax.axvline(x=coord_x,linewidth = 1.5,color='firebrick',label = r'Profile')
+        ax.axvline(x=coord_x,linewidth = 1.8,color='firebrick',label = r'Profile')
         ax.plot(self.C.x_trench_p,self.C.y_trench_p,linewidth = 1.5,linestyle = 'dashdot',label = r'Slab position',color = 'rebeccapurple')
         ax.set_xlabel(r'$x$/[km]')
         ax.set_ylabel(r'$y$/[km]')
         ax.legend(loc='upper right')
+        ax.xaxis.set_tick_params(labelsize=18)
+        ax.yaxis.set_tick_params(labelsize=18)
+        
         fg.savefig(fn,dpi=600,transparent=False)
 
     def _print_topographic_data_ASCI(self,Testname:str,path_save):
@@ -596,6 +610,7 @@ class Det():
         self.meanD = np.zeros([len(T.time)],dtype = float)
         self.minD = np.zeros([len(T.time)],dtype = float)
         self.maxD = np.zeros([len(T.time)],dtype = float)
+        self.maxtau = 0 
 
 
 
@@ -636,13 +651,16 @@ class Det():
             else:
                 self.D_x_t_det[i,:] = -np.inf
                 self.tau_x_t_det[i,:] = -np.inf
-
+        max_tau = 0.0 
         # Beautyfing the array. 
         for i in range(itime):
             a = self.D_x_t_det[:,i]
             a[a==-np.inf]=np.nan 
             a = a[(x>=100) & (x<=1100)]
             b = self.tau_x_t_det[:,i]
+            if (np.nanmax(b) > max_tau) and (time_d[i]>1.0) :
+                max_tau = np.nanmax(b)
+                
             b=b[(x>=100) & (x<=1100)]
             n = int(np.floor(len(a[np.isnan(a)!=1]))/10)
             self.meanD[i]=np.nanmean(a)/100
@@ -666,8 +684,9 @@ class Det():
                 self.maxD[i]=0.0
             a = []
             b = []
-            
-        return self 
+        self.maxtau = max_tau
+        
+        return self
 
 
 # Class containing the information of the free surface
@@ -753,7 +772,7 @@ class FS():
         dt_long = T.time[i2[0][0]]-T.time[i_iso]
         # Compute anomaly
         self.dH_detachment= self.H[:,:,i2]-self.H[:,:,i1]
-        self.dH_long_term = self.H[:,:,i2]-self.H[:,:,i_iso]
+        self.dH_long_term = self.H[:,:,i1]-self.H[:,:,i_iso]
        
         self.Uplift_det = self.dH_detachment/dt_det
         self.Uplift_LT  = self.dH_long_term/dt_long
@@ -777,7 +796,7 @@ class Ptr():
         self.T = T._read_variable(self.dict['T'],Test_name)
 
         
-def _merge_database(FileA:str,FileB:str,FileC:str,Dest_file:str):
+def _merge_database(FileA:str,FileB:str,FileC:str,FileD:str,Dest_file:str):
         import h5py 
 
         with h5py.File(Dest_file,'w') as f_dest:
@@ -787,6 +806,8 @@ def _merge_database(FileA:str,FileB:str,FileC:str,Dest_file:str):
                     f_src.copy(f_src2["/PR_200"],f_dest["/"],"PR_200")
                     with h5py.File(FileC,'r') as f_src3:
                         f_src3.copy(f_src3["/PR_600"],f_dest["/"],"PR_600")
+                        with h5py.File(FileD,'r') as f_src4:
+                            f_src4.copy(f_src4["/PR_no"],f_dest["/"],"PR_no")
                         
                         
 
