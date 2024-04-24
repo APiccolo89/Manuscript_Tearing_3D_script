@@ -27,7 +27,7 @@ from figure_functions import *
 from figure_functions import make_figure_3
 from figure_functions import make_figure_4
 from figure_functions import make_figure5
-
+from figure_functions import _make_gif
 
 
 
@@ -65,9 +65,18 @@ DB = Data_Base(file_DB)
 # to create a subclasses you do not have to put a decorator for the classes}
 #DB._post_process_data(path,path_save,False,False)
 path_figure = os.path.join(path_save,'figure_manuscript')
+path_gif = os.path.join(path_figure,'gif')
+
+if not os.path.isdir(path_figure):
+    os.mkdir(path_figure)
+
+
+if not os.path.isdir(path_gif):
+    os.mkdir(path_gif)
 
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
+_make_gif(TSD2,path_gif)
 #TSD2.print_topography_timeseries(path_save,0.0)
 #TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
 #TSD2_V10.print_topography_timeseries(path_save,0.0)
@@ -81,8 +90,6 @@ TSD2 = Test(file_DB,['PR_r','TSD2'])
 #TSD2_V15.print_topography_timeseries(path_save,0.0)
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 
-if not os.path.isdir(path_figure):
-    os.mkdir(path_figure)
 
 make_plot_dD(path_save,TSD2,TSD2_V15)
 # Figure 3: 

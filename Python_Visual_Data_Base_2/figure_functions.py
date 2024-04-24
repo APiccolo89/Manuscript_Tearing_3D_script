@@ -18,12 +18,17 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from numpy.ma import masked_array
 import matplotlib.cbook as cbook
 from Class_Data_Base import * 
-from Class_Data_Base import _merge_database
+from Class_Data_Base import _interpolate_2D
+from Class_Data_Base import timer
+
 from time import perf_counter 
+plugin='DICOM'
 import cmcrameri as cmc
 import scipy 
 import os
 import latex
+import imageio
+
 os.environ["PATH"] += os.pathsep + '/usr/local/texlive/2015/bin/x86_64-darwin'
 print(os.getenv("PATH"))
 
@@ -136,7 +141,7 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
     c_norm = mpl.colors.Normalize(vmin=np.nanpercentile(A.Det.det_vec,5), vmax=np.nanpercentile(A.Det.det_vec,95)) #MidpointNormalize(vmin=-0.1, vmax=A.time[i20[0][0]]-A.time[i10[0][0]],midpoint=0)#
 
     # Pick a colormap
-    c_map  = mpl.cm.turbo
+    c_map  = cmc.batlow
 
     # Scalar mappable of normalized array to colormap
     s_map  = mpl.cm.ScalarMappable(cmap=c_map, norm=c_norm)
@@ -158,7 +163,7 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
    # cax = ax1.inset_axes([1.2, 0.25, 0.01, 1.0])
     #cbm.set_axis_off()
     cbar0 = fg.colorbar(s_map,cax=cb_ax,orientation='vertical',extend="both",location = 'right')
-    cbar0.set_label(r't, [Myr]', labelpad=-20, y=1.1, rotation=0)
+    cbar0.set_label(r'$t$ /Myr', labelpad=-20, y=1.1, rotation=0)
 
     ax0.set_ylim(lm1[0],lm1[1])
     #ax0.set_ytick(0.1,0.5,0.9)
@@ -175,10 +180,10 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
     ax0.tick_params(width=1.2)
     ax1.tick_params(width=1.2)
     
-    ax0.set_xlabel(r'$x_s, [km]$',fontsize=fnt_g.label_)
-    ax1.set_xlabel(r'$x_s, [km]$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$D^{\dagger}, []$',loc='bottom',fontsize=18)
-    ax1.set_ylabel(r'$\frac{\tau_{max}}{\tau_{lim}}, []$',loc='bottom',fontsize=18)
+    ax0.set_xlabel(r'$x_{strike}$ /[km]',fontsize=fnt_g.label_)
+    ax1.set_xlabel(r'$x_{strike}$ /[km]',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$\acute{D}$ /[n.d.]',loc='bottom',fontsize=18)
+    ax1.set_ylabel(r'$\acute{\tau}$ /[n.d.]',loc='bottom',fontsize=18)
 
     ax0.set_xticks([200,600,1000])
     ax1.set_xticks([200,600,1000])
@@ -259,14 +264,14 @@ def make_figure_4(A,B,path_figure,figure_name,det):
     cf0=ax0.pcolormesh(a,b,c0,cmap = 'cmc.lipari')
     cbar0 = fg.colorbar(cf0, ax=ax0,orientation='horizontal',extend="both")
     cbar0.ax.tick_params(labelsize=fnt_g.legend_)
-    cbar0.set_label(label=r'${\dot{H}_{mean}}$, $[mm/yr]$',size=fnt_g.label_) 
+    cbar0.set_label(label=r'${\dot{H}_{mean}}$ /[mm/yr]',size=fnt_g.label_) 
     pl0 = ax0.plot(t_x,t_y,linewidth=1.3, color = 'red')
     
        
     #norm1 = MidpointNormalize(vmin=lim_1[0], vmax=lim_1[2], midpoint=lim_1[1])
     cf1=ax1.pcolormesh(a,b,c1,cmap = 'cmc.lipari')
     cbar1 = fg.colorbar(cf1, ax=ax1,orientation='horizontal',extend="both")
-    cbar1.set_label(label=r'${\dot{H}_{mean}}$, $[mm/yr]$',size=fnt_g.label_) 
+    cbar1.set_label(label=r'${\dot{H}_{mean}}$ / $\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_) 
     cbar1.ax.tick_params(labelsize=fnt_g.legend_)
     pl1 = ax1.plot(t_x,t_y,linewidth=1.3, color = 'red')
     ax0.set_ylim(-500,500)
@@ -284,9 +289,9 @@ def make_figure_4(A,B,path_figure,figure_name,det):
     ax0.tick_params(width=1.2)
     ax1.tick_params(width=1.2)
     
-    ax0.set_xlabel(r'$x, [km]$',fontsize=fnt_g.label_)
-    ax1.set_xlabel(r'$x, [km]$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$y, [km]$',fontsize=fnt_g.label_)
+    ax0.set_xlabel(r'$x$, /km',fontsize=fnt_g.label_)
+    ax1.set_xlabel(r'$x$, /km',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$y$, /km',fontsize=fnt_g.label_)
     ax0.yaxis.set_label_coords(-0.01,0.5)
     ax0.xaxis.set_label_coords(0.5,-0.01)
     ax1.xaxis.set_label_coords(0.5,-0.01)
@@ -342,7 +347,7 @@ def make_figure5(DB,path_save,figure_name):
     ax2 = fg.add_axes([bx, by, sx, sy]) 
     
     colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10, [cm/yr$]','$v_c = 5.0, [cm/yr$]','$v_c = 2.5, [cm/yr$]']
+    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$','$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$','$v_c = 2.5 /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
 
     T_u = np.sort(np.unique(T))
 
@@ -379,10 +384,10 @@ def make_figure5(DB,path_save,figure_name):
     ax2.tick_params(width=1.2)
 
     
-    ax2.set_xlabel(r'$V_{a,dis}$, $[\mu m^3/Pa]$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$v_{tearing}$, $[cm/yr]$',fontsize=fnt_g.label_)
-    ax1.set_ylabel(r'$v_{tearing}$, $[cm/yr]$',fontsize=fnt_g.label_)
-    ax2.set_ylabel(r'$v_{tearing}$, $[cm/yr]$',fontsize=fnt_g.label_)
+    ax2.set_xlabel(r'$V_{a,dis}$, /$\mu \frac{\mathrm{m}^3}{\mathrm{Pa}}$',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$v_{tearing}$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
+    ax1.set_ylabel(r'$v_{tearing}$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
+    ax2.set_ylabel(r'$v_{tearing}$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
 
     
     ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
@@ -462,8 +467,8 @@ def make_figure6(DB,path_save,figure_name):
     ax0.tick_params(width=1.2)
    
     
-    ax0.set_xlabel(r'$v_{\mathrm{tearing}}$, $[\mathrm{cm/yr}]$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$\dot{H}_{\mathrm{mean}}$, $[\mathrm{mm/yr}]$',fontsize=fnt_g.label_)
+    ax0.set_xlabel(r'$v_{\mathrm{tearing}}$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$\dot{H}_{\mathrm{mean}}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
 
     
     ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
@@ -576,14 +581,14 @@ def initial_geotherm(path_save):
     ax3.tick_params(left=True,right=True,labelleft=False) 
     ax4.tick_params(left=True,right=True,labelleft=False) 
 
-    ax0.set_xlabel(r'$T$, $[^{\circ}C]$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$z$, $[km]$',fontsize=fnt_g.label_)
-    ax1.set_xlabel(r'$T$, $[^{\circ}C]$',fontsize=fnt_g.label_)
+    ax0.set_xlabel(r'$T$ /$^{\circ}\mathrm{C}$',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$z$ /km',fontsize=fnt_g.label_)
+    ax1.set_xlabel(r'$T$ /$^{\circ}\mathrm{C}$',fontsize=fnt_g.label_)
 
-    ax2.set_xlabel(r'$d$, $[km]$',fontsize=fnt_g.label_)
-    ax2.set_ylabel(r'$\ell$, $[km]$',fontsize=fnt_g.label_)
-    ax3.set_xlabel(r'$d$, $[km]$',fontsize=fnt_g.label_)
-    ax4.set_xlabel(r'$d$, $[km]$',fontsize=fnt_g.label_)
+    ax2.set_xlabel(r'$d$ /km',fontsize=fnt_g.label_)
+    ax2.set_ylabel(r'$\ell$ /km',fontsize=fnt_g.label_)
+    ax3.set_xlabel(r'$d$ /km',fontsize=fnt_g.label_)
+    ax4.set_xlabel(r'$d$ /km',fontsize=fnt_g.label_)
 
     ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
     ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
@@ -1025,6 +1030,113 @@ def make_figure8(DB,path_save,figure_name):
 
     
     fg.savefig(fn,dpi=600)
+
+@timer
+def _make_gif(test,ptsave_b):
+
+    test_gf = os.path.join(ptsave_b,test.Test_Name)
+    if not os.path.isdir(test_gf): 
+        os.mkdir(test_gf)    
     
-def _make_gif(test,path_save_gif):
+    cm = 1/2.54  # centimeters in inches
+    file_list = []
+
+    for ipic in range(len(test.time)):
+        if test.time[ipic]>1.0:
+            dH_trench = np.zeros(len(test.C.x_trench_p),dtype=float)
+
+            # interpolate dh along the trench (filtered)
+            dH_trench = _interpolate_2D(test.FS.dH_fil[:,:,ipic],test.C.xg,test.C.yg,test.C.x_trench_p,test.C.y_trench_p)
+
+
+            fna='Fig'+str(ipic)+'.png'
+            fg = figure(figsize=(14*cm, 10*cm))  
+            tick=r'$Time = %.3f$ /Myrs' %(test.time[ipic])
+            fn = os.path.join(test_gf,fna)
+            ax1 = fg.add_axes([0.12, 0.7, 0.75, 0.2])
+            ax0 = fg.add_axes([0.12, 0.1, 0.75, 0.56])
+            #axcb = fg.add_axes([0.1, 0.01, 0.6, 0.10])
+
+
+
+            ax1.plot(test.C.x_sp,dH_trench,color='k',linewidth=1.2)
+            
+            ax1.set_yticks([round(np.min(dH_trench),2),round(np.max(dH_trench),2)])            
+            ax1.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$')
+            ax2 = ax1.twinx()
+            ax2.plot(test.C.x_sp,test.Det.tau_x_t_det_F[:,ipic]/(test.IC.tau_co/1e6),color='firebrick',linewidth=1.2) 
+            ax2.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.')
+            ax2.set_yticks([0.0,1.0]) 
+
+            ax1.spines['bottom'].set_color('k')
+            ax1.spines['top'].set_color('w') 
+            ax1.spines['right'].set_color('firebrick')
+            ax1.spines['left'].set_color('k')
+
+            ax2.spines['bottom'].set_color('k')
+            ax2.spines['top'].set_color('w') 
+            ax2.spines['left'].set_color('k')
+            ax2.spines['right'].set_color('firebrick')
+
+
+            #ax0.spines[['right', 'top']].set_visible(False)
+            #ax1.spines[['right', 'top']].set_visible(False)
     
+
+            ax2.yaxis.label.set_color('firebrick')
+            ax2.tick_params(axis='y', colors='firebrick')
+            
+            plt.setp(ax0.spines.values(), linewidth=1.4)
+            plt.setp(ax1.spines.values(), linewidth=1.4)
+            plt.setp(ax2.spines.values(), linewidth=1.4)
+
+            
+            buf = test.Det.tau_max[:,:,ipic]/(test.IC.tau_co/1e6) # Hard coded value i know. 
+
+            levels = np.linspace(np.round(0.1), np.round(0.75), num=10, endpoint=True, retstep=False, dtype=float)
+            cf=ax0.pcolormesh(test.C.x_sp,test.C.zp,np.transpose(buf),cmap='cmc.lipari',vmin = 0.1, vmax=0.75)
+            cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal',label=r'$\tau^{\dagger}_{max}$ /n.d.',extend="both",shrink=0.5)
+            condition = (test.C.x_sp > 100) & (test.C.x_sp <1100)
+            cf2=ax0.plot(test.C.x_sp[condition==1],test.Det.depth_vec[condition==1],color='firebrick',linewidth=1.2)
+
+            ax1.set_title(tick)
+            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
+            ax0.set_ylabel(r'$z$ /km')
+            ax0.set_xlabel(r'$x_{strike}$ /km')
+            ax0.tick_params(axis="y",direction="in")
+            ax0.tick_params(axis="x",direction="in")
+            ax1.tick_params(axis="y",direction="in")
+            ax1.tick_params(axis="x",direction="in")
+            ax2.tick_params(axis="y",direction="in")
+            ax2.tick_params(axis="x",direction="in")
+            ax1.tick_params(left=True,right=False,labelbottom=False) 
+            ax2.tick_params(left=False,right=True,labelbottom=False) 
+
+            ax0.tick_params(left=True,right=True,labelbottom=True) 
+            ax0.set_xticks([200,600,1000])
+            ax0.set_yticks([-80,-200,-400])
+            ax0.set_ylim([-500,-60])
+
+            
+
+            ax1.set_xticks([200,600,1000])
+            ax0.set_xticklabels([r'$200$','','$1200$'])
+            ax0.xaxis.set_label_coords(0.5,-0.02)
+            ax0.yaxis.set_label_coords(-0.01,0.5)
+
+            ax1.yaxis.set_label_coords(-0.02,0.5)
+            ax2.yaxis.set_label_coords(1.02,0.5)
+
+            #plt.draw()    # necessary to render figure before saving
+            fg.savefig(fn,dpi=600)
+            plt.close() 
+            file_list.append(fn)
+
+        # make gif
+    
+    images = []
+    images = [images.append(imageio.imread(fn)) for fn in file_list]
+    filename = os.path.join(ptsave_b,'%s'%test.Test_Name)
+    imageio.mimsave(filename,images,duration = 0.2)
+
+
