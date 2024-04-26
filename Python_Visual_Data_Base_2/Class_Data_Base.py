@@ -604,29 +604,18 @@ class Det():
         self.D_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         self.tau_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         # Filtered {these data are horrible to see without a moving average filter}
-        self.D_x_t_det_F = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
-        self.tau_x_t_det_F = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         self.deltaD = np.zeros([len(T.time)],dtype = float)
         self.meanD = np.zeros([len(T.time)],dtype = float)
         self.minD = np.zeros([len(T.time)],dtype = float)
         self.maxD = np.zeros([len(T.time)],dtype = float)
         self.maxtau = 0 
 
-
-
-
-        i_along_x        = np.zeros(len(self.x_vec),dtype = int) 
-        #Find_index 
-        for i in range(len(i_along_x)):
-            ind = np.where(T.C.zp == self.depth_vec[i])
-            if len(ind[0])>0:
-                i_along_x[i]=ind[0][0]
-            else:
-                i_along_x[i]=-1 
+        condition = (T.C.x_sp > 100) & (T.C.x_sp<1100) & (self.depth_vec<-80)
+        depth = self.depth_vec
+        depth[depth>=-80]=np.nan
+        ind = np.where((T.C.zp >= np.nanmin(self.depth_vec[condition==1])) &(T.C.zp <= np.nanmax(self.depth_vec[condition==1]) ))
         
-        # find time evolution thickness, stress along the depth at which the detachment is occuring 
-        
-        self.time_evolution_necking(i_along_x,(T.time),T.C.x_sp)
+        self.time_evolution_necking(ind,(T.time),T.C.x_sp)
     
     def time_evolution_necking(self,i_along_x,time_d,x):
         """
@@ -644,13 +633,14 @@ class Det():
         start_detaching = np.nanmin(self.det_vec[(x>=100) & (x<=1100)])
 
         end_detaching = np.nanmax(self.det_vec[(x>=100) & (x<=1100)])
-        for i in range(len(i_along_x)):
-            if i_along_x[i] != -1:
-                self.D_x_t_det[i,:] = self.D[i,i_along_x[i],:]
-                self.tau_x_t_det[i,:] = self.tau_max[i,i_along_x[i],:]
-            else:
-                self.D_x_t_det[i,:] = -np.inf
-                self.tau_x_t_det[i,:] = -np.inf
+        for i in range(len(x)):
+#            if i_along_x[i] != -1:
+            for j in range(len(time_d)):
+                self.D_x_t_det[i,j] = np.nanmean(self.D[i,i_along_x,j])
+                self.tau_x_t_det[i,j] = np.nanmean(self.tau_max[i,i_along_x,j])
+#            else:
+#                self.D_x_t_det[i,:] = -np.inf
+#                self.tau_x_t_det[i,:] = -np.inf
         max_tau = 0.0 
         # Beautyfing the array. 
         for i in range(itime):
@@ -666,22 +656,17 @@ class Det():
             self.meanD[i]=np.nanmean(a)/100
             self.maxD[i]=np.nanmax(a)/100
             self.minD[i]=np.nanmin(a)/100
-            if n!= 0:
-                self.D_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(a, np.ones(n)/n, mode='same')
-                self.tau_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(b, np.ones(n)/n, mode='same')
-            else:
-                self.D_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(a, np.ones(2)/2, mode='same')
-                self.tau_x_t_det_F[(x>=100) & (x<=1100),i] = np.convolve(b, np.ones(2)/2, mode='same')
+            
             if time_d[i] < start_detaching:
                 self.deltaD[i] = np.nanmax(a)/100-np.nanmin(a)/100
             if time_d[i] >= start_detaching:
                 self.minD[i] = 0.1
 
-            elif time_d[i]> end_detaching:
-                self.deltaD[i] = 0.0
-                self.meanD[i] = 0.0
-                self.minD[i] = 0.0
-                self.maxD[i]=0.0
+            #elif time_d[i]> end_detaching:
+            #    self.deltaD[i] = 0.0
+            #    self.meanD[i] = 0.0
+            #    self.minD[i] = 0.0
+            #    self.maxD[i]=0.0
             a = []
             b = []
         self.maxtau = max_tau
@@ -877,4 +862,10 @@ def fmt(x):
     if s.endswith("0"):
         s = f"{x:.0f}"
     return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
+
+def fmt2(x):
+    s = f"{x:.1f}"
+    if s.endswith("0"):
+        s = f"{x:.0f}"
+    return rf"{s} $^\circ$C" if plt.rcParams["text.usetex"] else f"{s} degC"
 

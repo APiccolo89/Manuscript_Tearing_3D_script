@@ -114,8 +114,8 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
     fn = os.path.join(path_figure,'%s.png'%(figure_name))
     
     # Prepare variables
-    b0 = A.Det.D_x_t_det_F
-    b1 = A.Det.tau_x_t_det_F
+    b0 = A.Det.D_x_t_det
+    b1 = A.Det.tau_x_t_det
 
     a0 = A.C.x_sp
 
@@ -182,8 +182,8 @@ def make_figure_3(A,path_figure,figure_name,lm1,lm2):
     
     ax0.set_xlabel(r'$x_{strike}$ /[km]',fontsize=fnt_g.label_)
     ax1.set_xlabel(r'$x_{strike}$ /[km]',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$\acute{D}$ /[n.d.]',loc='bottom',fontsize=18)
-    ax1.set_ylabel(r'$\acute{\tau}$ /[n.d.]',loc='bottom',fontsize=18)
+    ax0.set_ylabel(r'$D^{\dagger}$ /n.d.',loc='bottom',fontsize=18)
+    ax1.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.',loc='bottom',fontsize=18)
 
     ax0.set_xticks([200,600,1000])
     ax1.set_xticks([200,600,1000])
@@ -264,14 +264,14 @@ def make_figure_4(A,B,path_figure,figure_name,det):
     cf0=ax0.pcolormesh(a,b,c0,cmap = 'cmc.lipari')
     cbar0 = fg.colorbar(cf0, ax=ax0,orientation='horizontal',extend="both")
     cbar0.ax.tick_params(labelsize=fnt_g.legend_)
-    cbar0.set_label(label=r'${\dot{H}_{mean}}$ /[mm/yr]',size=fnt_g.label_) 
+    cbar0.set_label(label=r'${\dot{H}_{mean}}$ /$\mathrm{\frac{mm}{yr}}$',size=fnt_g.label_) 
     pl0 = ax0.plot(t_x,t_y,linewidth=1.3, color = 'red')
     
        
     #norm1 = MidpointNormalize(vmin=lim_1[0], vmax=lim_1[2], midpoint=lim_1[1])
     cf1=ax1.pcolormesh(a,b,c1,cmap = 'cmc.lipari')
     cbar1 = fg.colorbar(cf1, ax=ax1,orientation='horizontal',extend="both")
-    cbar1.set_label(label=r'${\dot{H}_{mean}}$ / $\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_) 
+    cbar1.set_label(label=r'${\dot{H}_{mean}}$ /$\mathrm{\frac{mm}{yr}}$',size=fnt_g.label_) 
     cbar1.ax.tick_params(labelsize=fnt_g.legend_)
     pl1 = ax1.plot(t_x,t_y,linewidth=1.3, color = 'red')
     ax0.set_ylim(-500,500)
@@ -800,10 +800,10 @@ def make_plot_dD(path_save,A,B):
     ax1.tick_params(axis="x",direction="in")
 
 
-    ax0.set_ylabel(r'$\Delta D^{\dagger}$, $[]$',fontsize=fnt_g.label_)
-    ax1b.set_ylabel(r'$D^{\dagger}$, $[]$',fontsize=fnt_g.label_)
-    ax0.set_xlabel(r'$t$, $[Myr]$',fontsize=fnt_g.label_)
-    ax1.set_xlabel(r'$t$, $[Myr]$',fontsize=fnt_g.label_)
+    ax0.set_ylabel(r'$\Delta D^{\dagger}$ /n.d.',fontsize=fnt_g.label_)
+    ax1b.set_ylabel(r'$D^{\dagger}$ /n.d.',fontsize=fnt_g.label_)
+    ax0.set_xlabel(r'$t$ /Myr',fontsize=fnt_g.label_)
+    ax1.set_xlabel(r'$t$ /Myr',fontsize=fnt_g.label_)
 
 
 
@@ -818,8 +818,8 @@ def make_plot_dD(path_save,A,B):
     ax1b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
 
 
-    ax0.set_yticks([0.0,round(np.max(a1),1)])
-    ax1.set_yticks([0.0,round(np.max(b1),1)])
+    ax0.set_yticks([0.0,round(np.nanmax(a1),1)])
+    ax1.set_yticks([0.0,round(np.nanmax(b1),1)])
     ax0b.set_yticks([0.0,1.0])
     ax1b.set_yticks([0.0,1.0])
 
@@ -1051,54 +1051,82 @@ def _make_gif(test,ptsave_b):
 
             fna='Fig'+str(ipic)+'.png'
             fg = figure(figsize=(14*cm, 10*cm))  
-            tick=r'$Time = %.3f$ /Myrs' %(test.time[ipic])
+            tick=r'$Time = %.3f$ /Myr' %(test.time[ipic])
             fn = os.path.join(test_gf,fna)
-            ax1 = fg.add_axes([0.12, 0.7, 0.75, 0.2])
-            ax0 = fg.add_axes([0.12, 0.1, 0.75, 0.56])
+            ax1 = fg.add_axes([0.12, 0.7, 0.7, 0.2])
+            ax0 = fg.add_axes([0.12, 0.1, 0.7, 0.56])
             #axcb = fg.add_axes([0.1, 0.01, 0.6, 0.10])
-
-
-
-            ax1.plot(test.C.x_sp,dH_trench,color='k',linewidth=1.2)
-            
-            ax1.set_yticks([round(np.min(dH_trench),2),round(np.max(dH_trench),2)])            
-            ax1.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$')
-            ax2 = ax1.twinx()
-            ax2.plot(test.C.x_sp,test.Det.tau_x_t_det_F[:,ipic]/(test.IC.tau_co/1e6),color='firebrick',linewidth=1.2) 
-            ax2.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.')
-            ax2.set_yticks([0.0,1.0]) 
-
+            ax1b = ax1.twinx()
+            ax1.tick_params(axis="y",direction="in")
+            ax1.tick_params(axis="x",direction="in")
+            ax1.tick_params(left=True,right=False,labelbottom=False)
+            ax1b.tick_params(axis="y",direction="in")
+            ax1b.tick_params(axis="x",direction="in")
+            ax1b.tick_params(left=True,right=False,labelbottom=False)
+    
             ax1.spines['bottom'].set_color('k')
             ax1.spines['top'].set_color('w') 
-            ax1.spines['right'].set_color('firebrick')
+            ax1.spines['right'].set_color('k')
             ax1.spines['left'].set_color('k')
 
-            ax2.spines['bottom'].set_color('k')
-            ax2.spines['top'].set_color('w') 
-            ax2.spines['left'].set_color('k')
-            ax2.spines['right'].set_color('firebrick')
-
-
-            #ax0.spines[['right', 'top']].set_visible(False)
-            #ax1.spines[['right', 'top']].set_visible(False)
+            ax1b.spines['bottom'].set_color('k')
+            ax1b.spines['top'].set_color('w') 
+            ax1b.spines['left'].set_color('k')
+            ax1b.spines['right'].set_color('k')
     
+    #secax_y0b1= ax0b.secondary_yaxis(1.2, functions=(celsius_to_anomaly, anomaly_to_celsius))
+    #secax_y0b1set_ylabel(r'$T - \overline{T}\ [^oC]$')
+            ax1.plot(test.C.x_sp,dH_trench,color='k',linewidth=1.2)
+            ax1.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
+            ax1.set_yticks([round(np.min(dH_trench),2),round(np.max(dH_trench),2)])
+            ax1.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_)
+            ax1b.plot(test.C.x_sp,test.Det.tau_x_t_det[:,ipic]/(test.IC.tau_co/1e6),color='forestgreen',linewidth=1.2) 
+            ax1b.plot(test.C.x_sp,test.Det.D_x_t_det[:,ipic]/100,color='firebrick',linewidth=1.2) 
+            ax1b.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.',size=fnt_g.label_)
+            ax1b.set_yticks([0.0,1.0]) 
+            secax_y0b = ax1b.secondary_yaxis(1.12)
+            secax_y0b.set_ylabel(r'$D^{\dagger}$ /n.d.',size=fnt_g.label_)
+            secax_y0b.set_ylim([0.0,1.0])
+            secax_y0b.spines['right'].set_color('white')
+    
+            ax1b.yaxis.label.set_color('forestgreen')
+            ax1b.tick_params(axis='y', colors='k')
+            secax_y0b.yaxis.label.set_color('firebrick')
+            secax_y0b.tick_params(axis='y',color='white')
+    
+    #ax0.xaxis.set_label_coords(0.5,-0.02)
+            ax1.yaxis.set_label_coords(-0.1,0.5)
 
-            ax2.yaxis.label.set_color('firebrick')
-            ax2.tick_params(axis='y', colors='firebrick')
+            ax1b.yaxis.set_label_coords(1.03,0.5)
+            secax_y0b.yaxis.set_label_coords(1.4,0.5)
+
+           
+            secax_y0b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+            secax_y0b.set_yticklabels(['',''])
+
+
             
             plt.setp(ax0.spines.values(), linewidth=1.4)
             plt.setp(ax1.spines.values(), linewidth=1.4)
-            plt.setp(ax2.spines.values(), linewidth=1.4)
+            plt.setp(ax1b.spines.values(), linewidth=1.4)
 
             
-            buf = test.Det.tau_max[:,:,ipic]/(test.IC.tau_co/1e6) # Hard coded value i know. 
-
+            buf = np.log10(test.Det.Psi[:,:,ipic]) # Hard coded value i know. 
+            lim_psi = [round(np.nanpercentile(np.log10(test.Det.Psi[:,:,ipic]),5),0),round(np.nanpercentile(np.log10(test.Det.Psi[:,:,ipic]),95),0)]
             levels = np.linspace(np.round(0.1), np.round(0.75), num=10, endpoint=True, retstep=False, dtype=float)
-            cf=ax0.pcolormesh(test.C.x_sp,test.C.zp,np.transpose(buf),cmap='cmc.lipari',vmin = 0.1, vmax=0.75)
-            cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal',label=r'$\tau^{\dagger}_{max}$ /n.d.',extend="both",shrink=0.5)
+            cf=ax0.pcolormesh(test.C.x_sp,test.C.zp,np.transpose(buf),cmap='cmc.lipari',vmin = lim_psi[0], vmax=lim_psi[1])
+            cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal',label=r'$\dot{\Psi}$ /$\mathrm{\frac{W}{m^3}}$',extend="both",shrink=0.5)
+            
+            depth = test.Det.depth_vec
+            depth[depth>=-80]=np.nan
+            
             condition = (test.C.x_sp > 100) & (test.C.x_sp <1100)
-            cf2=ax0.plot(test.C.x_sp[condition==1],test.Det.depth_vec[condition==1],color='firebrick',linewidth=1.2)
-
+            cf2=ax0.plot(test.C.x_sp[condition==1],depth[condition==1],color='forestgreen',linewidth=0.1)
+            dummy_var = test.C.x_sp[condition==1]/test.C.x_sp[condition==1]
+            cf2=ax0.fill_between(test.C.x_sp[condition==1],dummy_var*np.nanmin(depth[condition==1]),dummy_var*np.nanmax(depth[condition==1]),color='forestgreen',alpha=0.2,linewidth=1.2)
+            p1 = ax0.contour(test.C.x_sp,test.C.zp,np.transpose(test.Det.T[:,:,ipic]),levels = [800,900,1000,1100,1200],colors = 'k',linewidths=0.5)
+            ax0.clabel(p1, p1.levels, inline=True, fmt=fmt2, fontsize=6)
+            
             ax1.set_title(tick)
             ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
             ax0.set_ylabel(r'$z$ /km')
@@ -1107,10 +1135,10 @@ def _make_gif(test,ptsave_b):
             ax0.tick_params(axis="x",direction="in")
             ax1.tick_params(axis="y",direction="in")
             ax1.tick_params(axis="x",direction="in")
-            ax2.tick_params(axis="y",direction="in")
-            ax2.tick_params(axis="x",direction="in")
+            ax1b.tick_params(axis="y",direction="in")
+            ax1b.tick_params(axis="x",direction="in")
             ax1.tick_params(left=True,right=False,labelbottom=False) 
-            ax2.tick_params(left=False,right=True,labelbottom=False) 
+            ax1b.tick_params(left=False,right=True,labelbottom=False) 
 
             ax0.tick_params(left=True,right=True,labelbottom=True) 
             ax0.set_xticks([200,600,1000])
@@ -1125,7 +1153,7 @@ def _make_gif(test,ptsave_b):
             ax0.yaxis.set_label_coords(-0.01,0.5)
 
             ax1.yaxis.set_label_coords(-0.02,0.5)
-            ax2.yaxis.set_label_coords(1.02,0.5)
+            ax1b.yaxis.set_label_coords(1.02,0.5)
 
             #plt.draw()    # necessary to render figure before saving
             fg.savefig(fn,dpi=600)
@@ -1134,9 +1162,241 @@ def _make_gif(test,ptsave_b):
 
         # make gif
     
-    images = []
-    images = [images.append(imageio.imread(fn)) for fn in file_list]
-    filename = os.path.join(ptsave_b,'%s'%test.Test_Name)
-    imageio.mimsave(filename,images,duration = 0.2)
 
 
+
+
+
+def make_figure_3N(A,path_figure,figure_name,time):
+    # figure name
+    cm = 1/2.54  # centimeters in inches
+
+    fn = os.path.join(path_figure,'%s.png'%(figure_name))
+    
+    fg = figure(figsize=(14*cm, 10*cm))  
+    # Prepare all the axis 
+    
+    bx = 0.12
+    by = 0.12
+    dx = 0.0 
+    dy = 0.05 
+    sx = 0.7 
+    sy = 0.2 
+    
+    ax0 = fg.add_axes([bx, by+dy*2+2*sy, sx, sy]) # t1 
+    ax1 = fg.add_axes([bx, by+dy+sy, sx, sy])     # t2 
+    ax2 = fg.add_axes([bx, by, sx, sy])           # t3 
+    
+    # Prepare data 
+    
+    t0  = time[0]
+    t1  = time[1]
+    t2  = time[2] 
+    
+    tick0 = r'$t = %.2f$ /Myr' %(t0)
+    tick1 = r'$t = %.2f$ /Myr' %(t1)
+    tick2 = r'$t = %.2f$ /Myr' %(t2)
+    
+    ind0 = np.where(A.time>=t0)
+    ind1 = np.where(A.time>=t1)
+    ind2 = np.where(A.time>=t2)
+    
+    ind0 = ind0[0][0]
+    ind1 = ind1[0][0]
+    ind2 = ind2[0][0]
+    
+    dH0 = _interpolate_2D(A.FS.dH_fil[:,:,ind0],A.C.xg,A.C.yg,A.C.x_trench_p,A.C.y_trench_p)
+    dH1 = _interpolate_2D(A.FS.dH_fil[:,:,ind1],A.C.xg,A.C.yg,A.C.x_trench_p,A.C.y_trench_p)
+    dH2 = _interpolate_2D(A.FS.dH_fil[:,:,ind2],A.C.xg,A.C.yg,A.C.x_trench_p,A.C.y_trench_p)
+
+    ax0b = ax0.twinx()
+    ax1b = ax1.twinx()
+    ax2b = ax2.twinx()
+
+
+
+    plt.setp(ax0.spines.values(), linewidth=1.4)
+    plt.setp(ax1.spines.values(), linewidth=1.4)
+    plt.setp(ax2.spines.values(), linewidth=1.4)
+
+    plt.setp(ax0b.spines.values(), linewidth=1.4)
+    plt.setp(ax1b.spines.values(), linewidth=1.4)
+    plt.setp(ax2b.spines.values(), linewidth=1.4)
+
+
+    # Do axis 0 
+    # Estetic stuff 
+    ax0.tick_params(axis="y",direction="in")
+    ax0.tick_params(axis="x",direction="in")
+    ax0.tick_params(left=True,right=False,labelbottom=False)
+    ax0b.tick_params(axis="y",direction="in")
+    ax0b.tick_params(axis="x",direction="in")
+    ax0b.tick_params(left=False,right=True,labelbottom=False)
+    
+    ax0.spines['bottom'].set_color('k')
+    ax0.spines['top'].set_color('w') 
+    ax0.spines['right'].set_color('k')
+    ax0.spines['left'].set_color('k')
+
+    ax0b.spines['bottom'].set_color('k')
+    ax0b.spines['top'].set_color('w') 
+    ax0b.spines['left'].set_color('k')
+    ax0b.spines['right'].set_color('k')
+    
+    #secax_y0b = ax0b.secondary_yaxis(1.2, functions=(celsius_to_anomaly, anomaly_to_celsius))
+    #secax_y0b.set_ylabel(r'$T - \overline{T}\ [^oC]$')
+    ax0.plot(A.C.x_sp,dH0,color='k',linewidth=1.2)
+    ax0.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
+    ax0.set_yticks([round(np.min(dH0),2),round(np.max(dH0),2)])
+    ax0.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_)
+    ax0b.plot(A.C.x_sp,A.Det.tau_x_t_det[:,ind0]/(A.IC.tau_co/1e6),color='forestgreen',linewidth=1.2) 
+    ax0b.plot(A.C.x_sp,A.Det.D_x_t_det[:,ind0]/100,color='firebrick',linewidth=1.2) 
+    ax0b.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.',size=fnt_g.label_)
+    ax0b.set_yticks([0.0,1.0]) 
+    secax_y0b = ax0b.secondary_yaxis(1.12)
+    secax_y0b.set_ylabel(r'$D^{\dagger}$ /n.d.',size=fnt_g.label_)
+    secax_y0b.set_ylim([0.0,1.0])
+    secax_y0b.spines['right'].set_color('white')
+    
+    ax0b.yaxis.label.set_color('forestgreen')
+    ax0b.tick_params(axis='y', colors='k')
+    secax_y0b.yaxis.label.set_color('firebrick')
+    secax_y0b.tick_params(axis='y',color='white')
+    
+    #ax0.xaxis.set_label_coords(0.5,-0.02)
+    ax0.yaxis.set_label_coords(-0.1,0.5)
+
+    ax0b.yaxis.set_label_coords(1.03,0.5)
+    secax_y0b.yaxis.set_label_coords(1.4,0.5)
+
+    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0b.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    secax_y0b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    secax_y0b.set_yticklabels(['',''])
+    
+    #ax1 {I can do a function for doing this boring stuff, I am repeating a lot, but hey, easy}
+    
+    ax1.tick_params(axis="y",direction="in")
+    ax1.tick_params(axis="x",direction="in")
+    ax1.tick_params(left=True,right=False,labelbottom=False)
+    ax1b.tick_params(axis="y",direction="in")
+    ax1b.tick_params(axis="x",direction="in")
+    ax1b.tick_params(left=False,right=True,labelbottom=False)
+    
+    ax1.spines['bottom'].set_color('k')
+    ax1.spines['top'].set_color('w') 
+    ax1.spines['right'].set_color('k')
+    ax1.spines['left'].set_color('k')
+
+    ax1b.spines['bottom'].set_color('k')
+    ax1b.spines['top'].set_color('w') 
+    ax1b.spines['left'].set_color('k')
+    ax1b.spines['right'].set_color('k')
+    
+    #secax_y0b = ax0b.secondary_yaxis(1.2, functions=(celsius_to_anomaly, anomaly_to_celsius))
+    #secax_y0b.set_ylabel(r'$T - \overline{T}\ [^oC]$')
+    ax1.plot(A.C.x_sp,dH1,color='k',linewidth=1.2)
+    ax1.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
+    ax1.set_yticks([round(np.min(dH1),2),round(np.max(dH1),2)])
+    ax1.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_)
+    ax1b.plot(A.C.x_sp,A.Det.tau_x_t_det[:,ind1]/(A.IC.tau_co/1e6),color='forestgreen',linewidth=1.2) 
+    ax1b.plot(A.C.x_sp,A.Det.D_x_t_det[:,ind1]/100,color='firebrick',linewidth=1.2) 
+    ax1b.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.',size=fnt_g.label_)
+    ax1b.set_yticks([0.0,1.0]) 
+    secax_y1b = ax1b.secondary_yaxis(1.12)
+    secax_y1b.set_ylabel(r'$D^{\dagger}$ /n.d.',size=fnt_g.label_)
+    secax_y1b.set_ylim([0.0,1.0])
+    secax_y1b.spines['right'].set_color('white')
+    
+    ax1b.yaxis.label.set_color('forestgreen')
+    ax1b.tick_params(axis='y', colors='k')
+    secax_y1b.yaxis.label.set_color('firebrick')
+    secax_y1b.tick_params(axis='y',color='white')
+    
+    #ax0.xaxis.set_label_coords(0.5,-0.02)
+    ax1.yaxis.set_label_coords(-0.1,0.5)
+
+    ax1b.yaxis.set_label_coords(1.03,0.5)
+    secax_y1b.yaxis.set_label_coords(1.4,0.5)
+
+    ax1.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1b.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    secax_y1b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    secax_y1b.set_yticklabels(['',''])
+
+    #ax2 
+
+    ax2.tick_params(axis="y",direction="in")
+    ax2.tick_params(axis="x",direction="in")
+    ax2.tick_params(left=True,right=False,labelbottom=True)
+    ax2b.tick_params(axis="y",direction="in")
+    ax2b.tick_params(axis="x",direction="in")
+    ax2b.tick_params(left=False,right=True,labelbottom=False)
+    
+    ax2.spines['bottom'].set_color('k')
+    ax2.spines['top'].set_color('w') 
+    ax2.spines['right'].set_color('k')
+    ax2.spines['left'].set_color('k')
+
+    ax2b.spines['bottom'].set_color('k')
+    ax2b.spines['top'].set_color('w') 
+    ax2b.spines['left'].set_color('k')
+    ax2b.spines['right'].set_color('k')
+    
+    #secax_y0b = ax0b.secondary_yaxis(1.2, functions=(celsius_to_anomaly, anomaly_to_celsius))
+    #secax_y0b.set_ylabel(r'$T - \overline{T}\ [^oC]$')
+    ax2.plot(A.C.x_sp,dH2,color='k',linewidth=1.2)
+    ax2.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
+    ax2.set_yticks([round(np.min(dH2),2),round(np.max(dH2),2)])
+    ax2.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_)
+    ax2b.plot(A.C.x_sp,A.Det.tau_x_t_det[:,ind2]/(A.IC.tau_co/1e6),color='forestgreen',linewidth=1.2) 
+    ax2b.plot(A.C.x_sp,A.Det.D_x_t_det[:,ind2]/100,color='firebrick',linewidth=1.2) 
+    ax2b.set_ylabel(r'$\tau^{\dagger}_{max}$ /n.d.',size=fnt_g.label_)
+    ax2b.set_yticks([0.0,1.0]) 
+    secax_y2b = ax2b.secondary_yaxis(1.12)
+    secax_y2b.set_ylabel(r'$D^{\dagger}$ /n.d.',size=fnt_g.label_)
+    secax_y2b.set_ylim([0.0,1.0])
+    secax_y2b.spines['right'].set_color('white')
+    
+    ax2b.yaxis.label.set_color('forestgreen')
+    ax2b.tick_params(axis='y', colors='k')
+    secax_y2b.yaxis.label.set_color('firebrick')
+    secax_y2b.tick_params(axis='y',color='white')
+    
+    ax2.xaxis.set_label_coords(0.5,-0.02)
+    ax2.yaxis.set_label_coords(-0.1,0.5)
+
+    ax2b.yaxis.set_label_coords(1.03,0.5)
+    secax_y2b.yaxis.set_label_coords(1.4,0.5)
+
+    ax2.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax2.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax2b.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax2b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    secax_y2b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    secax_y2b.set_yticklabels(['',''])
+    ax2.set_xticks([200,600,1000])
+    ax2.set_xticklabels([r'$200$','','$1200$'])
+    ax2.set_xlabel(r'$x_{trench}$ /km',size=fnt_g.label_)
+    
+    props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+    ax0.text(0.025, 1.15, tick0, transform=ax0.transAxes, fontsize=fnt_g.legend_,
+        verticalalignment='top', bbox=props,color='white')
+    ax1.text(0.025, 1.15, tick1, transform=ax1.transAxes, fontsize=fnt_g.legend_,
+        verticalalignment='top', bbox=props,color='white')
+    ax2.text(0.025, 1.15, tick2, transform=ax2.transAxes, fontsize=fnt_g.legend_,
+        verticalalignment='top', bbox=props,color='white')
+    
+    ax0.spines[['top']].set_visible(False)
+    ax0b.spines[['left','top']].set_visible(False)
+    ax1.spines[['top']].set_visible(False)
+    ax1b.spines[['left','top']].set_visible(False)
+    ax2.spines[['top']].set_visible(False)
+    ax2b.spines[['left','top']].set_visible(False)
+
+    #ax2.yaxis.set_label_coords(1.02,0.5)
+    fg.savefig(fn,dpi=600)

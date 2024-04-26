@@ -28,6 +28,7 @@ from figure_functions import make_figure_3
 from figure_functions import make_figure_4
 from figure_functions import make_figure5
 from figure_functions import _make_gif
+from figure_functions import make_figure_3N
 
 
 
@@ -76,7 +77,7 @@ if not os.path.isdir(path_gif):
 
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
-_make_gif(TSD2,path_gif)
+#_make_gif(TSD2,path_gif)
 #TSD2.print_topography_timeseries(path_save,0.0)
 #TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
 #TSD2_V10.print_topography_timeseries(path_save,0.0)
@@ -89,6 +90,8 @@ _make_gif(TSD2,path_gif)
 #TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 #TSD2_V15.print_topography_timeseries(path_save,0.0)
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
+#_make_gif(TSD2_V15,path_gif)
+
 
 
 make_plot_dD(path_save,TSD2,TSD2_V15)
@@ -103,9 +106,14 @@ Observation: [Fast tearing ] Fast tearing is characterized by the development of
 within the slab at ca 200 km 
 
 """
-make_figure_3(TSD2,path_figure,'figure3a',[0.1,1.0],[0.1,1.0])
+#make_figure_3(TSD2,path_figure,'figure3a',[0.1,1.0],[0.1,1.0])
 
-make_figure_3(TSD2_V15,path_figure,'figure3g',[0.1,.2],[0.0,0.1])
+make_figure_3N(TSD2,path_figure,'figure3a',[10.15,10.20,10.24])
+
+make_figure_3N(TSD2_V15,path_figure,'figure3b',[15.41,25.09,29.69])
+
+
+
 
 """
 Figure 4: 
@@ -129,6 +137,7 @@ make_figure6(DB,path_figure,'figure6')
 make_figure7(DB,path_figure,'figure7')
 
 make_figure8(DB,path_figure,'figure8')
+
 
 
 
