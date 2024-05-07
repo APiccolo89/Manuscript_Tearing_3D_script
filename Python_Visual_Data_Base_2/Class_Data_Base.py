@@ -79,6 +79,10 @@ class Data_Base(object):
         
         self.tau_max   = np.zeros([self.n_test],dtype = float)
         
+        self.latex_table = []
+   
+   
+        
     def _read_test(self,path:str):
         
         # Read File Data base 
@@ -105,6 +109,9 @@ class Data_Base(object):
         # Return the data needed
         
         return List, n_test
+    
+    
+    
     """
     Function to save a smaller data base for the Karlsruhe and Glasgow group
     """
@@ -159,7 +166,10 @@ class Data_Base(object):
                 # Check if the node exist, and in case delete for overwritting it. 
                 if buf_name in f.keys():
                     del f[buf_name]      # load the data                
-                f.create_dataset(buf_name,data=np.float32(buf_cl))
+                if (isinstance(buf_cl,str)) | (isinstance(buf_cl,list)):
+                    f.create_dataset(buf_name,data=buf_cl)
+                else:
+                    f.create_dataset(buf_name,data=np.float32(buf_cl))
                 size_array += sys.getsizeof(buf_cl)
         print('Size of the database %2f' %(size_array))
         return f
@@ -186,78 +196,148 @@ class Data_Base(object):
         f.close()
         return buf
     @timer
-    def _post_process_data(self,path:str,path_save:str,save_data:bool,print_topography:bool):
-        itest = 0 
-        for it in range(self.n_test):
-            test_name = self.Tests_Name[it]
-            if (test_name[0] != 'PR_no'):
-                path_save_b = os.path.join(path_save,test_name[1])
-                if not os.path.isdir(path_save_b):
-                    os.mkdir(path_save_b)
-
-                print(test_name)
-
-                test = Test(self.path,test_name)
-                # Collect initial data
-                self.Avolume[itest] = test.IC.VnM*1e6
-
-                self.StressLimit[itest] = test.IC.tau_co
-
-                self.Temp[itest] = test.IC.T_av
-
-                # Compute the average velocity of the slab tearing
-                # Plot Slab surface
-
-                x_sp = test.C.x_sp 
-
-                v_test = test.Det.vel_tear[0,:]
-
-                det_vec = test.Det.det_vec
-
-                det_vec[test.Det.depth_vec>=-60.0]=np.nan
-
-                corrected_depth = test.Det.depth_vec
-
-                corrected_depth[test.Det.depth_vec>=-60.0]=np.nan
-
-                mean_v = (1000.0*1000*100)/(np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6-np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6)
-
-                self.detachment_velocity[itest] = mean_v
-
-                # Collect starting time of detachment 
-
-                self.Starting_tearing[itest] = np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])
-
-                self.Ending_tearing[itest]  = np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])
+    def _post_process_data(self,path:str,path_save:str,save_data:bool,print_topography:bool,check:bool):
+        
+        perform = True
+        if check == True: 
+            if 'General_DB' in self.Tests_Name[0][:]: 
+                perform = False 
+            else: 
+                perform = True 
                 
-                # Here I do not have a clear measure for assessing the impact of the tearing. 
-                # The uplift associated to the tearing seems to starts before the actual geometrical tearing
-                # So, during the first iteration I would like to plot the following picture: 
-                # [A] Total dH during the geometrical tearing
-                # [B] Total dH from 0.1->End of the tearing 
-                # [C] Total dH with different time between 0.1->Beginning of tearing 
-                # =============================================
-                
-                
-                self.uplift[itest,0]= np.nanmean(test.FS.Uplift_det[test.FS.Uplift_det>
-                                                                    np.nanmean(test.FS.Uplift_det)])
-                self.uplift[itest,1]= np.nanmean(test.FS.Uplift_LT[test.FS.Uplift_LT>
-                                                                    np.nanmean(test.FS.Uplift_LT)])
-                self.uplift[itest,2] = self.uplift[itest,0]/self.uplift[itest,1]
-                
-                self.tau_max[itest] = test.Det.maxtau/(self.StressLimit[itest]/1e6)
+        if perform == True:
+            itest = 0 
+            self.latex_table = [['Test Name',r'$v_c$',r'$\tau_{lim}$',r'$V_{a,\mathrm{dis}}$',r'$v_{\mathrm{tearing}}$',r'$\dot{H}_{\mathrm{N}}$',r'$\dot{H}_{Te}$',r'$\dot{H}_{\mathrm{LT}}$']]
+            for it in range(self.n_test):
+                test_name = self.Tests_Name[it]
+                if ((test_name[0] != 'PR_no') & (test_name[0] != 'General_DB')):
+                    path_save_b = os.path.join(path_save,test_name[1])
+                    if not os.path.isdir(path_save_b):
+                        os.mkdir(path_save_b)
 
-                print("Maximum stress is %2f and the dimensionless is %2f "%(test.Det.maxtau, self.tau_max[itest]))
-                
-                ipic = 0 
-                if save_data == True:
-                    self._write_h5_database(path_save,test_name[1],test)
-                if print_topography == True:
-                    test._print_topographic_data_ASCI(test_name[1],path_save_b)
-                
-            itest = itest+1
+                    print(test_name)
+
+                    test = Test(self.path,test_name)
+                    # Collect initial data
+                    self.Avolume[itest] = test.IC.VnM*1e6
+
+                    self.StressLimit[itest] = test.IC.tau_co
+
+                    self.Temp[itest] = test.IC.T_av
+
+                    # Compute the average velocity of the slab tearing
+                    # Plot Slab surface
+
+                    x_sp = test.C.x_sp 
+
+                    v_test = test.Det.vel_tear[0,:]
+
+                    det_vec = test.Det.det_vec
+
+                    det_vec[test.Det.depth_vec>=-60.0]=np.nan
+
+                    corrected_depth = test.Det.depth_vec
+
+                    corrected_depth[test.Det.depth_vec>=-60.0]=np.nan
+
+                    mean_v = (1000.0*1000*100)/(np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6-np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6)
+
+                    self.detachment_velocity[itest] = mean_v
+
+                    # Collect starting time of detachment 
+
+                    self.Starting_tearing[itest] = np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])
+
+                    self.Ending_tearing[itest]  = np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])
+
+                    # Here I do not have a clear measure for assessing the impact of the tearing. 
+                    # The uplift associated to the tearing seems to starts before the actual geometrical tearing
+                    # So, during the first iteration I would like to plot the following picture: 
+                    # [A] Total dH during the geometrical tearing
+                    # [B] Total dH from 0.1->End of the tearing 
+                    # [C] Total dH with different time between 0.1->Beginning of tearing 
+                    # =============================================
+
+                    self.uplift[itest,0] = test.FS.dH_uplift_mean[1,1]
+
+                    self.uplift[itest,1] = test.FS.dH_uplift_mean[0,1]
+
+                    self.uplift[itest,2]  = test.FS.dH_uplift_mean[2,1]
+
+                    self.tau_max[itest] = test.Det.maxtau/(self.StressLimit[itest]/1e6)
+
+                    print("Average uplift during necking stage is %.2f, during tearing stage is %.2f and the long term is %.2f"%(self.uplift[itest,0],self.uplift[itest,1],self.uplift[itest,2]))
+
+                    ipic = 0 
+                    if save_data == True:
+                        self._write_h5_database(path_save,test_name[1],test)
+                    if print_topography == True:
+                        test._print_topographic_data_ASCI(test_name[1],path_save_b)
+
+                    self.latex_table.append([test_name[1],f"{self.Temp[itest]:.1f}",f"{self.StressLimit[itest]/1e6:.1f}",f"{self.Avolume[itest]:.1f}",f"{mean_v:.1e}",f"{self.uplift[itest,1]:.1e}",f"{self.uplift[itest,0]:.1e}",f"{self.uplift[itest,2]:.1e}"])
+                #self.create_latex_table(path_save,latex_table)
+                itest = itest+1
+            self._save_new_DB_voice()
+        else: 
+            self.read_DB_variable()
+        print('Finished to collect the data')
+        print('|= ============== =|')
+        print(' =|==============|= ')
+        print('_____Creating Table ____')
+        self.create_latex_table(path_save)
+        
 
 
+            
+    # Function to update the main database and saves the data that have been retrieved by the database reader
+    # Save LateX Data Base 
+    # function that saves a latex table for pubblication purposes 
+    def create_latex_table(self,path_save):
+        from texttable import Texttable
+        import latextable
+        table = Texttable()
+        table.set_cols_align(["l", "c", "c","c","c","c","c","c"])
+        table.set_cols_valign(["m", "m", "m","m","m","m","m","m"])
+        table.add_rows(self.latex_table)
+        print(table.draw())
+        print('\nLatextable Output:')
+        print(latextable.draw_latex(table, caption="Experiment list table", label="table:experiment list"))
+
+
+        # Create rows 
+
+
+    def _save_new_DB_voice(self):
+        """
+        Function that saves the post processed data into DB 
+        """
+        f = h5py.File(self.path, 'a')
+        node = "/"+'General_DB'
+        e = False
+        if node in f.keys():
+            f[node]
+            e = True
+        self.save_test_data(f,node,self)
+        f.close() 
+    
+    def read_DB_variable(self): 
+                
+        f = h5py.File(self.path,'r')
+        
+        # path 2 variable
+        
+        keys_data=self.__dict__.keys()
+
+        for k in keys_data:
+            path2variable = "/%s/%s" %('General_DB',k)
+            # Create array 
+            self.__dict__[k] = np.array(f[path2variable])
+        
+        f.close()
+        return self
+        
+
+        
 
 @timer
 class Test(Data_Base):
@@ -692,10 +772,19 @@ class FS():
         self.Uplift_LT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
         self.Uplift_det = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
 
-        
+        self.total_uplift_LT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.total_uplift_NT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.total_uplift_Te = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.dH_uplift_max = np.zeros([3,2],dtype=float)
+        self.dH_uplift_min = np.zeros([3,2],dtype=float)
+        self.dH_uplift_mean = np.zeros([3,2],dtype=float)
+        self.time_series = []
+
         self.dH_fil = self.filter_array('dH')
         self.vz_fil = self.filter_array('vz_M')
         
+        self.compute_total_uplift(T)
+    
         self._compute_dH_tearing(T)
         
         
@@ -754,6 +843,92 @@ class FS():
         
         return self
     
+    def compute_total_uplift(self,T:Test):
+        
+        def compute_cumulative_uplift(tm,H,t1,t2,C:C,ts:bool): 
+            """
+            Closure of the compute total uplift
+            -> input argument: the time vector of the test 
+            -> H the topography vector 
+            -> t1 and t2 the time of the time interval 
+            -> coordinate system 
+            -> save or not save a timeseries 
+            output if ts == False
+            min_dH = 2 field array[0 = ]
+            """
+            tm_ = tm[t1:t2]
+            H  =  H[:,:,t1:t2]
+            dH = np.zeros(np.shape(H[:,:,0]),dtype=float)
+            max_dH = -1000e6 
+            min_dH = 1000e6
+            dt_min = 0.0
+            dt_max = 0.0
+            mean_dH = np.zeros(2,dtype=float)
+            max_dH  = np.zeros(2,dtype=float)
+            min_dH  = np.zeros(2,dtype=float)
+            if ts == True:
+                time_series_cum = np.zeros([len(tm_)-1,2],dtype=float)
+            for i in range(len(tm_)-1):
+                dH += H[:,:,i+1]-H[:,:,i]
+                if ts==True:
+                    buf = _interpolate_2D(dH,C.xg,C.yg,C.x_trench_p,C.y_trench_p)
+                    ind_g=(C.yg>=-100.0)&(C.yg<=100.0)
+                    buf0 = dH[ind_g,:]
+                    buf0 = buf0[:,C.ind_x_trench_g]
+                    time_series_cum[i,1] = np.nanmean(buf0)
+                    time_series_cum[i,0] = np.nanmean(buf)
+                    buf= []
+                    buf0 = []
+            
+            sc = 1000  #[Conversion km -> m]
+            sc2 = 1000/1e6 #[conversion m/yr -> mm/yr]
+            
+            # Interpolate dH along trench direction 
+            dH_trench = _interpolate_2D(dH,C.xg,C.yg,C.x_trench_p,C.y_trench_p)
+            # Compute the average integral along trench direction 
+            mean_dH[0] = np.nanmean(dH_trench)*sc
+            max_dH[0] = np.nanmax(dH_trench)*sc
+            min_dH[0] = np.nanmin(dH_trench)*sc
+            dH *= sc 
+            mean_dH[1] =mean_dH[0]*sc2/(np.max(tm_)-np.min(tm_))
+            max_dH[1]  =  max_dH[0]*sc2/(np.max(tm_)-np.min(tm_))
+            min_dH[1]  =  min_dH[0]*sc2/(np.max(tm_)-np.min(tm_))
+            print('maximum uplift is %.2f / mm/yr ' %(max_dH[1]))
+            print('min uplift is %.2f /mm/yr' %(min_dH[1]))
+            if ts == False:
+                return dH,max_dH,min_dH,mean_dH
+            else:
+                return dH,max_dH,min_dH,mean_dH,time_series_cum*sc
+        
+        
+        
+        simulation_st = np.where(T.time>1.0)
+        simulation_st = simulation_st[0][0]
+        i = np.where(T.time==np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
+        start_tearing = i[0][0]
+        i = np.where(T.time==np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
+        end_tearing = i[0][0]
+    # Compute the necking stage dH,max_dH,min_dH,mean_dH
+        print('==================')
+        print('Necking stage data')
+        self.total_uplift_NT,self.dH_uplift_max[0,:],self.dH_uplift_min[0,:],self.dH_uplift_mean[0,:] = compute_cumulative_uplift(T.time,self.H,simulation_st,start_tearing,T.C,False)
+        print('==================')
+        
+
+    # Compute the tearing stage dh ...
+        print('==================')
+        print('Tearing stage data')
+        self.total_uplift_Te,self.dH_uplift_max[1,:],self.dH_uplift_min[1,:],self.dH_uplift_mean[1,:] = compute_cumulative_uplift(T.time,self.H,start_tearing,end_tearing,T.C,False)
+        print('==================')
+    # Compute the long term stuff
+        print('==================')
+        print('Long_term  data')
+        self.total_uplift_LT,self.dH_uplift_max[2,:],self.dH_uplift_min[2,:],self.dH_uplift_mean[2,:],self.time_series = compute_cumulative_uplift(T.time,self.H,simulation_st,end_tearing,T.C,True)
+        print('==================')
+
+        return self 
+        
+        
 
 # Class containing the Passive tracers information   
 class Ptr(): 
