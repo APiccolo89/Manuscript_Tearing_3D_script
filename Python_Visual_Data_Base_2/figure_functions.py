@@ -82,9 +82,9 @@ def arrowed_spines(fig, ax):
 
 class fnt_g():
     point_to_cm = 0.035277777777778
-    label_ = 0.5/point_to_cm 
+    label_ = 0.45/point_to_cm 
     axis_  = 0.4/point_to_cm
-    title_ = 0.5/point_to_cm
+    title_ = 0.45/point_to_cm
     legend_= 0.35/point_to_cm
 
 class MidpointNormalize(mpl.colors.Normalize):
@@ -347,9 +347,10 @@ def make_figure5(DB,path_save,figure_name):
     ax2 = fg.add_axes([bx, by, sx, sy]) 
     
     colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$','$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$','$v_c = 2.5 /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
+    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
 
     T_u = np.sort(np.unique(T))
+    T_u = T_u[T_u>0.0]
 
     for i in range(len(T_u)):
         ax0.scatter(AVol[(SLim==200.0) & (T == T_u[i])],vel_tearing[(SLim==200.0) & (T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
@@ -447,10 +448,10 @@ def make_figure6(DB,path_save,figure_name):
     ax0 = fg.add_axes([bx, by, sx, sy])
     
     colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10 [\mathrm{cm/yr}$]','$v_c = 5.0 [\mathrm{cm/yr}$]','$v_c = 2.5 [\mathrm{cm/yr}]$']
+    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
 
     T_u = np.sort(np.unique(T))
-
+    T_u = T_u[T_u>0.0]
     for i in range(len(T_u)):
         ax0.scatter(vel_tearing[(T == T_u[i])],uplift[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
     
@@ -895,9 +896,11 @@ def make_figure7(DB,path_save,figure_name):
     ax0 = fg.add_axes([bx, by, sx, sy])
     
     colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10 [\mathrm{cm/yr}$]','$v_c = 5.0 [\mathrm{cm/yr}$]','$v_c = 2.5 [\mathrm{cm/yr}]$']
+    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
 
     T_u = np.sort(np.unique(T))
+    T_u = T_u[T_u>0.0]
+
 
     for i in range(len(T_u)):
         ax0.scatter(AVol[(T == T_u[i])],SLim[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
@@ -956,9 +959,11 @@ def make_figure8(DB,path_save,figure_name):
     ax2 = fg.add_axes([bx, by, sx, sy]) 
     
     colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10, [cm/yr$]','$v_c = 5.0, [cm/yr$]','$v_c = 2.5, [cm/yr$]']
+    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
 
     T_u = np.sort(np.unique(T))
+    T_u = T_u[T_u>0.0]
+
 
     for i in range(len(T_u)):
         ax0.scatter(AVol[(SLim==200.0) & (T == T_u[i])],tau_M[(SLim==200.0) & (T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
@@ -1046,7 +1051,7 @@ def _make_gif(test,ptsave_b):
             dH_trench = np.zeros(len(test.C.x_trench_p),dtype=float)
 
             # interpolate dh along the trench (filtered)
-            dH_trench = _interpolate_2D(test.FS.dH_fil[:,:,ipic],test.C.xg,test.C.yg,test.C.x_trench_p,test.C.y_trench_p)
+            dH_trench = _interpolate_2D(test.FS.dH[:,:,ipic],test.C.xg,test.C.yg,test.C.x_trench_p,test.C.y_trench_p)
 
 
             fna='Fig'+str(ipic)+'.png'
@@ -1073,12 +1078,15 @@ def _make_gif(test,ptsave_b):
             ax1b.spines['top'].set_color('w') 
             ax1b.spines['left'].set_color('k')
             ax1b.spines['right'].set_color('k')
-    
+            if (np.isnan(np.nanmin(dH_trench)) == False) and  (np.isnan(np.nanmax(dH_trench)) == False):
     #secax_y0b1= ax0b.secondary_yaxis(1.2, functions=(celsius_to_anomaly, anomaly_to_celsius))
-    #secax_y0b1set_ylabel(r'$T - \overline{T}\ [^oC]$')
-            ax1.plot(test.C.x_sp,dH_trench,color='k',linewidth=1.2)
-            ax1.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
-            ax1.set_yticks([round(np.min(dH_trench),2),round(np.max(dH_trench),2)])
+    #secax_y0b1set_ylabel(r'$T - \ overline{T}\ [^oC]$')
+                ax1.plot(test.C.x_sp,dH_trench,color='k',linewidth=1.2)
+                ax1.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
+                ax1.set_yticks([round(np.nanmin(dH_trench),2),round(np.nanmax(dH_trench),2)])
+            else:
+                ax1.set_yticks([-1,1])
+
             ax1.set_ylabel(r'$\dot{H}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',size=fnt_g.label_)
             ax1b.plot(test.C.x_sp,test.Det.tau_x_t_det[:,ipic]/(test.IC.tau_co/1e6),color='forestgreen',linewidth=1.2) 
             ax1b.plot(test.C.x_sp,test.Det.D_x_t_det[:,ipic]/100,color='firebrick',linewidth=1.2) 
@@ -1379,10 +1387,16 @@ def make_figure_3N(A,path_figure,figure_name,time):
     ax2b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
     secax_y2b.yaxis.set_tick_params(labelsize=fnt_g.axis_)
     secax_y2b.set_yticklabels(['',''])
+    ax0.set_xticks([200,600,1000])
+    ax1.set_xticks([200,600,1000])
     ax2.set_xticks([200,600,1000])
+
+        
+
+
     ax2.set_xticklabels([r'$200$','','$1200$'])
     ax2.set_xlabel(r'$x_{trench}$ /km',size=fnt_g.label_)
-    
+
     props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
     ax0.text(0.025, 1.15, tick0, transform=ax0.transAxes, fontsize=fnt_g.legend_,
         verticalalignment='top', bbox=props,color='white')
@@ -1400,3 +1414,29 @@ def make_figure_3N(A,path_figure,figure_name,time):
 
     #ax2.yaxis.set_label_coords(1.02,0.5)
     fg.savefig(fn,dpi=600)
+
+
+def initial_topography(A,path_save):
+
+    def fmt(x):
+        s = f"{x:.1f}"
+        if s.endswith("0"):
+            s = f"{x:.0f}"
+        return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
+        
+    fg = figure()
+        
+    fn = os.path.join(path_save,'Simplified_initial_topography_km')
+    ax = fg.gca()
+    p1 = ax.contour(A.C.xg,A.C.yg,A.FS.H[:,:,10],levels = [-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0],colors = 'k',linewidths=0.5)
+    ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=fnt_g.axis_)
+    ax.plot(A.C.x_trench_p,A.C.y_trench_p,linewidth = 2.0,linestyle = 'dashdot',label = r'Slab position',color = 'rebeccapurple')
+    ax.set_xlabel(r'$x$/[km]',fontsize=fnt_g.label_)
+    ax.set_ylabel(r'$y$/[km]',fontsize=fnt_g.label_)
+    ax.legend(loc='upper right')
+    ax.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+        
+    fg.savefig(fn,dpi=600,transparent=False)
+
+

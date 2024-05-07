@@ -61,23 +61,23 @@ class Data_Base(object):
         
         self.Tests_Name, self.n_test= self._read_test(path)
                 
-        self.detachment_velocity = np.zeros([self.n_test-1],dtype = float)
+        self.detachment_velocity = np.zeros([self.n_test],dtype = float)
         
-        self.Starting_tearing   = np.zeros([self.n_test-1],dtype = float)
+        self.Starting_tearing   = np.zeros([self.n_test],dtype = float)
         
-        self.Ending_tearing    = np.zeros([self.n_test-1],dtype = float)
+        self.Ending_tearing    = np.zeros([self.n_test],dtype = float)
         
-        self.uplift            = np.zeros([self.n_test-1,3],dtype=float) 
+        self.uplift            = np.zeros([self.n_test,3],dtype=float) 
         
-        self.dt             = np.zeros([self.n_test-1,3],dtype=float) 
+        self.dt             = np.zeros([self.n_test,3],dtype=float) 
         
-        self.Avolume = np.zeros([self.n_test-1],dtype = float)
+        self.Avolume = np.zeros([self.n_test],dtype = float)
         
-        self.StressLimit = np.zeros([self.n_test-1],dtype = float)
+        self.StressLimit = np.zeros([self.n_test],dtype = float)
         
-        self.Temp      = np.zeros([self.n_test-1],dtype = float)
+        self.Temp      = np.zeros([self.n_test],dtype = float)
         
-        self.tau_max   = np.zeros([self.n_test-1],dtype = float)
+        self.tau_max   = np.zeros([self.n_test],dtype = float)
         
     def _read_test(self,path:str):
         
@@ -188,7 +188,7 @@ class Data_Base(object):
     @timer
     def _post_process_data(self,path:str,path_save:str,save_data:bool,print_topography:bool):
         itest = 0 
-        for it in range(self.n_test-1):
+        for it in range(self.n_test):
             test_name = self.Tests_Name[it]
             if (test_name[0] != 'PR_no'):
                 path_save_b = os.path.join(path_save,test_name[1])
@@ -257,7 +257,6 @@ class Data_Base(object):
                 
             itest = itest+1
 
-        print(itest)
 
 
 @timer
@@ -613,7 +612,7 @@ class Det():
         condition = (T.C.x_sp > 100) & (T.C.x_sp<1100) & (self.depth_vec<-80)
         depth = self.depth_vec
         depth[depth>=-80]=np.nan
-        ind = np.where((T.C.zp >= np.nanmin(self.depth_vec[condition==1])) &(T.C.zp <= np.nanmax(self.depth_vec[condition==1]) ))
+        ind = np.where((T.C.zp >= np.nanpercentile(self.depth_vec[condition==1],5)) &(T.C.zp <= np.nanpercentile(self.depth_vec[condition==1],95) ))
         
         self.time_evolution_necking(ind,(T.time),T.C.x_sp)
     
@@ -631,18 +630,14 @@ class Det():
         itime = len(time_d)
         
         start_detaching = np.nanmin(self.det_vec[(x>=100) & (x<=1100)])
-
         end_detaching = np.nanmax(self.det_vec[(x>=100) & (x<=1100)])
+        
         for i in range(len(x)):
-#            if i_along_x[i] != -1:
             for j in range(len(time_d)):
                 self.D_x_t_det[i,j] = np.nanmean(self.D[i,i_along_x,j])
                 self.tau_x_t_det[i,j] = np.nanmean(self.tau_max[i,i_along_x,j])
-#            else:
-#                self.D_x_t_det[i,:] = -np.inf
-#                self.tau_x_t_det[i,:] = -np.inf
+
         max_tau = 0.0 
-        # Beautyfing the array. 
         for i in range(itime):
             a = self.D_x_t_det[:,i]
             a[a==-np.inf]=np.nan 
@@ -662,11 +657,6 @@ class Det():
             if time_d[i] >= start_detaching:
                 self.minD[i] = 0.1
 
-            #elif time_d[i]> end_detaching:
-            #    self.deltaD[i] = 0.0
-            #    self.meanD[i] = 0.0
-            #    self.minD[i] = 0.0
-            #    self.maxD[i]=0.0
             a = []
             b = []
         self.maxtau = max_tau

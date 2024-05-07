@@ -47,6 +47,8 @@ file_C = os.path.join(path,name_PR600)
 file_D = os.path.join(path,name_PRNO)
 file_DB = os.path.join(path,name_DB)
 
+
+# Merge Data Base
 #_merge_database(file_A,file_B,file_C,file_D,file_DB)
 
 
@@ -55,7 +57,6 @@ initial_geotherm(path_save)
 
 if not os.path.isdir(path_save):
     os.mkdir(path_save)
-# Merge Data Base
 
 
 # [A.2] Create the database
@@ -91,7 +92,13 @@ TSD2 = Test(file_DB,['PR_r','TSD2'])
 #TSD2_V15.print_topography_timeseries(path_save,0.0)
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 #_make_gif(TSD2_V15,path_gif)
+#TSD2_V5 = Test(file_DB,['PR_no','TSD2_V3'])
+#_make_gif(TSD2_V5,path_gif)
+#TSD4_V15 = Test(file_DB,['PR_r','TSD4_V15'])
+#TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
+#TSD3_V15 = Test(file_DB,['PR_r','TSD3_V15'])
 
+initial_topography(TSD2,path_save)
 
 
 make_plot_dD(path_save,TSD2,TSD2_V15)
@@ -111,6 +118,7 @@ within the slab at ca 200 km
 make_figure_3N(TSD2,path_figure,'figure3a',[10.15,10.20,10.24])
 
 make_figure_3N(TSD2_V15,path_figure,'figure3b',[15.41,25.09,29.69])
+
 
 
 
