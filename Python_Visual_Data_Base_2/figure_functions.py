@@ -218,15 +218,19 @@ def make_figure_4(A,B,path_figure,figure_name,det):
     fn = os.path.join(path_figure,'%s.png'%(figure_name))
     
     # Prepare variables
-    if det == True: 
-        c0 = A.FS.Uplift_det[:,:,0,0]
-        c1 = B.FS.Uplift_det[:,:,0,0]
-    else:
-        c0 = A.FS.Uplift_LT[:,:,0,0]
-        c1 = B.FS.Uplift_LT[:,:,0,0]
+    if det == 1: 
+        c0 = A.FS.total_uplift_NT
+        c1 = B.FS.total_uplift_NT
+    elif det == 2:
+        c0 = A.FS.total_uplift_Te
+        c1 = B.FS.total_uplift_Te
+    else: 
+        c0 = A.FS.total_uplift_LT
+        c1 = B.FS.total_uplift_LT
+        
  
-    c0[c0<=np.nanmean(c0)]=np.nan
-    c1[c1<=np.nanmean(c1)]=np.nan
+    #c0[c0<=np.nanmean(c0)]=np.nan
+    #c1[c1<=np.nanmean(c1)]=np.nan
     
 
     lim_0 = [np.nanmin(c0),np.nanmean(c0),np.nanmax(c0)]
@@ -260,18 +264,20 @@ def make_figure_4(A,B,path_figure,figure_name,det):
     dy = []
     ax0 = fg.add_axes([bx, by, sx, sy])
     ax1 = fg.add_axes([bx+sx+dx, by, sx, sy])
-    #norm0 = MidpointNormalize(vmin=lim_0[0], vmax=lim_0[2], midpoint=lim_0[1])
-    cf0=ax0.pcolormesh(a,b,c0,cmap = 'cmc.lipari')
-    cbar0 = fg.colorbar(cf0, ax=ax0,orientation='horizontal',extend="both")
+    norm0 = MidpointNormalize(vmin=lim_0[0], vmax=lim_0[2], midpoint=0.0)
+    levels_0 = np.linspace(np.round(lim_0[0]),np.round(lim_0[2]),20)
+    cf0=ax0.contourf(a,b,c0,cmap = 'cmc.cork',norm=norm0,levels = levels_0)
+    cbar0 = fg.colorbar(cf0, ax=ax0,orientation='horizontal',extend="both",norm=norm0,ticks=[np.round(lim_0[0]), 0.0, np.round(lim_0[2])],shrink = 0.8)
     cbar0.ax.tick_params(labelsize=fnt_g.legend_)
-    cbar0.set_label(label=r'${\dot{H}_{mean}}$ /$\mathrm{\frac{mm}{yr}}$',size=fnt_g.label_) 
+    cbar0.set_label(label=r'${{\Delta H}}$ /$\mathrm{m}$',size=fnt_g.label_) 
     pl0 = ax0.plot(t_x,t_y,linewidth=1.3, color = 'red')
     
        
-    #norm1 = MidpointNormalize(vmin=lim_1[0], vmax=lim_1[2], midpoint=lim_1[1])
-    cf1=ax1.pcolormesh(a,b,c1,cmap = 'cmc.lipari')
-    cbar1 = fg.colorbar(cf1, ax=ax1,orientation='horizontal',extend="both")
-    cbar1.set_label(label=r'${\dot{H}_{mean}}$ /$\mathrm{\frac{mm}{yr}}$',size=fnt_g.label_) 
+    norm1 = MidpointNormalize(vmin=lim_1[0], vmax=lim_1[2], midpoint=0.0)
+    levels_1 = np.linspace(np.round(lim_1[0]),np.round(lim_1[2]),20)
+    cf1=ax1.contourf(a,b,c1,cmap = 'cmc.cork',norm=norm1,levels=levels_1)
+    cbar1 = fg.colorbar(cf1, ax=ax1,orientation='horizontal',extend="both",norm=norm1,ticks=[np.round(lim_1[0]), 0.0, np.round(lim_1[2])],shrink = 0.8)
+    cbar1.set_label(label=r'${{\Delta H}}$ /$\mathrm{m}$',size=fnt_g.label_) 
     cbar1.ax.tick_params(labelsize=fnt_g.legend_)
     pl1 = ax1.plot(t_x,t_y,linewidth=1.3, color = 'red')
     ax0.set_ylim(-500,500)
@@ -426,60 +432,66 @@ def make_figure5(DB,path_save,figure_name):
 def make_figure6(DB,path_save,figure_name):
     
     # figure name
-    fn = os.path.join(path_save,'%s.png'%(figure_name))
     
     # Prepare variables
     vel_tearing = (DB.detachment_velocity)
     AVol        = DB.Avolume 
     T           = DB.Temp 
-    uplift = DB.uplift[:,0]
     SLim        = DB.StressLimit/1e6
     
     # Prepare axis of the figures 
     
     cm = 1/2.54  # centimeters in inches
-    fg = figure(figsize=(9*cm, 9*cm))  
+     
     bx = 0.2
     by = 0.2
     sx = 0.6
     dx = 0.00
     sy = 0.6
     dy = 0.01
-    ax0 = fg.add_axes([bx, by, sx, sy])
-    
-    colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
+    type = ['a','b','c']
+    for i in range(3):
+        fg = figure(figsize=(9*cm, 9*cm)) 
+        ax0 = fg.add_axes([bx, by, sx, sy])
 
-    T_u = np.sort(np.unique(T))
-    T_u = T_u[T_u>0.0]
-    for i in range(len(T_u)):
-        ax0.scatter(vel_tearing[(T == T_u[i])],uplift[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
-    
-    ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.15),ncol=3, columnspacing=0.02,handletextpad=0.005, shadow=True,fontsize=8)
-    
-    ax0.tick_params(axis="y",direction="in")
-    ax0.tick_params(axis="x",direction="in")
-    ax0.tick_params(left=True,right=True,labelbottom=True) 
+        fn = os.path.join(path_save,'%s%s.png'%(figure_name,type[i]))
 
-    
-    plt.setp(ax0.spines.values(), linewidth=1.4)
-   
+        uplift = DB.uplift[:,i]
+        colors = ['royalblue','goldenrod','tomato']
+        label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
 
-    ax0.tick_params(width=1.2)
-   
-    
-    ax0.set_xlabel(r'$v_{\mathrm{tearing}}$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$\dot{H}_{\mathrm{mean}}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
+        T_u = np.sort(np.unique(T))
+        T_u = T_u[T_u>0.0]
+        for i in range(len(T_u)):
+            ax0.scatter(vel_tearing[(T == T_u[i])],uplift[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
 
-    
-    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
-    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.15),ncol=3, columnspacing=0.02,handletextpad=0.005, shadow=True,fontsize=8)
 
-    ax0.set_xscale('log')
-    ax0.set_yscale('log')
+        ax0.tick_params(axis="y",direction="in")
+        ax0.tick_params(axis="x",direction="in")
+        ax0.tick_params(left=True,right=True,labelbottom=True) 
 
+
+        plt.setp(ax0.spines.values(), linewidth=1.4)
     
-    fg.savefig(fn,dpi=600)
+
+        ax0.tick_params(width=1.2)
+    
+
+        ax0.set_xlabel(r'$v_{\mathrm{tearing}}$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
+        ax0.set_ylabel(r'$\dot{H}_{\mathrm{mean}}$ /$\frac{\mathrm{mm}}{\mathrm{yr}}$',fontsize=fnt_g.label_)
+
+
+        ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+        ax0.set_xscale('log')
+        ax0.set_yscale('log')
+
+
+        fg.savefig(fn,dpi=600)
+        plt.close()
+        ax0 = []
     
 def initial_geotherm(path_save):
     z = np.linspace(start=0.0,stop=150.0,num=100)
@@ -880,56 +892,61 @@ def make_figure7(DB,path_save,figure_name):
     vel_tearing = (DB.detachment_velocity)
     AVol        = DB.Avolume 
     T           = DB.Temp 
-    uplift = DB.uplift[:,0]
     SLim        = DB.tau_max
-    
-    # Prepare axis of the figures 
-    
-    cm = 1/2.54  # centimeters in inches
-    fg = figure(figsize=(9*cm, 9*cm))  
-    bx = 0.2
-    by = 0.2
-    sx = 0.6
-    dx = 0.00
-    sy = 0.6
-    dy = 0.01
-    ax0 = fg.add_axes([bx, by, sx, sy])
-    
-    colors = ['royalblue','goldenrod','tomato']
-    label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
+    type = ['det','neck','LT']
 
-    T_u = np.sort(np.unique(T))
-    T_u = T_u[T_u>0.0]
+    for i in range(3):
+
+        fn = os.path.join(path_save,'%s%s.png'%(figure_name,type[i]))
+
+        uplift = DB.uplift[:,0]
+        # Prepare axis of the figures 
+
+        cm = 1/2.54  # centimeters in inches
+        fg = figure(figsize=(9*cm, 9*cm))  
+        bx = 0.2
+        by = 0.2
+        sx = 0.6
+        dx = 0.00
+        sy = 0.6
+        dy = 0.01
+        ax0 = fg.add_axes([bx, by, sx, sy])
+
+        colors = ['royalblue','goldenrod','tomato']
+        label_fig = [r'$v_c = 10$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 5.0$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$',r'$v_c = 2.5$ /$\frac{\mathrm{cm}}{\mathrm{yr}}$']
+
+        T_u = np.sort(np.unique(T))
+        T_u = T_u[T_u>0.0]
 
 
-    for i in range(len(T_u)):
-        ax0.scatter(AVol[(T == T_u[i])],SLim[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+        for i in range(len(T_u)):
+            ax0.scatter(AVol[(T == T_u[i])],SLim[(T == T_u[i])],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+
+        ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.15),ncol=3, columnspacing=0.02,handletextpad=0.005, shadow=True,fontsize=8)
+
+        ax0.tick_params(axis="y",direction="in")
+        ax0.tick_params(axis="x",direction="in")
+        ax0.tick_params(left=True,right=True,labelbottom=True) 
+
+
+        plt.setp(ax0.spines.values(), linewidth=1.4)
     
-    ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.15),ncol=3, columnspacing=0.02,handletextpad=0.005, shadow=True,fontsize=8)
-    
-    ax0.tick_params(axis="y",direction="in")
-    ax0.tick_params(axis="x",direction="in")
-    ax0.tick_params(left=True,right=True,labelbottom=True) 
 
+        ax0.tick_params(width=1.2)
     
-    plt.setp(ax0.spines.values(), linewidth=1.4)
-   
 
-    ax0.tick_params(width=1.2)
-   
-    
-    ax0.set_xlabel(r'$V_{a,\mathrm{dis}}$, $[\mathrm{\mu m^3/Pa}]$',fontsize=fnt_g.label_)
-    ax0.set_ylabel(r'$\tau_{\mathrm{max}}/\tau_{\mathrm{lim}}$, $[]$',fontsize=fnt_g.label_)
+        ax0.set_xlabel(r'$V_{a,\mathrm{dis}}$, $[\mathrm{\mu m^3/Pa}]$',fontsize=fnt_g.label_)
+        ax0.set_ylabel(r'$\tau_{\mathrm{max}}/\tau_{\mathrm{lim}}$, $[]$',fontsize=fnt_g.label_)
 
-    
-    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
-    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
 
-    ax0.set_xscale('linear')
-    ax0.set_yscale('linear')
+        ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
 
-    
-    fg.savefig(fn,dpi=600)
+        ax0.set_xscale('linear')
+        ax0.set_yscale('linear')
+
+
+        fg.savefig(fn,dpi=600)
        
     
 def make_figure8(DB,path_save,figure_name):
@@ -1428,15 +1445,95 @@ def initial_topography(A,path_save):
         
     fn = os.path.join(path_save,'Simplified_initial_topography_km')
     ax = fg.gca()
-    p1 = ax.contour(A.C.xg,A.C.yg,A.FS.H[:,:,10],levels = [-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0],colors = 'k',linewidths=0.5)
-    ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=fnt_g.axis_)
-    ax.plot(A.C.x_trench_p,A.C.y_trench_p,linewidth = 2.0,linestyle = 'dashdot',label = r'Slab position',color = 'rebeccapurple')
+    p1 = ax.contourf(A.C.xg,A.C.yg,A.FS.H[:,:,10],levels = [-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5],cmap = 'cmc.oleron',linewidths=0.5)
+    #ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=fnt_g.axis_)
+    ax.plot(A.C.x_trench_p,A.C.y_trench_p,linewidth = 2.0,linestyle = 'dashdot',label = r'Slab position',color = 'firebrick')
     ax.set_xlabel(r'$x$/[km]',fontsize=fnt_g.label_)
     ax.set_ylabel(r'$y$/[km]',fontsize=fnt_g.label_)
     ax.legend(loc='upper right')
     ax.xaxis.set_tick_params(labelsize=fnt_g.axis_)
     ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    cbar0 = fg.colorbar(p1, ax=ax,orientation='horizontal',extend="both")
+    cbar0.ax.tick_params(labelsize=fnt_g.legend_)
+    cbar0.set_label(label=r'${{H}}$ /$\mathrm{km}$',size=fnt_g.label_) 
         
     fg.savefig(fn,dpi=600,transparent=False)
 
+
+def exp_ernn(A,B,path_figure,figure_name):
+    # figure name
+    fn = os.path.join(path_figure,'%s.png'%(figure_name))
+    
+    # Prepare variables
+    c0  = A.FS.time_series 
+    c1  = B.FS.time_series
+        
+ 
+    
+
+
+    
+
+    i10 = ((A.time>1) & (A.time<np.nanmax(A.Det.det_vec[(A.C.x_sp>100) & (A.C.x_sp<1100)])))
+    i11 = ((B.time>1) & (B.time<np.nanmax(B.Det.det_vec[(B.C.x_sp>100) & (B.C.x_sp<1100)])))
+    t0 = A.time[i10==1]
+    t1 = B.time[i11==1]
+    t0 = t0[:-1]
+
+    t1 = t1[:-1]
+    
+    
+    string_title0 = r'Fast Tearing'
+    string_title1 = r'Slow Tearing'
+    # Prepare figure layout 
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(15*cm, 8*cm))  
+    bx = 0.07
+    by = 0.1
+    sx = 0.45
+    dx = 0.03
+    sy = 0.7
+    dy = []
+    ax0 = fg.add_axes([bx, by, sx, sy])
+    ax1 = fg.add_axes([bx+sx+dx, by, sx, sy])
+    pl0 =  ax0.plot(t0/np.nanmax(A.Det.det_vec),c0[:,0],linewidth=1.3, color = 'firebrick',linestyle='dashed')
+    pl0b = ax0.plot(t0/np.nanmax(A.Det.det_vec),c0[:,1],linewidth=1.3, color = 'firebrick')
+    
+       
+ 
+    pl1   = ax1.plot(t1/np.nanmax(B.Det.det_vec),c1[:,0],linewidth=1.3, color = 'forestgreen',linestyle='dashed')
+    pl1b  = ax1.plot(t1/np.nanmax(B.Det.det_vec),c1[:,1],linewidth=1.3, color = 'forestgreen')
+
+    #ax0.set_ytick(0.1,0.5,0.9)
+    ax0.tick_params(axis="y",direction="in")
+    ax0.tick_params(axis="x",direction="in")
+    ax1.tick_params(left=True,right=True,labelleft=False) 
+    ax1.tick_params(axis="y",direction="in")
+    ax1.tick_params(axis="x",direction="in")
+    
+    plt.setp(ax0.spines.values(), linewidth=1.4)
+    plt.setp(ax1.spines.values(), linewidth=1.4)
+
+    ax0.tick_params(width=1.2)
+    ax1.tick_params(width=1.2)
+    
+    
+    ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax1.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+    ax0.set_title(string_title0,fontsize=fnt_g.title_)    #ax0.yaxis.set_label
+    ax1.set_title(string_title1,fontsize=fnt_g.title_)    #ax0.yaxis.set_label
+
+
+    props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+    ax0.text(0.87, 0.95, '$[a]$', transform=ax0.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+    ax1.text(0.87, 0.94, '$[b]$', transform=ax1.transAxes, fontsize=fnt_g.label_,
+        verticalalignment='top', bbox=props,color='white')
+
+
+
+
+    fg.savefig(fn,dpi=600)
 
