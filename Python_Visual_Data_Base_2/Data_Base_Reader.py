@@ -1,5 +1,3 @@
-#%%
-# Import all the variable
 
 import sys,os,fnmatch
 import numpy as np
@@ -30,10 +28,8 @@ from figure_functions import make_figure5
 from figure_functions import _make_gif
 from figure_functions import make_figure_3N
 
-
-
-
 path = r'../../Data_Bases'
+
 name_PR = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
 name_PR200 = 'Data_base_Slab_detachment_3D_PR_200.hdf5'
 name_PR600 ='Data_base_Slab_detachment_3D_PR_600.hdf5'
@@ -60,11 +56,12 @@ if not os.path.isdir(path_save):
 # [A.2] Create the database
 DB = Data_Base(file_DB)
 
-
 # Loop over the avaiable test and collect data, save a smaller database, and ascii file {TIP: if you want 
 # to create a subclasses you do not have to put a decorator for the classes}
 DB._post_process_data(path,path_save,False,False,True)
-path_figure = os.path.join(path_save,'figure_manuscript')
+
+path_figure = os.path.join(path_save,'figure_manuscript_def')
+
 path_gif = os.path.join(path_figure,'gif')
 
 if not os.path.isdir(path_figure):
@@ -79,10 +76,9 @@ TSD2 = Test(file_DB,['PR_r','TSD2'])
 
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 
-initial_topography(TSD2,path_save)
+initial_topography(TSD2,path_figure)
 
-initial_geotherm(path_save)
-
+initial_geotherm(path_figure)
 
 # Figure 3: 
 """
@@ -95,10 +91,9 @@ Observation: [Fast tearing ] Fast tearing is characterized by the development of
 within the slab at ca 200 km 
 
 """
+make_figure_3N(TSD2,path_figure,'figure3',[10.15,10.20,10.24])
 
-make_figure_3N(TSD2,path_figure,'figure3a',[10.15,10.20,10.24])
-
-make_figure_3N(TSD2_V15,path_figure,'figure3b',[15.41,25.09,29.69])
+make_figure_3N(TSD2_V15,path_figure,'figure5',[15.41,25.09,29.69])
 
 """
 Figure 4: 
@@ -106,30 +101,20 @@ Figure depicting the total uplift within the tearing processes in the upper row
 Figure depicting the total uplift within 1->end of tearing 
 
 """
-make_figure_4(TSD2,TSD2_V15,path_figure,'figure4a',1)
+make_figure_4(TSD2,TSD2_V15,path_figure,'figure6',1)
 
-make_figure_4(TSD2,TSD2_V15,path_figure,'figure4b',2)
+make_figure_4(TSD2,TSD2_V15,path_figure,'figure6a',2)
 
-make_figure_4(TSD2,TSD2_V15,path_figure,'figure4c',3)
+make_figure_4(TSD2,TSD2_V15,path_figure,'figure6b',3)
 
 """
 Figure 5: 
 
 """
-make_figure5(DB,path_figure,'figure5')
+make_figure5(DB,path_figure,'figure7')
 
 """
 Figure 6: 
 
 """
-
 make_figure6(DB,path_figure,'figure6')
-
-
-
-
-
-
-
-
-# %%

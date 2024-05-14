@@ -1443,7 +1443,7 @@ def initial_topography(A,path_save):
         
     fg = figure()
         
-    fn = os.path.join(path_save,'Simplified_initial_topography_km')
+    fn = os.path.join(path_save,'Figure_S2')
     ax = fg.gca()
     p1 = ax.contourf(A.C.xg,A.C.yg,A.FS.H[:,:,10],levels = [-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5],cmap = 'cmc.oleron',linewidths=0.5)
     #ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=fnt_g.axis_)

@@ -682,6 +682,8 @@ class Det():
         # Derivative values 
         self.D_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         self.tau_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
+        self.Psi_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
+        self.T_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         # Filtered {these data are horrible to see without a moving average filter}
         self.deltaD = np.zeros([len(T.time)],dtype = float)
         self.meanD = np.zeros([len(T.time)],dtype = float)
@@ -716,6 +718,8 @@ class Det():
             for j in range(len(time_d)):
                 self.D_x_t_det[i,j] = np.nanmean(self.D[i,i_along_x,j])
                 self.tau_x_t_det[i,j] = np.nanmean(self.tau_max[i,i_along_x,j])
+                self.T_det[i.j] = np.nanmean(self.T[i,i_along_x,j])
+                self.Psi_det[i,j] = np.nanmean(self.Psi[i,i_along_x,j])
 
         max_tau = 0.0 
         for i in range(itime):
