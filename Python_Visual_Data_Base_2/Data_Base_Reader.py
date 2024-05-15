@@ -74,6 +74,7 @@ if not os.path.isdir(path_gif):
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
 
+
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 
 initial_topography(TSD2,path_figure)
@@ -92,6 +93,8 @@ within the slab at ca 200 km
 
 """
 make_figure_3N(TSD2,path_figure,'figure3',[10.15,10.20,10.24])
+make_figure_Sup(TSD2,path_figure,'Figure_SUP',[10.15,10.20,10.24])
+
 
 make_figure_3N(TSD2_V15,path_figure,'figure5',[15.41,25.09,29.69])
 

@@ -1537,3 +1537,90 @@ def exp_ernn(A,B,path_figure,figure_name):
 
     fg.savefig(fn,dpi=600)
 
+def make_figure_Sup(A,path_figure,figure_name,time):
+    # figure name
+    def setup_axix(ax,ylabel):
+        plt.setp(ax.spines.values(), linewidth=1.4)
+        
+        ax.tick_params(axis="y",direction="in")
+        ax.tick_params(axis="x",direction="in")
+        ax.tick_params(left=True,right=False,labelbottom=False)
+        ax.spines['bottom'].set_color('k')
+        ax.spines['top'].set_color('w') 
+        ax.spines['right'].set_color('k')
+        ax.spines['left'].set_color('k')
+
+        ax.yaxis.set_label_coords(-0.1,0.5)
+        ax.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+        
+        ax.set_xticks([200,600,1000])
+        ax.tick_params(left=True,right=False,labelbottom=True)
+        ax.spines[['top','right']].set_visible(False)
+        ax.set_ylabel(ylabel,fontsize=fnt_g.label_)
+        return ax 
+    
+    
+    
+    cm = 1/2.54  # centimeters in inches
+
+    fn = os.path.join(path_figure,'%s.png'%(figure_name))
+    
+    fg = figure(figsize=(14*cm, 10*cm))  
+    # Prepare all the axis 
+    
+    bx = 0.2
+    by = 0.12
+    dx = 0.0 
+    dy = 0.05 
+    sx = 0.7 
+    sy = 0.2 
+    
+    ax0 = fg.add_axes([bx, by+dy*2+2*sy, sx, sy]) # t1 
+    ax1 = fg.add_axes([bx, by+dy+sy, sx, sy])     # t2 
+    ax2 = fg.add_axes([bx, by, sx, sy])           # t3 
+    
+    # Prepare data 
+    
+    t0  = time[0]
+
+    
+    ind0 = np.where((A.time>1.0) & (A.time<=t0))
+    
+    
+
+    ax0=setup_axix(ax0,r'$\Psi$ / $\mathrm{W}/\mathrm{m}^3$')
+    ax1=setup_axix(ax1,r'$T$ / $^{\circ}$C')
+    ax2=setup_axix(ax2,r'$\tau^{\dagger}_{\mathrm{max}}$ / n.d.')
+    it = 0 
+    for i in ind0[0]:
+        alpha = 0.1+(0.6/(len(ind0[0])-1))*it
+        lw = 0.1+(0.6/(len(ind0[0])-1))*it
+        print(alpha)
+        ax0.plot(A.C.x_sp,(A.Det.Psi_det[:,i]),color='k',linewidth=lw,alpha=alpha) 
+        ax1.plot(A.C.x_sp,A.Det.T_det[:,i],color='firebrick',linewidth=lw,alpha=alpha) 
+        ax2.plot(A.C.x_sp,A.Det.tau_x_t_det[:,i]/(A.IC.tau_co/1e6),color='forestgreen',linewidth=lw,alpha=alpha) 
+        if i == np.max(ind0):
+            ax0.plot(A.C.x_sp,np.log10(A.Det.Psi_det[:,i]),color='k',linewidth=1.2,alpha=1.0) 
+            ax1.plot(A.C.x_sp,A.Det.T_det[:,i],color='firebrick',linewidth=1.2,alpha=1.0) 
+            ax2.plot(A.C.x_sp,A.Det.tau_x_t_det[:,i]/(A.IC.tau_co/1e6),color='forestgreen',linewidth=1.2,alpha=1.0) 
+    
+        
+        it = it+1 
+        
+
+    ax0.set_yscale('log')
+    ax1.set_ylim([850,960])
+
+    props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+    ax0.text(0.025, 1.15, '[a]', transform=ax0.transAxes, fontsize=fnt_g.legend_,
+        verticalalignment='top', bbox=props,color='white')
+    ax1.text(0.025, 1.15, '[b]', transform=ax1.transAxes, fontsize=fnt_g.legend_,
+        verticalalignment='top', bbox=props,color='white')
+    ax2.text(0.025, 1.15, '[c]', transform=ax2.transAxes, fontsize=fnt_g.legend_,
+        verticalalignment='top', bbox=props,color='white')
+    
+   
+
+    #ax2.yaxis.set_label_coords(1.02,0.5)
+    fg.savefig(fn,dpi=600)

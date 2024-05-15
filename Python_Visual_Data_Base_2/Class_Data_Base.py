@@ -718,8 +718,8 @@ class Det():
             for j in range(len(time_d)):
                 self.D_x_t_det[i,j] = np.nanmean(self.D[i,i_along_x,j])
                 self.tau_x_t_det[i,j] = np.nanmean(self.tau_max[i,i_along_x,j])
-                self.T_det[i.j] = np.nanmean(self.T[i,i_along_x,j])
-                self.Psi_det[i,j] = np.nanmean(self.Psi[i,i_along_x,j])
+                self.T_det[i,j] = np.nanmax(self.T[i,i_along_x,j])
+                self.Psi_det[i,j] = np.nanmax(self.Psi[i,i_along_x,j])
 
         max_tau = 0.0 
         for i in range(itime):
