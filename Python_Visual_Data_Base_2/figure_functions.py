@@ -1539,6 +1539,7 @@ def exp_ernn(A,B,path_figure,figure_name):
 
 def make_figure_Sup(A,path_figure,figure_name,time):
     # figure name
+    from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
     def setup_axix(ax,ylabel):
         plt.setp(ax.spines.values(), linewidth=1.4)
         
@@ -1610,7 +1611,14 @@ def make_figure_Sup(A,path_figure,figure_name,time):
         
 
     ax0.set_yscale('log')
-    ax1.set_ylim([850,960])
+    ax0.set_ylim([10**(-9),10**(-3)])
+    ax0.yaxis.set_minor_locator(AutoMinorLocator())
+    ax0.tick_params(which='minor', length=4, color='k')
+    ax1.set_ylim([850,1000])
+    ax0.set_xticklabels(['','',''])
+    ax1.set_xticklabels(['','',''])
+    ax2.set_xlabel(r'$x_{\mathrm{trench}}$ / km',fontsize=fnt_g.label_)
+
 
     props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
     ax0.text(0.025, 1.15, '[a]', transform=ax0.transAxes, fontsize=fnt_g.legend_,

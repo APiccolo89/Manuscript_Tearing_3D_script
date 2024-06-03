@@ -362,13 +362,16 @@ class Test(Data_Base):
         self.Ptr = Ptr(Test_name,self)
         
         
-    def print_topography_timeseries(self,path_save,coord_x):
+    def print_topography_timeseries(self,path_save):
         """
         Input:
         self. 
         path_save = destination where to save the profiles
-        coord_x = what is the collect the profile
+        NOT NEEDED coord_x = what is the collect the profile
         Output: 
+        Update: Paul wants a the dH along the trench profile, so I need to change
+        a) -> Call interpolation 1D 
+        b) -> Construct vector in x,y,time,dH,detachment 
         -> txt file: 1D timeseries of the filtered uplift of the given profile along y
         -> txt file: 0D timeseries of the maximum of the filtered uplift for a given profile
         -> plot that illustrate where is the slab and the profile
@@ -380,16 +383,16 @@ class Test(Data_Base):
             return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
 
 
-        save_folder = os.path.join(path_save,"Profiles")
+        save_folder = os.path.join(path_save,"Trench")
         if not os.path.isdir(save_folder):
             os.mkdir(save_folder)
         
-        save_folder = os.path.join(path_save,"Profiles",self.Test_Name)
+        save_folder = os.path.join(path_save,"Trench",self.Test_Name)
         if not os.path.isdir(save_folder):
             os.mkdir(save_folder)
 
         
-        file_name = os.path.join(save_folder,'Profile_%d'%int(coord_x))
+        file_name = os.path.join(save_folder,'Trench')
         #[Prepare the time vector]
         
         time_v = self.time
@@ -401,19 +404,23 @@ class Test(Data_Base):
         det_[(time_v>=start_detachment) & (time_v<=end_detachment)] = 1
         #[Select the coordinate where to envaluate]
         # Select the indexes that are higher than this value 
-        ind_x = np.where(self.C.xg >= coord_x)
+#        ind_x = np.where(self.C.xg >= coord_x)
         # Select the index that best represent the coord_x
-        ind_x = ind_x[0][0]
+#        ind_x = ind_x[0][0]
         # Select the time series 
-        time_series_1D = self.FS.dH_fil[:,ind_x,:]
-        T,Y = np.meshgrid(time_v,self.C.yg)
-        S = np.array([T.ravel(),Y.ravel(),time_series_1D.ravel()])
+        time_series_1D = np.zeros([len(self.C.x_trench_p),len(time_v)],dtype = float)
+        for i in range(len(time_v)):
+            time_series_1D[:,i] = _interpolate_2D(self.FS.dH_fil[:,:,i],self.C.xg,self.C.yg,self.C.x_trench_p,self.C.y_trench_p)
+
+
+        T,X = np.meshgrid(time_v,self.C.x_trench_p)
+        S = np.array([T.ravel(),X.ravel(),X.ravel()*0.0,time_series_1D.ravel()])
         if(os.path.isfile(file_name)):
             os.remove(file_name)
         f = open(file_name, 'a+')
         f.write('########################################\n')
-        f.write('time [Myr], y [km], dH [mm/yr]\n')
-        f.write('The profile is take perpendicular to the trench at x = %3f [km]'%coord_x)
+        f.write('time [Myr],x[km], y [km], dH [mm/yr]\n')
+        f.write('The profile is along the trench line, for the sake of simiplicity y is equal to 0.0')
         f.write('dH array that has been filtered with a median \n')
         f.write('filter (scipy) with a kernel size of 7.\n')
         f.write('########################################\n')
@@ -424,7 +431,7 @@ class Test(Data_Base):
         # Print maximum uplift for the profile 
         time_0D_series = np.zeros(len(time_v),dtype=float)
         for i in range(len(time_v)):
-            time_0D_series[i] = np.max(time_series_1D[:,i])
+            time_0D_series[i] = np.mean(time_series_1D[:,i])
         
         file_name = file_name+'_0D_time_series'
         
@@ -434,8 +441,8 @@ class Test(Data_Base):
         S = []
         S = np.array([time_v,time_0D_series,det_])
         f.write('########################################\n')
-        f.write('time [Myr], max(dH) [mm/yr], Det (1=YES,0 = NO)\n')
-        f.write('The profile is take perpendicular to the trench at x = %3f [km], and the value represents the maximum uplift'%coord_x)
+        f.write('time [Myr], mean(dH) [mm/yr], Det (1=YES,0 = NO)\n')
+        f.write('The mean has been taken along the trench of theslab')
         f.write('dH array that has been filtered with a median \n')
         f.write('filter (scipy) with a kernel size of 7.\n')
         f.write('########################################\n')
@@ -445,11 +452,10 @@ class Test(Data_Base):
         
         fg = figure()
         
-        fn = os.path.join(save_folder,'Simplified_initial_topographyx_%d_km'%int(coord_x))
+        fn = os.path.join(save_folder,'Simplified_initial_topography')
         ax = fg.gca()
         p1 = ax.contour(self.C.xg,self.C.yg,self.FS.H[:,:,10],levels = [-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0],colors = 'k',linewidths=0.5)
         ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=6)
-        ax.axvline(x=coord_x,linewidth = 1.8,color='firebrick',label = r'Profile')
         ax.plot(self.C.x_trench_p,self.C.y_trench_p,linewidth = 1.5,linestyle = 'dashdot',label = r'Slab position',color = 'rebeccapurple')
         ax.set_xlabel(r'$x$/[km]')
         ax.set_ylabel(r'$y$/[km]')
