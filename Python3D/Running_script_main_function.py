@@ -35,8 +35,6 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     
     dic_val= {
     "OP"       : "_Oceanic_Lit_ [ ]",
-    "CC1"       : "_Continental_Crust_ [ ]",
-    "CC2"      : "_Continental_Crust_2 [ ]",
     "Sed"      : "_Sediments_ [ ]",
     "Lit"      : "_Lithosphere_all_ [ ]",
     "T"        : "temperature [C]",
@@ -92,10 +90,10 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
     Filename_0ptr = os.path.join(Folder,Test_Name,fn,ptrac)
     folder_ = os.path.join(Folder,Test_Name)
     IG       = Initial_Geometry(os.path.join(folder_,'Test_Data_Base.mat'))
-    C = Coordinate_System(Filename_0,ptsave,(-700.0,700.0),(-500,500),(-600.0,50.0))
+    C = Coordinate_System(Filename_0,ptsave,(-700.0,700.0),(-1500,500),(-600.0,50.0))
     Phase_DB = Phase_Data_Base(folder_)
     Initial_Condition = Initial_condition(Phase_DB.Phase_6_,Phase_DB.Phase_5_,IG)
-    Initial_Condition.tc = Initial_Condition.tc/3.5
+    #Initial_Condition.tc = Initial_Condition.tc/3.5
     ###############################################
     FSurf = Free_S_Slab_break_off(C,len(time)) # Create the instance of free surface class 
     DYN   = VAL(C,dic_val)  # Create the instance of the .pvd file 
@@ -131,7 +129,7 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         
         ###### Retrieve the field that is needed ##################################
         t1 = perf_counter()
-        DYN._update_Val(Filename_dyn,C,Initial_Condition)
+        DYN._update_Val(Filename_dyn,C)
         t2 = perf_counter()
         Values_time = t2-t1
         print("Dynamic value took","{:02}".format(Values_time))
@@ -167,9 +165,8 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         ###########################################################################
         t1 = perf_counter()
         Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
-        Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
+        #Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
         #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
-        #FSurf._plot_1D_plots_Free_surface(ipic,ptsave,Slab,t_cur,Initial_Condition.D0/1e3)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################

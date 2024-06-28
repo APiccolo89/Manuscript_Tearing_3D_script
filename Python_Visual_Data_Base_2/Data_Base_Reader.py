@@ -74,19 +74,37 @@ if not os.path.isdir(path_gif):
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
 TSD2.print_topography_timeseries(path_figure)
+figure_experimental_supplementary(TSD2,path_figure,'Experiment_V8')
+
+
 TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
 TSD2_V10.print_topography_timeseries(path_figure)
+figure_experimental_supplementary(TSD2_V10,path_figure,'Experiment_V10')
+
+
 TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
 TSD2_V11.print_topography_timeseries(path_figure)
+figure_experimental_supplementary(TSD2_V11,path_figure,'Experiment_V11')
+
+
 TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
 TSD2_V12.print_topography_timeseries(path_figure)
+figure_experimental_supplementary(TSD2_V12,path_figure,'Experiment_V12')
+
+
+
 TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
 TSD2_V13.print_topography_timeseries(path_figure)
+figure_experimental_supplementary(TSD2_V13,path_figure,'Experiment_V13')
+
+
+
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 TSD2_V15.print_topography_timeseries(path_figure)
+figure_experimental_supplementary(TSD2_V15,path_figure,'Experiment_V15')
+
 
 initial_topography(TSD2,path_figure)
-
 initial_geotherm(path_figure)
 
 # Figure 3: 
@@ -130,4 +148,4 @@ make_figure5(DB,path_figure,'figure7')
 Figure 6: 
 
 """
-make_figure6(DB,path_figure,'figure6')
+make_figure6(DB,path_figure,'figure8')

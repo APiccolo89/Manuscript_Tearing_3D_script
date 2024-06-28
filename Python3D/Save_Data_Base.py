@@ -44,12 +44,13 @@ def _write_h5_database(ptsave,Group,TestName,S:SLAB,IC:Initial_condition,IG:Init
     # function to save the free surface
     node_FS = node_test+"/"+"FS"
     f= save_test_data(f,node_FS,Fs)
-    buf_name =node_test+"/METADATA"
-    if buf_name in f.keys():
-        del f[buf_name]      # load the data
-        f.create_dataset(buf_name,data = Ph_DB.initial_input)
-    else:
-        f.create_dataset(buf_name,data = Ph_DB.initial_input)
+    #buf_name =node_test+"/METADATA"
+    #if buf_name in f.keys():
+     #   del f[buf_name]      # load the data
+      #  initial_input = np.string_(Ph_DB.initial_input)
+       # f.create_dataset(buf_name,data = initial_input)
+   # else:
+    #    f.create_dataset(buf_name,data = Ph_DB.initial_input)
     buf_name = node_test+"/time"
     if buf_name in f.keys():
         del f[buf_name]      # load the data

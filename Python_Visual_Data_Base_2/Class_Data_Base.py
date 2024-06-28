@@ -79,6 +79,9 @@ class Data_Base(object):
         
         self.tau_max   = np.zeros([self.n_test],dtype = float)
         
+        self.Uplift_max_discrete   = np.zeros([self.n_test],dtype = float)
+
+        
         self.latex_table = []
    
    
@@ -265,6 +268,8 @@ class Data_Base(object):
                     self.uplift[itest,2]  = test.FS.dH_uplift_mean[2,1]
 
                     self.tau_max[itest] = test.Det.maxtau/(self.StressLimit[itest]/1e6)
+                    
+                    self.Uplift_max_discrete[itest] = test.FS.time_0D_series_d_max
 
                     print("Average uplift during necking stage is %.2f, during tearing stage is %.2f and the long term is %.2f"%(self.uplift[itest,0],self.uplift[itest,1],self.uplift[itest,2]))
 
@@ -782,13 +787,18 @@ class FS():
         self.Uplift_LT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
         self.Uplift_det = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
 
-        self.total_uplift_LT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
-        self.total_uplift_NT = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
-        self.total_uplift_Te = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
-        self.dH_uplift_max = np.zeros([3,2],dtype=float)
-        self.dH_uplift_min = np.zeros([3,2],dtype=float)
-        self.dH_uplift_mean = np.zeros([3,2],dtype=float)
-        self.time_series = []
+        self.total_uplift_LT       = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.total_uplift_NT       = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.total_uplift_Te       = np.zeros(np.shape(self.dH[:,:,0]),dtype=float)
+        self.dH_uplift_max         = np.zeros([3,2],dtype=float)
+        self.dH_uplift_min         = np.zeros([3,2],dtype=float)
+        self.dH_uplift_mean        = np.zeros([3,2],dtype=float)
+        
+        self.time_series           = []
+        self.time_1D_series_c      = [] # Uplift rate along the slab trench
+        self.time_0D_series_c      = [] # Average uplift rate along the slab trench per each timestep
+        self.time_0D_series_d_max  = [] # Maximum value of uplift rate along the slab trench 
+        
 
         self.dH_fil = self.filter_array('dH')
         self.vz_fil = self.filter_array('vz_M')
@@ -797,6 +807,46 @@ class FS():
     
         self._compute_dH_tearing(T)
         
+        self.compute_time_series(T)
+    
+    def compute_time_series(self,T):
+        
+        self.time_1D_series_c = np.zeros([len(T.C.x_trench_p),len(T.time)],dtype = float)
+        for i in range(len(T.time)):
+            self.time_1D_series_c[:,i] = _interpolate_2D(self.dH_fil[:,:,i],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
+
+        self.time_0D_series_c = np.zeros([len(T.time)],dtype = float)
+
+        for i in range(len(T.time)):
+            self.time_0D_series_c[i] = np.mean(self.time_1D_series_c[:,i])
+            
+        # A bit lazily copied from the figure that I did. 
+        time = T.time
+        time_1D = self.time_1D_series_c
+        time_0D = self.time_0D_series_c 
+    
+        time_1D_d = np.zeros(np.shape(time_1D),dtype = float)
+        time_0D_d = np.zeros(np.shape(time_0D),dtype = float)
+    
+        time_max = np.floor(np.max(time))
+        time_pv = np.arange(1,time_max+2,2)
+    
+        # Compute the discrete field of uplift
+    
+        for i in range(len(time_pv)-1):
+            t0 = time_pv[i]
+            t1 = time_pv[i+1]
+            t_buf = (time>=t0) & (time<t1)
+        
+            for ix in range(len(T.C.x_trench_p)):
+                time_1D_d[ix,t_buf==1] = np.mean(time_1D[ix,t_buf==1])
+                time_0D_d[t_buf==1]    = np.mean(time_0D[t_buf==1])
+            
+            self.time_0D_series_d_max = np.max(time_0D_d)
+    
+
+        return self 
+
         
         
     

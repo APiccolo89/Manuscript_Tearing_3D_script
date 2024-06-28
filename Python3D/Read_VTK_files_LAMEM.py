@@ -24,10 +24,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from numpy.ma import masked_array
 import matplotlib.cbook as cbook
 from Parser_File import * 
-from numba import jit
-from numba import jitclass, types, typed
 
-
+from numba.experimental import  jitclass
+from numba import jit,types, typed, prange
 ######################vtk utilities###########################################
 ### SURF
 
@@ -528,7 +527,7 @@ class VAL():
                             ("min","max"),
                             ("min","max")]
        
-    def _update_Val(self,Filename_dyn,C,IC):
+    def _update_Val(self,Filename_dyn,C):
         
         VTK_SET_d(Filename_dyn)
         VTK_UPDATE_d()
@@ -536,6 +535,7 @@ class VAL():
         
         for k in diction:
             key = str(k)
+            print(k)
             f   = str(self.dict[k])
             buf=reader.GetOutput().GetPointData().GetArray(f)
             buf=vtk_to_numpy(buf)

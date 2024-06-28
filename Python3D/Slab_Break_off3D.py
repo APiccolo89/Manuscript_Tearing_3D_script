@@ -45,7 +45,7 @@ except:
 Folder = r'/scratch/bt307806/3D_Numerical_suites/%s/' %(PR)  
 print(PR, L)
 # Folder where the output must be saved
-ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_3'
+ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_def'
 print(Folder)
 
 #Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 

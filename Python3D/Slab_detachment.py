@@ -13,8 +13,8 @@ import argparse
 import matplotlib
 import numpy as np 
 import h5py 
-from numba import jit
-from numba import jitclass, types, typed, prange
+from numba.experimental import  jitclass
+from numba import jit, types, typed, prange
 from Read_VTK_files_LAMEM import * #Read_VTK_files_LAMEM
 import scipy.ndimage as ndi
 from Read_VTK_files_LAMEM import  _file_list
@@ -105,6 +105,7 @@ class SLAB():
         for i in range(len(self.ind_boundary[0])):
             # Select the the actual node within x array Ph[k,j,ix],where ix node that belongs to interval xa-xb
             ix = self.ind_boundary[0][i]
+
             # Loop over the variable that you want to see in 2D plot of the slab
             for iv in self.CV:
                 switch = 0.0
@@ -351,7 +352,6 @@ class SLAB():
         it = 0 
         cm = 1/2.54  # centimeters in inches
         for values in var: 
-            print(values)
        
             fg = figure(figsize=(15*cm,20*cm))
     
@@ -650,17 +650,18 @@ class Free_S_Slab_break_off(FS):
         self.mean_stress[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'tau')
         self.mean_eps[:,:,ipic]    = self.update_Mean_CC(V,C,ipic,'eps')
         self.thickness[:,:,ipic] = self.update_Mean_CC(V,C,ipic,'thickness')
-        self.LGV = ['dH','vz_M','mean_stress','mean_eps','Amplitude','thickness','F_z']
-        self.Label  = [r'$\dot{H}, [\frac{mm}{yr}]$',r'$v_z[\frac{mm}{yr}]$',r'$\bar{\tau}_{II} [MPa]$',r'$\bar{\dot{varepsilon}}_{II} [\frac{1}{s}]$','Topography, $[km]$','Lithosphere $[km]$',r'$F_z, [\frac{N}{m}]$']
+        self.LGV = ['dH','vz_M','mean_stress','mean_eps','Amplitude','thickness','F_z','vy_M']
+        self.Label  = [r'$\dot{H}, [\frac{mm}{yr}]$',r'$v_z[\frac{mm}{yr}]$',r'$\bar{\tau}_{II} [MPa]$',r'$\bar{\dot{varepsilon}}_{II} [\frac{1}{s}]$','Topography, $[km]$','Lithosphere $[km]$',r'$F_z, [\frac{N}{m}]$','$v_y$ [$cm/yrs$]']
         self.Colormap = ["cmc.cork","cmc.cork","cmc.bilbao","cmc.devon","cmc.oleron","cmc.bilbao","cmc.hawaii","cmc.hawaii"]
         self.Val         = [(-10,10),
                             ("min","max"),
                             ("min","max"),
-                            (1e-16,"max"),
+                            (1e-16,1e-13),
                             ("min","max"),
                             ("min","max"),
                             ("min","max"),
-                            (10**11,10**13)]
+                            (-10,10),
+			    (-10,10)]
         
         return self
         
@@ -731,18 +732,18 @@ class Free_S_Slab_break_off(FS):
         fna='Fig'+"{:03d}".format(ipic)+'.png'       
         cf =ax0.pcolormesh(x, y, val, shading='gouraud')
         cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
-        cf0 = ax0.scatter(S.x_vec,S.y_vec,5,S.det_vec,cmap = "inferno",marker='^')
+        #cf0 = ax0.scatter(S.x_vec,S.y_vec,5,S.det_vec,cmap = "inferno",marker='^')
         #cf1 = ax0.plot(S.x_vec,S.y_vec,c='r',linewidth=0.8,linestyle='-.')
-        try: 
-            lim1_m = np.nanmin(S.det_vec)
-            lim2_m = np.nanmax(S.det_vec)
-        except: 
-            lim1_m = 0
-            lim2_m = 1
-        cbar2 = fg.colorbar(cf0, ax=ax0,orientation='vertical',extend="both",label = r'Age of detachment,$[Myr]$')
-        cf0.set_clim([lim1_m,lim2_m])
-        cbar2.vmin = lim1_m 
-        cbar2.vmax = lim2_m
+       # try: 
+         #   lim1_m = np.nanmin(S.det_vec)
+          #  lim2_m = np.nanmax(S.det_vec)
+        #except: 
+           # lim1_m = 0
+           # lim2_m = 1
+        #cbar2 = fg.colorbar(cf0, ax=ax0,orientation='vertical',extend="both",label = r'Age of detachment,$[Myr]$')
+       # cf0.set_clim([lim1_m,lim2_m])
+        #cbar2.vmin = lim1_m 
+        #cbar2.vmax = lim2_m
         for name in values:
         
             cmap2 = eval(cmaps[ic])
@@ -752,8 +753,9 @@ class Free_S_Slab_break_off(FS):
             else:
                 val = self.mean_stress[:,:,ipic]*1e6*self.thickness[:,:,ipic]*1e3
             log=0 
-            if (name == "eps" )|(name =="gamma"):#|(name=='F_z'):
+            if (name == "mean_eps" )|(name =="gamma"):#|(name=='F_z'):
                 log = 1
+                print(name)
                 
             tick = r"t = %s [Myrs]" %(time_sim)
             
@@ -776,6 +778,7 @@ class Free_S_Slab_break_off(FS):
             val[abs(val) == np.inf] = np.nan
             if log ==1:
                 val = np.log10(val)
+                print(log)
             
             if(lm[0]=="min"):
                 lim_m = np.nanmin(val)
@@ -785,19 +788,20 @@ class Free_S_Slab_break_off(FS):
                 
                 if lm[0] != "min":
                     lim_m = lm[0]
-            if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
-                lim_m = 0.01
-                lim_M = +0.1
+            #if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
+             #   lim_m = 0.01
+              #  lim_M = +0.1
                 
+            if log ==1:
+                lim_m = np.log10(lim_m)
+                lim_M = np.log10(lim_M)
+                print(log)
 
             fna='Fig'+"{:03d}".format(ipic)+'.png'
             fn = os.path.join(ptsave_c,fna)
             cf.set_array(val.ravel())
             cf.set_cmap(cmaps[ic])
-            if log == 1:
-                cf.norm = colors.LogNorm(vmin=lim_m, vmax=lim_M)
-            else: 
-                cf.norm=colors.Normalize(vmin=lim_m, vmax=lim_M)
+            cf.norm=colors.Normalize(vmin=lim_m, vmax=lim_M)
                 
             cf.set_clim([lim_m,lim_M])
             cbar.vmin = lim_m 
@@ -834,7 +838,7 @@ class Free_S_Slab_break_off(FS):
             os.mkdir(ptsave_b)
         
         filename = os.path.join(ptsave_b,file_name)
-        Y,X = np.meshgrid(C.y,C.x)
+        Y,X = np.meshgrid(C.x,C.y)
         buf_x = X.ravel()
         buf_y = Y.ravel()
         vx_M    = self.vx_M[:,:,ipic]
