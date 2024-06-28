@@ -145,7 +145,6 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         t1= perf_counter()
         FSurf._Update_(Filename_s,C,ipic)
         FSurf._update_extra_variables(DYN,C,dt,ipic)
-        FSurf.ASCI_FILE_ALT(ipic,t_cur,Test_Name,ptsave,C)
         t2 = perf_counter()
         print("Free surface ","{:02}".format(t2-t1))
         #======Select the chosen ===========# 
@@ -165,8 +164,6 @@ def _run_script_visualization(ptsave,Folder,Test_Name,l_path,Data_Base_path,Grou
         ###########################################################################
         t1 = perf_counter()
         Slab. _update_C(C,FSurf,Ph,IG,ipic,t_cur,dt)
-        #Slab._plot_average_C(t_cur,C.xp,C.zp,ptsave,ipic,IG.Slab,Initial_Condition,time)  
-        #FSurf._plot_maps_FS(t_cur,C.y,C.x,ptsave,ipic,Slab)
         t2 = perf_counter()
         print("Slab routine ","{:02}".format(t2-t1))
         ###########################################################################

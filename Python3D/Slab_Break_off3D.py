@@ -38,14 +38,14 @@ try:
     PR = args.PR
     L = args.Test
 except:
-    PR = 'PR_200'
-    L = 'TSD2_PR'
+    PR = 'PR'
+    L = 'TSD2'
 
 # Folder where the tests are contained
-Folder = r'/scratch/bt307806/3D_Numerical_suites/%s/' %(PR)  
+Folder = r'../../Test_Paper/TSD2/'# %(PR)  
 print(PR, L)
 # Folder where the output must be saved
-ptsave1 = r'/scratch/bt307806/3D_Numerical_suites/output_def'
+ptsave1 = r'/home/apiccolo/stuff'
 print(Folder)
 
 #Folder = r'/bgi/bt307806/Marcel_project/Lukas_Project/Average_Temperature_Tests' 

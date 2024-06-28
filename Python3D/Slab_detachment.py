@@ -311,134 +311,6 @@ class SLAB():
             self.F_B[ix1,:,ipic] = dRho*9.81*self.D[ix1,:,ipic]*(z-z_b)*1e6                
             return self 
     
-    def  _plot_average_C(self,t_cur,x,z,ptsave,ipic,Slab_Geo,IC,time): 
-
-        x = x[self.ind_boundary]
-        # Compute the arclength as a function of x
-        boundary_geometry = Slab_Geo.Boundary_B[2]
-        x_a = Slab_Geo.Boundary_B[0][0]
-        y_a = Slab_Geo.Boundary_B[0][1]
-        c   = boundary_geometry[0]
-        cy  = boundary_geometry[1]
-        R   = boundary_geometry[2]
-        c_  = (x_a-c)**2-R**2+y_a**2
-        b_ = 2.*y_a
-        delta = np.sqrt(b_**2-4*c_)
-        center_y = [(b_-delta)/2,(b_+delta)/2]
-        y_c = np.min(center_y)
-        y = (R**2-(x-c)**2)**(0.5)+y_c
-        d = np.sqrt((x-x_a)**2+(y-y_a)**2)
-        theta = 2*np.arcsin(d/(2*R))
-        x_s = R*theta; 
-
-        # => compute y with the data of the boundary
-        # => compute the arc-length 
-        # => create new vector 
-        
-        t_dim_less =  t_cur/(IC.tc/3.5) 
-        time_sim = "{:.3f}".format(t_cur)
-        time_dimen = "{:.3f}".format(t_dim_less[0][0])
-        
-        
-        fna='Fig'+str(ipic)+'.png'
-        ptsave_b=os.path.join(ptsave,'Averages')
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-
-       
-        var =self.LGV
-        index = self.Label 
-        zz,xx = np.meshgrid(z,x_s)
-        it = 0 
-        cm = 1/2.54  # centimeters in inches
-        for values in var: 
-       
-            fg = figure(figsize=(15*cm,20*cm))
-    
-            tick=r'%s $Time = %s Myrs$' %(index[it],time_sim)
-
-            ptsave_c=os.path.join(ptsave_b,values)
-            if not os.path.isdir(ptsave_c):
-                os.mkdir(ptsave_c)
-        
-            fn = os.path.join(ptsave_c,fna)
-            ax1 = fg.add_axes([0.1, 0.7, 0.8, 0.2])
-            ax0 = fg.add_axes([0.1, 0.05, 0.8, 0.5])   
-            cfactor = 1.0
-                
-            #ax1.plot((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),color='b',linewidth=0.8)
-            ax1.plot((time[0:ipic]),(self.average_tearing_velocity[1,0:ipic]*cfactor),color='r',linewidth=1.2)
-            #ax1.plot((time[0:ipic]),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),color='b',linewidth=0.8)
-            #ax1.fill((time[0:ipic]),np.log10(self.average_tearing_velocity[0,0:ipic]*cfactor),np.log10(self.average_tearing_velocity[2,0:ipic]*cfactor),c='b',alpha=0.3)
-            ax1.set_ylabel(r'$v_{tearing}, [cm/yr]$')
-            ax1.set_xlabel(r'$t, [Myrs]$')
-            #ax1.set_title(tick)
-            ax1.tick_params(axis='both', which='major', labelsize=5)
-            ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-            plt.grid(True)
-            ax1.set_xlim(0, (np.max(time)))           
-            ax1.set_yscale('linear')    
-            if values == 'D':
-                cor = 1/(IC.D0[0][0]/1e3)
-            elif values =='tau':
-                cor = 1.0
-            elif values == 'eps':
-                cor = 1.0
-            else:
-                cor = 1.0
-            buf = eval(values,globals(),self.__dict__)[:,:,ipic]*cor
-            buf[buf == -np.inf]=np.nan
-            lm    = self.Val[it]
-            if lm[0]=="min":
-                lm1=np.nanmin(buf)
-            else:
-                lm1 = lm[0]
-            if lm[1]=="max":
-                lm2=np.nanmax(buf)
-            else:
-                lm2 = lm[1]
-            
-            levels = np.linspace(np.round(lm1), np.round(lm2), num=10, endpoint=True, retstep=False, dtype=float)
-            plt.grid(True)
-
-            if((values == "eps") | (values == "dDdt")):
-                if ((lm2)<0) & (lm1 <0) :
-                    lm1 = 1
-                    lm2 = 10 
-                cf=ax0.pcolormesh(xx,zz,np.log10((buf)),cmap='inferno',vmin = np.log10(lm1), vmax=np.log10(lm2))
-                    
-                cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
-            else:
-                cf=ax0.pcolormesh(xx,zz,buf,cmap='inferno',vmin = lm1, vmax=lm2)
-                cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal')
-                cbar.label = r'%s' %(index[it])
-                if values == 'T':
-                    T_buf = self.T[:,:,0]
-                    T_buf[T_buf == -np.inf]=np.nan
-                    T_meana = np.nanmean(T_buf[(zz<-80) & (zz>-100)])
-                    tick=r'%s $Time = %s Myrs$, $T_{Mean} = %2f $, $^{deg} C$' %(index[it],time_sim,T_meana)
-                    if ipic == 0:
-                        print(tick)
-                else:
-                    tick=r'%s $Time = %s Myrs$' %(index[it],time_sim)
-                ax1.set_title(tick)
-
-
-            
-
-            ax0.tick_params(axis='both', which='major', labelsize=5)
-            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-            ax0.set_ylabel(r'$z, [km]$')
-            ax0.set_xlabel(r'$x_s, [Myrs]$')
-            fg.tight_layout()    
-            plt.draw()    # necessary to render figure before saving
-            fg.savefig(fn,dpi=600)
-            ax0.plot()
-            it += 1
-            val = [] 
-            
-            plt.close()
-        
 
 class Initial_condition(): 
     def __init__(self,Phase_Slab,Phase_Mantle,vIC): 
@@ -590,7 +462,8 @@ class Terrane_Geo():
             B_A.append([1])
             ind = np.array(A)[2][0]
             B_A.append(np.array([np.array(mat[ind])[0][0], np.array(mat[ind])[1][0],np.array(mat[ind])[2][0]]))
-            B_A = np.array(B_A)
+            # Correction with the most recent python version 
+            B_A = np.array(B_A,dtype=object)
            
         return B_A
     
@@ -621,27 +494,11 @@ class Free_S_Slab_break_off(FS):
         self.mean_stress = np.zeros((ty,tx,nstep),dtype=float)
         self.thickness = np.zeros((ty,tx,nstep),dtype=float)
         self.mean_eps = np.zeros((ty,tx,nstep),dtype=float)
-#        self.HB           = np.ones((tx,nstep),dtype=float)*np.nan # topography boundary plates
-#        self.HBy          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
-#        self.HBx          = np.ones((tx,nstep),dtype=float)*np.nan # coordinate boundary plates
-#        self.HMax         =np.ones((tx,nstep),dtype=float)*np.nan # maximum topography within +/-200 km boundary
-#        self.HMaxy        = np.ones((tx,nstep),dtype=float)*np.nan # coordinate maximum topography
-#        self.Hmin       = np.ones((tx,nstep),dtype=float)*np.nan # minimum frontal topography
-#        self.Hminy      = np.ones((tx,nstep),dtype=float)*np.nan # coordinate
-#        self.v_z_M       = np.ones((tx,nstep),dtype=float)*np.nan # maximum velocity
-#        self.v_z_m       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
-#        self.v_z_mean    = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
-#        self.mean_stress_1D = np.ones((tx,nstep),dtype=float)*np.nan #average crustal stress 
-#        self.HMean       = np.ones((tx,nstep),dtype=float)*np.nan #minimum velocity
-#        self.Hmeang       = np.ones((nstep),dtype=float)*np.nan #minimum velocity
-
         self.x_s         = np.ones(tx)*np.nan
         self.x_sp         = []
 
         self.ind_boundary = np.zeros(tx)*np.nan
-        
-        
-        
+          
     def _update_extra_variables(self,V:VAL,C:Coordinate_System,dt,ipic):
         self.dH[:,:,ipic]          = self._update_FS(dt,ipic,'dH')
         self.vz_M[:,:,ipic]        = self._update_FS(dt,ipic,'vz_M')
@@ -709,158 +566,6 @@ class Free_S_Slab_break_off(FS):
                         buf[i,j] = np.mean(column[(crust==1) & (C.z>-100)])
                     
         return buf 
-    def _plot_maps_FS(self,t_cur,y,x,ptsave,ipic,S):
-        import cmcrameri.cm as cmc
-        from matplotlib.colors import LogNorm
-        ptsave_b=os.path.join(ptsave,"WhMaps_FS")
-        
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-        
-        values = self.LGV 
-        index = self.Label
-        cmaps = self.Colormap 
-        LIM   = self.Val
-        
-        
-        time_sim = "{:.3f}".format(t_cur)
-
-        ic = 0  
-        val = np.zeros((len(y),len(x)),dtype=float)
-        fg = figure()
-        ax0 = fg.gca()
-        fna='Fig'+"{:03d}".format(ipic)+'.png'       
-        cf =ax0.pcolormesh(x, y, val, shading='gouraud')
-        cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
-        #cf0 = ax0.scatter(S.x_vec,S.y_vec,5,S.det_vec,cmap = "inferno",marker='^')
-        #cf1 = ax0.plot(S.x_vec,S.y_vec,c='r',linewidth=0.8,linestyle='-.')
-       # try: 
-         #   lim1_m = np.nanmin(S.det_vec)
-          #  lim2_m = np.nanmax(S.det_vec)
-        #except: 
-           # lim1_m = 0
-           # lim2_m = 1
-        #cbar2 = fg.colorbar(cf0, ax=ax0,orientation='vertical',extend="both",label = r'Age of detachment,$[Myr]$')
-       # cf0.set_clim([lim1_m,lim2_m])
-        #cbar2.vmin = lim1_m 
-        #cbar2.vmax = lim2_m
-        for name in values:
-        
-            cmap2 = eval(cmaps[ic])
-            if name != 'F_z':
-                val = eval(name,globals(),self.__dict__)
-                val = val[:,:,ipic]
-            else:
-                val = self.mean_stress[:,:,ipic]*1e6*self.thickness[:,:,ipic]*1e3
-            log=0 
-            if (name == "mean_eps" )|(name =="gamma"):#|(name=='F_z'):
-                log = 1
-                print(name)
-                
-            tick = r"t = %s [Myrs]" %(time_sim)
-            
-            ptsave_c=os.path.join(ptsave_b,name)
-            
-            if not os.path.isdir(ptsave_c):
-            
-                os.mkdir(ptsave_c)
-        
-            lm    = LIM[ic]
-            
-            
-            lim_m = lm[0]
-            lim_M = lm[1]
-            if name == 'F_z':
-                lim_m = np.median(val)
-                lim_M = np.percentile(val,95)
-                print('lim_m=','{0:.2E}'.format(lim_m), 'lim_M=','{0:.2E}'.format(lim_M))
-            
-            val[abs(val) == np.inf] = np.nan
-            if log ==1:
-                val = np.log10(val)
-                print(log)
-            
-            if(lm[0]=="min"):
-                lim_m = np.nanmin(val)
-
-            if (lm[1]=="max"):
-                lim_M = np.nanmax(val)
-                
-                if lm[0] != "min":
-                    lim_m = lm[0]
-            #if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
-             #   lim_m = 0.01
-              #  lim_M = +0.1
-                
-            if log ==1:
-                lim_m = np.log10(lim_m)
-                lim_M = np.log10(lim_M)
-                print(log)
-
-            fna='Fig'+"{:03d}".format(ipic)+'.png'
-            fn = os.path.join(ptsave_c,fna)
-            cf.set_array(val.ravel())
-            cf.set_cmap(cmaps[ic])
-            cf.norm=colors.Normalize(vmin=lim_m, vmax=lim_M)
-                
-            cf.set_clim([lim_m,lim_M])
-            cbar.vmin = lim_m 
-            cbar.vmax = lim_M
-            cbar.update_normal(cf)
-            ax0.tick_params(axis='both', which='major', labelsize=5)
-            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-            ax0.set_ylim(np.min(y),np.max(y))
-            ax0.set_xlim(np.min(x),np.max(x))
-            cbar.set_label(index[ic])
-            ax0.set_title(tick)
-
-            #plt.draw()    # necessary to render figure before saving
-            
-            fg.savefig(fn,dpi=300,transparent=False)
-            
-            
-            val = [] 
-
-            ic +=1 
-        fg.clear
-        plt.close()
-    def ASCI_FILE_ALT(self,ipic,t_cur,Test_Name,ptsave,C:Coordinate_System):
-            
-        """
-        Write a simple ascii file for the post processing of the free surface dat
-        This is for the the free surface data, later on I will dedicate a bit of 
-        more time on the usage of the passive tracers.     
-        """
-        file_name = str(ipic).zfill(7)+'__'+Test_Name+'Free_surface_data.txt'
-        
-        ptsave_b=os.path.join(ptsave,'DataBase_FS')
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-        
-        filename = os.path.join(ptsave_b,file_name)
-        Y,X = np.meshgrid(C.x,C.y)
-        buf_x = X.ravel()
-        buf_y = Y.ravel()
-        vx_M    = self.vx_M[:,:,ipic]
-        vy_M    = self.vy_M[:,:,ipic]
-        vz_M    = self.vz_M[:,:,ipic]
-        dHdt    = self.dH[:,:,ipic]
-        H     = self.Amplitude[:,:,ipic]
-        S        = np.array([buf_x,buf_y,vx_M.ravel(),vy_M.ravel(),vz_M.ravel(),dHdt.ravel(),H.ravel()])
-        if(os.path.isfile(filename)):
-            os.remove(filename)
-        f = open(filename, 'a+')
-        f.write('########################################\n')
-        f.write('time [Myrs] time step []\n')
-        f.write('x, y, v_x,v_y ,v_z,dHdt, Topography\n')
-        f.write('  [km],[km],  [mm/yrs], [mm/yrs],[mm/yrs],[mm/yrs], [km]\n')
-        f.write('########################################\n')
-        f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))
-        f.write('\n')
-        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
-        f.close()
-        print('Free surface data of the timestep %d, has been printed' %(ipic))
-            
 
 #    def _compute_relevant_information_topography(self,C: Coordinate_System,Slab_GEO:Trench,ipic:int):
 #        # Compute the plate boundary using the data of the boundary 
@@ -1126,7 +831,7 @@ def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom,switch
             i2 = 0
             i1,i2 = _find_index(buf,i1,i2)
             x1[i]= x[i1]
-            x2[i] = x[np.int(i2)]
+            x2[i] = x[np.int32(i2)]
             D[i]= x2[i]-x1[i] 
             if(x2[i]-x1[i] <8.0):
                 buf_var[i] = np.nan
@@ -1142,11 +847,11 @@ def _Find_Slab_PERFORM_C(x,z,buf_var_ph,ph,tz,ix,D,buf_var,x1,x2,z_bottom,switch
 @jit(nopython=True)  
 def _mean_numba(buf,buf2):
     mean = 0.0
-    len_ = np.int(0)
+    len_ = np.int32(0)
     for i in range(len(buf)):
         if buf[i]>0.95:
             mean+= buf2[i]
-            len_ += np.int(1)
+            len_ += np.int32(1)
     mean = mean/len_
     
     return mean
@@ -1356,70 +1061,8 @@ class Basement_Passive_Tracer():
         self.x[ipic,:] = P.x[self.ID_chosen]
         self.y[ipic,:] = P.y[self.ID_chosen]
         self.z[ipic,:] = P.z[self.ID_chosen]
-    def _plot_passive_tracers(self,F:Free_S_Slab_break_off,x:float,y:float,time:float,ipic:int,ptsave:str,field:str):
-        import cmcrameri.cm as cmc
-        from matplotlib.colors import LogNorm
-        from mpl_toolkits.mplot3d import Axes3D # <--- This is important for 3d plotting 
-        ptsave_b=os.path.join(ptsave,"Passive_Tracers_Basement")
-        
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-        ptsave_c=os.path.join(ptsave_b,field)
-            
-        if not os.path.isdir(ptsave_c):
-        
-            os.mkdir(ptsave_c)
-        
-        dt = time[ipic]-time[ipic-1]
-        
-        t_cur = time[ipic]
-        
-        dt = dt*1e6 # convert the dt
-        if field == 'dTdt':
-            buf = (self.T[ipic,:]-self.T[ipic-1,:])/dt
-            label = r'$\frac{dT}{dt}$,$[K \cdot yr^{-1}]$'
-        elif field == 'dPdt':
-            buf = 1e6*((self.P[ipic,:]-self.P[ipic-1,:])/dt)
-            label = r'$\frac{dP}{dt}$,$[Pa \cdot yr^{-1}]$'
-        elif field == 'dzdt':
-            buf = 1000*((self.z[ipic,:]-self.z[ipic-1,:])/dt)
-            label = r'$\frac{dz}{dt}$,$[m \cdot yr^{-1}]$'
-        elif field == 'T':
-            buf = self.T[ipic,:]
-            label = r'$Temperature [^{\circ}C]$'
 
-        
-        # 3D surface plot 
-        
-        time_sim = 'Time = '+"{:.2f}".format(t_cur)+'Myr.'+' Rate computed from '+"{:.2f}".format(time[ipic-1])
-        X,Y = np.meshgrid(x,y)
-        ic = 0  
-        val = np.zeros((len(y),len(x)),dtype=float)
-        fg = figure()
-        ax0 = fg.gca(projection='3d')
-        ax0.view_init(60, 30)
-        fna='Fig'+"{:03d}".format(ipic)+'.png'       
-        #surf=ax0.plot_surface(X,Y ,F.Topo[:,:,ipic], cmap=cmc.oleron,
-        #            linewidth=0, antialiased=True)
-        #cbar = fg.colorbar(surf, ax=ax0,orientation='horizontal',extend="both",label='Topography, [km]')
-        scat = ax0.scatter(self.x[ipic,:],self.y[ipic,:],self.z[ipic,:],c=buf)
-        ax0.set_xlabel('x [km]')
-        ax0.set_ylabel('y [km]')
-        ax0.set_zlabel('z [km]')
-        cbar = fg.colorbar(scat, ax=ax0,orientation='vertical',extend="both",label=label)
-        fna='Fig'+"{:03d}".format(ipic)+'.png'
-        fn = os.path.join(ptsave_c,fna)
-        ax0.tick_params(axis='both', which='major', labelsize=5)
-        ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-        ax0.set_ylim(np.min(-100),np.max(100))
-        ax0.set_xlim(np.min(-590),np.max(590))
-        ax0.set_zlim(np.min(-20),np.max(0))
-        ax0.set_title(time_sim)
-        #plt.draw()    # necessary to render figure before saving
-        fg.savefig(fn,dpi=300,transparent=False)
-        fg.clear
-        plt.close()        
-        
+    
 # Decorate with numba and parallel     
 @jit(nopython=True,parallel=True)
 def _interpolate_topography(Topo:float,xg:float,yg:float,xp:float,yp:float):
