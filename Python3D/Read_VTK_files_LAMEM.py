@@ -211,7 +211,7 @@ def _file_list(fname):
     i=0
     for itime in Time:
         tm=itime[1:-1]
-        time[i]=np.float(tm)
+        time[i]=np.float64(tm)
         i+=1
 
     for istep in Flist:
@@ -328,21 +328,25 @@ class Coordinate_System():
             number of node along x
         nz : [int]
             number of node along x
+            --- Update: the ancient version of vtk i was using was allowing to just take all the grid, now
+            i fixed this issue for this script. 
 
         """
         if p == 0: 
             VTK_SET_d(Filename_0)
             VTK_UPDATE_d()
-            VTK_OUT_d().GetPoints(AllPoints_d)  
-            nodes_nummpy_array = vtk_to_numpy(nodes_vtk_array_d)
+            VTK_OUT_d=reader.GetOutput()
+            xd = vtk_to_numpy(VTK_OUT_d.GetXCoordinates())
+            yd = vtk_to_numpy(VTK_OUT_d.GetYCoordinates())
+            zd = vtk_to_numpy(VTK_OUT_d.GetZCoordinates()) 
         else:
             VTK_SET_ph(Filename_0)
             VTK_UPDATE_ph()
-            VTK_OUT_ph().GetPoints(AllPoints_ph)   
-            nodes_nummpy_array = vtk_to_numpy(nodes_vtk_array_ph)
-            
+            VTK_OUT_ph=reader_ph.GetOutput()
+            xd = vtk_to_numpy(VTK_OUT_ph.GetXCoordinates())
+            yd = vtk_to_numpy(VTK_OUT_ph.GetYCoordinates())
+            zd = vtk_to_numpy(VTK_OUT_ph.GetZCoordinates())
 
-        xd,yd,zd= nodes_nummpy_array[:,0] , nodes_nummpy_array[:,1] , nodes_nummpy_array[:,2]
         nx, ny, nz=_parse_grid(Filename_0,p)
         if p ==1: 
             """
@@ -351,17 +355,6 @@ class Coordinate_System():
             nx += 1 
             nz += 1
             ny += 1 
-        
-        xd = xd.reshape(nz,ny,nx)
-        yd = yd.reshape(nz,ny,nx)
-        zd = zd.reshape(nz,ny,nx)
-        
-        xd = xd[0,0,:]
-        yd = yd[0,:,0]
-        zd = zd[:,0,0]
-        
-       
-        
     
         return xd,yd,zd,nx,ny,nz
 
@@ -392,94 +385,6 @@ class Phase():
         
         return self 
     
-    #def interpolate_dynamic_properties(self,V,C):
-        
-    
-    
-    def _plot_phase_field(self,C,Val,ptsave,ipic,t_cur,FS,tdimen):
-                
-        ptsave_b=os.path.join(ptsave,'phase')
-        time_sim = "{:.3f}".format(t_cur)
-        time_dimen = "{:.3f}".format(tdimen)
-        tick=r'$Time$ = %s $Myrs$, $t^{\dagger}$ = %s' %(time_sim,time_dimen)
-        
-        ph = self.Phase 
-        
-        x  = C.xp 
-        z  = C.zp 
-        
-        xd = C.x 
-        zd = C.z 
-        
-        list = []
-        labels =[]
-        for v,k in self.Phase_dic.items():
-            list.append(k[1])
-            labels.append(k[0])
-        
-        cmap = colors.ListedColormap(list)
-        
-        
-        
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-        fig = plt.figure()
-        fna='Fig'+str(ipic)+'.png'
-        fn=os.path.join(ptsave_b,fna)
-        #grid = plt.GridSpec(2, 3, wspace=0.4, hspace=0.3)
-        ax1 = fig.add_axes([0.1, 0.5, 0.8, 0.4],
-                   xticklabels=[])
-        ax2 = fig.add_axes([0.1, 0.1, 0.8, 0.4],
-                           ylim=(-5.0, 5.0), xlim = (np.min(C.x),np.max(C.x)))  
-        cf=ax1.pcolormesh(x, z, ph,cmap=cmap,vmin=0,vmax=len(labels), shading='flat')
-        cf0 = ax1.contour(C.x,C.z,Val.OP,levels = [0.9],colors = "k",alpha=0.6,linewidths=1.0)
-        cf1 = ax1.contour(C.x,C.z,Val.C1,levels = [0.9],colors = "k",alpha=0.6,linewidths=1.0)
-        cf1 = ax1.contour(C.x,C.z,Val.C2,levels = [0.9],colors = "k",alpha=0.6,linewidths=1.0)
-        cf0 = ax1.contour(C.x,C.z,Val.CC1,levels = [0.9],colors = "k",alpha=0.6,linewidths=1.0)
-        cf0 = ax1.contour(C.x,C.z,Val.CC2,levels = [0.9],colors = "k",alpha=0.6,linewidths=1.0)
-
-        X,Y = np.meshgrid(C.x,C.z)
-        
-        cf2 = ax1.quiver(X[::20,::20], Y[::20,::20], Val.vx[::20,::20]/(Val.vm[::20,::20]), Val.vz[::20,::20]/(Val.vm[::20,::20]),units='width',width=0.0011)
-        ax1.set_aspect(0.5*(np.max(x)-np.min(x)) / float(np.max(z)-np.min(z)))
-        ax1.tick_params(axis='both', which='major', labelsize=5)
-        ax1.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-        ax1.set_title(tick)
-        ax1.set_ylim(np.min(z),np.max(z))
-        ax1.set_xlim(np.min(x),np.max(x))
-        topo = FS.Amplitude
-        iteration = np.linspace(9,0,num=10)
-        for ip in range(10):
-            it = ipic - ip
-            alpha_v= 0.8-ip*(1/12)
-            if ip == 0: 
-                cc = 'r'
-            else:
-                cc = 'b'
-            if (it == 0) & (ip == 0) :
-                ax2.plot(C.x, topo[:,0],c = cc,alpha = alpha_v,linewidth=alpha_v)
-                break
-            if (ip >0 ) & (it == 0 ):
-                ax2.plot(C.x, topo[:,it],c = cc,alpha = alpha_v,linewidth=alpha_v)
-                break 
-            else: 
-                ax2.plot(C.x, topo[:,it],c = cc,alpha = alpha_v,linewidth=alpha_v)
-        ax2.plot(C.x, topo[:,ipic],c = 'r',alpha = 1.0,linewidth=1.2)
-        
-        ax2.set_aspect(0.5*(np.max(x)-np.min(x)) / float(10))
-        plt.grid(True)
-        plt.xlabel('x, [km]')
-        plt.ylabel('H, [km]')
-        ax2.tick_params(axis='both', which='major', labelsize=5)
-        ax2.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-        
-        ###############################################################       
-        plt.draw()    # necessary to render figure before saving
-        fig.savefig(fn,dpi=300,transparent=False)
-        fig.clear()
-        plt.close()
-        
-
     
         
 class VAL():
@@ -635,113 +540,6 @@ class VAL():
 
             
             return buf 
-        
-    def _plot_maps_V(self,t_cur,z,x,ptsave,ipic):
-
-
-        import cmcrameri.cm as cmc
-        from matplotlib.colors import LogNorm
-        ptsave_b=os.path.join(ptsave,"WhMaps")
-        
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-        
-        values = self.LGV 
-        index = self.Label
-        cmaps = self.Colormap 
-        LIM   = self.Val
-        
-        
-        time_sim = "{:.3f}".format(t_cur)
-      
-        ic = 0  
-        val = np.zeros((len(z),len(x)),dtype=float)
-        fg = figure()
-        ax0 = fg.gca()
-        fna='Fig'+"{:03d}".format(ipic)+'.png'       
-        cf =ax0.pcolormesh(x, z, val, shading='gouraud')
-        cbar = fg.colorbar(cf, ax=ax0,orientation='horizontal',extend="both")
-        cf0 = ax0.contour(x,z,self.OP,levels = [0.9],colors = "k",linewidths=0.75)
-        cf1 = ax0.contour(x,z,self.C1,levels = [0.9],colors = "k",linewidths=0.75)
-        cf1 = ax0.contour(x,z,self.C2,levels = [0.9],colors = "k",linewidths=0.75)
-        cf0 = ax0.contour(x,z,self.CC1,levels = [0.9],colors = "k",linewidths=0.75)
-        cf0 = ax0.contour(x,z,self.CC2,levels = [0.9],colors = "k",linewidths=0.75)
-
-       
-        for name in values:
-        
-            cmap2 = eval(cmaps[ic])
-
-            val = eval(name,globals(),self.__dict__)
-            log=0 
-            if (name == "eps" )|(name =="gamma"):
-                log = 1
-                
-            tick = r"t = %s [Myrs]" %(time_sim)
-            
-            ptsave_c=os.path.join(ptsave_b,name)
-            
-            if not os.path.isdir(ptsave_c):
-            
-                os.mkdir(ptsave_c)
-        
-            lm    = LIM[ic]
-            
-            
-            lim_m = lm[0]
-            lim_M = lm[1]
-            
-            val[abs(val) == np.inf] = np.nan
-            
-            if(lm[0]=="min"):
-            
-                lim_m = np.nanmin(val)
-
-            if (lm[1]=="max"):
-               
-                lim_M = np.nanmax(val)
-                
-                if lm[0] != "min":
-                     lim_m = lm[0]
-                     
-            if (np.isnan(lim_M)) | (np.isnan(lim_m))| (lim_m==lim_M): 
-                lim_m = 0.01
-                lim_M = +0.1
-                
-
-            fna='Fig'+"{:03d}".format(ipic)+'.png'
-            fn = os.path.join(ptsave_c,fna)
-           
-            cf.set_array(val.ravel())
-            cf.set_cmap(cmaps[ic])
-            if log == 1:
-                cf.norm = colors.LogNorm(vmin=lim_m, vmax=lim_M)
-            else: 
-                cf.norm=colors.Normalize(vmin=lim_m, vmax=lim_M)
-                
-            cf.set_clim([lim_m,lim_M])
-            cbar.vmin = lim_m 
-            cbar.vmax = lim_M
-            cbar.update_normal(cf)
-            ax0.set_aspect(0.5*(np.max(x)-np.min(x)) / float(np.max(z)-np.min(z)))
-            ax0.tick_params(axis='both', which='major', labelsize=5)
-            ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
-            ax0.set_ylim(np.min(z),np.max(z))
-            ax0.set_xlim(np.min(x),np.max(x))
-            cbar.set_label(index[ic])
-            ax0.set_title(tick)
-
-            #plt.draw()    # necessary to render figure before saving
-            
-            fg.savefig(fn,dpi=300,transparent=False)
-            
-            
-            val = [] 
-
-            ic +=1 
-        fg.clear
-        plt.close()
-        
       
         
 class FS():
@@ -808,47 +606,6 @@ class FS():
 
             return buf 
     
-    def ASCI_FILE(self,ipic,t_cur,Test_Name,ptsave,C:Coordinate_System):
-        
-        """
-        Write a simple ascii file for the post processing of the free surface data
-        This is for the the free surface data, later on I will dedicate a bit of 
-        more time on the usage of the passive tracers.     
-        """
-        file_name = str(ipic).zfill(7)+'__'+Test_Name+'Free_surface_data.txt'
-    
-        ptsave_b=os.path.join(ptsave,'DataBase_FS')
-        if not os.path.isdir(ptsave_b):
-            os.mkdir(ptsave_b)
-        
-        filename = os.path.join(ptsave_b,file_name)
-        Y,X = np.meshgrid(C.y,C.x)
-        buf_x = X.ravel()
-        buf_y = Y.ravel()
-        vx    = self.vx[:,:,ipic]
-        vy    = self.vy[:,:,ipic]
-        vz    = self.vz[:,:,ipic]
-        vm    = self.vm[:,:,ipic]
-        H     = self.Amplitude[:,:,ipic]
-        
-        S        = np.array([buf_x,buf_y,vx.ravel(),vy.ravel(),vz.ravel(),vm.ravel(),H.ravel()])
-    
-        if(os.path.isfile(filename)):
-            os.remove(filename)
-
-        f = open(filename, 'a+')
-
-        f.write('########################################\n')
-        f.write('time [Myrs] time step []\n')
-        f.write('x, y, v_x,v_y ,v_z, v_m, Topography\n')
-        f.write('  [km],  [cm/yrs], [cm/yrs],[cm/yrs], [km]\n')
-        f.write('########################################\n')
-        f.write('time = %6f, timestep = %d\n' %(t_cur,ipic))
-        f.write('\n')
-        np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
-        f.close()
-        print('Free surface data of the timestep %d, has been printed' %(ipic))
-        
 class Passive_Tracers():
     def __init__(self,Filename_ptr):
         self.n_marker= self._ReadPassive_(Filename_ptr,'none')

@@ -1698,11 +1698,18 @@ def figure_experimental_supplementary(A,path_figure,figure_name):
     
     time_1D_d = np.zeros(np.shape(time_1D),dtype = float)
     time_0D_d = np.zeros(np.shape(time_0D),dtype = float)
+    max_up_x = np.zeros(len(time),dtype=float)
     
     time_max = np.floor(np.max(time))
     time_pv = np.arange(1,time_max+2,2)
     
     # Compute the discrete field of uplift
+
+    for i in range(len(time)):
+        if time[i]>1.0:
+            ind = np.where(time_1D[:,i]==np.max(time_1D[:,i]))
+            ind = ind[0][0]
+            max_up_x[i] = A.C.x_sp[ind]
     
     for i in range(len(time_pv)-1):
        
@@ -1715,6 +1722,8 @@ def figure_experimental_supplementary(A,path_figure,figure_name):
         for ix in range(len(A.C.x_trench_p)):
             time_1D_d[ix,t_buf==1] = np.mean(time_1D[ix,t_buf==1])
             time_0D_d[t_buf==1]    = np.mean(time_0D[t_buf==1])
+        
+        
     
     cm = 1/2.54  # centimeters in inches
 
@@ -1737,9 +1746,10 @@ def figure_experimental_supplementary(A,path_figure,figure_name):
     ax2 = fg.add_axes([bx+sx+dx, by+dy+sy2, sx, sy2])     # t2 
     ax3 = fg.add_axes([bx+sx+dx, by, sx, sy2])     # t2 
     
-    p1 = ax0.pcolormesh(A.C.x_sp,time,np.transpose(time_1D[:-1, :-1]),shading='auto',cmap = 'cmc.imola',vmin = np.nanmin(time_1D_d[time_1D_d != 0.0]), vmax=np.nanmax(time_1D_d[time_1D_d != 0.0]))
+    p1 = ax0.pcolormesh(A.C.x_sp,time,np.transpose(time_1D_d[:-1, :-1]),shading='auto',cmap = 'cmc.imola',vmin = np.nanpercentile(time_1D_d[time_1D_d != 0.0],10), vmax=np.nanpercentile(time_1D_d[time_1D_d != 0.0],90))
+    ax0.plot(max_up_x,time,color='red',linewidth = 2.0)
     #ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=fnt_g.axis_)
-    ax0.axvline(100,linewidth = 2.0,linestyle = 'dashdot',label = r'[b]',color = 'firebrick')
+    ax0.axvline(100,linewidth = 2.0,linestyle = 'dashdot',label = r'[b]',color = 'blue')
     ax0.axvline(500,linewidth = 2.0,linestyle = 'dashdot',label = r'[c]',color = 'forestgreen')
     ax0.axvline(1000,linewidth = 2.0,linestyle = 'dashdot',label = r'[d]',color = 'k')
     ax0.legend(loc='upper center', bbox_to_anchor=(0.45, 1.12),ncol=3, columnspacing=0.05,handletextpad=0.1, shadow=True,fontsize=8)
