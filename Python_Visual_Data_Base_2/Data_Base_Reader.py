@@ -25,7 +25,10 @@ from figure_functions import *
 from figure_functions import make_figure3
 from figure_functions import make_figure6
 from figure_functions import make_figure7
-from figure_functions import make_figure8
+#from figure_functions import make_figure7_sub_Depth
+#from figure_functions import make_figure9_sub_Depth
+from figure_functions import make_figure9
+from figure_functions import make_figure6_sup
 
 path = r'../../Data_Bases'
 
@@ -59,13 +62,9 @@ Figure S4:
 Figure S5: 
 Figure S6:
 Figure S7:
-
 """
-
-
 # Merge Data Base
-#_merge_database(file_A,file_B,file_C,file_D,file_DB)
-
+#_merge_database(file_A,file_B,file_C,file_DB)
 
 path_save = r'../../Data_Base_KIT_GLA'
 
@@ -80,7 +79,12 @@ DB = Data_Base(file_DB)
 # to create a subclasses you do not have to put a decorator for the classes}
 DB._post_process_data(path,path_save,False,False,True)
 
-path_figure = os.path.join(path_save,'figure_manuscript_DEF')
+make_figure7_sup_Depth(DB,path_save,'Figure_depth')
+
+make_figure9_sup_Depth(DB,path_save,'Figure_uplift_depth')
+
+
+path_figure = os.path.join(path_save,'FM_def')
 
 path_gif = os.path.join(path_figure,'gif')
 
@@ -91,39 +95,37 @@ if not os.path.isdir(path_figure):
 if not os.path.isdir(path_gif):
     os.mkdir(path_gif)
 
-
+initial_profile_phase(path_figure)
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
 TSD2.print_topography_timeseries(path_figure)
 
-
 TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
-TSD2_V10.print_topography_timeseries(path_figure)
-
+#TSD2_V10.print_topography_timeseries(path_figure)
 
 TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
-TSD2_V11.print_topography_timeseries(path_figure)
-
+#TSD2_V11.print_topography_timeseries(path_figure)
 
 TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
-TSD2_V12.print_topography_timeseries(path_figure)
-
-
+#TSD2_V12.print_topography_timeseries(path_figure)
 
 TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
-TSD2_V13.print_topography_timeseries(path_figure)
-
-
+#TSD2_V13.print_topography_timeseries(path_figure)
 
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
-TSD2_V15.print_topography_timeseries(path_figure)
+#TSD2_V15.print_topography_timeseries(path_figure)
+
+#TSD2_V15_HC = Test(file_DB,['PR_r','TSD2_V15_HC'])
+
+#figure_experimental_supplementary(TSD2_V15_HC,path_figure,'Figure_SUP5_HC',['[e]','[f]','[g]','[h]'])
+figure_experimental_supplementary(TSD2_V15,path_figure,'Figure_SUP5',['[e]','[f]','[g]','[h]'])
 
 
 # Figure 1 
-initial_profile_phase(path_figure)
 # Figure S1
 initial_geotherm(path_figure)
-
+# Figure S3
+initial_topography(TSD2,path_figure)
 
 # Figure 2: 
 """
@@ -137,14 +139,15 @@ within the slab at ca 200 km
 
 """
 # Figure3 
-make_figure3(TSD2,path_figure,'figure3',[10.15,10.20,10.24])
+
+make_figure3(TSD2,path_figure,'figure3',[10.15,10.20,10.24],False)
 # Figure supplementary
 make_figure_Sup(TSD2,path_figure,'Figure_SUP',[10.18,10.20,10.24])
 
 # Figure 4 PARAVIEW
 
 # Figure 5
-make_figure3(TSD2_V15,path_figure,'figure5',[15.41,25.09,29.69])
+make_figure3(TSD2_V15,path_figure,'figure5',[15.41,25.09,29.69],False)
 
 """
 Figure 6: 
@@ -153,26 +156,31 @@ Figure depicting the total uplift within 1->end of tearing
 
 """
 make_figure6(TSD2,TSD2_V15,path_figure,'figure6',1)
+make_figure6_sup(TSD2,TSD2_V15,path_figure,'figure6_sup',1)
 
 """
 Figure 8: 
 
 """
+
 make_figure7(DB,path_figure,'figure7')
 
 """
-Figure 10: 
-
+Figure 8: 
 """
-make_figure8(DB,path_figure,'figure8')
 
+make_figure9(DB,path_figure,'figure9')
 
 """
 Supplementary figure 
 """
-figure_experimental_supplementary(TSD2,path_figure,'Experiment_V8')
-figure_experimental_supplementary(TSD2_V10,path_figure,'Experiment_V10')
-figure_experimental_supplementary(TSD2_V11,path_figure,'Experiment_V11')
-figure_experimental_supplementary(TSD2_V12,path_figure,'Experiment_V12')
-figure_experimental_supplementary(TSD2_V13,path_figure,'Experiment_V13')
-figure_experimental_supplementary(TSD2_V15,path_figure,'Experiment_V15')
+
+
+
+figure_experimental_supplementary(TSD2,    path_figure,'Figure_SUP0',[])
+figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_SUP1',[])
+figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_SUP2',[])
+figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_SUP3',[])
+figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_SUP4',[])
+figure_experimental_supplementary(TSD2_V15,path_figure,'Figure_SUP5',['[e]','[f]','[g]','[h]'])
+

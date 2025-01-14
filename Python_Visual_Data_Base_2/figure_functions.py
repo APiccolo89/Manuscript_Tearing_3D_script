@@ -1616,7 +1616,7 @@ def make_figure7(DB,path_save,figure_name):
     
     fg.savefig(fn,dpi=600)
 
-def make_figure8(DB,path_save,figure_name):
+def make_figure9(DB,path_save,figure_name):
     
     # figure name
     
@@ -1722,7 +1722,7 @@ def make_figure7_sup_Depth(DB,path_save,figure_name):
     fn = os.path.join(path_save,'%s.png'%(figure_name))
     
     # Prepare variables
-    vel_tearing = (DB.depth_tearing)
+    depth_tearing = (DB.depth_tearing)
     AVol        = DB.Avolume 
     T           = DB.Temp 
     SLim        = DB.StressLimit/1e6
@@ -1752,13 +1752,13 @@ def make_figure7_sup_Depth(DB,path_save,figure_name):
     max_ax = -100.0
     
     for i in range(len(T_u)):
-        ax0.scatter(AVol[(SLim==200.0) & (T == T_u[i])],vel_tearing[(SLim==200.0) & (T == T_u[i]),0],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+        ax0.scatter(AVol[(SLim==200.0) & (T == T_u[i])],depth_tearing[(SLim==200.0) & (T == T_u[i]),0],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
     
     for i in range(len(T_u)):
-        ax1.scatter(AVol[(SLim==400.0) & (T == T_u[i])],vel_tearing[(SLim==400.0) & (T == T_u[i]),0],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+        ax1.scatter(AVol[(SLim==400.0) & (T == T_u[i])],depth_tearing[(SLim==400.0) & (T == T_u[i]),0],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
     
     for i in range(len(T_u)):
-        ax2.scatter(AVol[(SLim==600.0) & (T == T_u[i])],vel_tearing[(SLim==600.0) & (T == T_u[i]),0],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
+        ax2.scatter(AVol[(SLim==600.0) & (T == T_u[i])],depth_tearing[(SLim==600.0) & (T == T_u[i]),0],s=50,c=colors[i],edgecolor = 'k',label=label_fig[i])
     
     ax1.legend(loc='upper center', bbox_to_anchor=(0.45, 1.20),ncol=3, columnspacing=0.10,handletextpad=0.01, shadow=True,fontsize=8)
     
@@ -1826,3 +1826,100 @@ def make_figure7_sup_Depth(DB,path_save,figure_name):
 
     
     fg.savefig(fn,dpi=600)
+    
+def make_figure9_sup_Depth(DB,path_save,figure_name):
+    
+    # figure name
+    
+    # Prepare variables
+    depth_tearing = (DB.depth_tearing)
+    AVol        = DB.Avolume 
+    T           = DB.Temp 
+    SLim        = DB.StressLimit/1e6
+    
+    
+    # Prepare axis of the figures 
+    
+    cm = 1/2.54  # centimeters in inches
+     
+    bx = 0.15
+    by = 0.15
+    sx = 0.40
+    dx = 0.02
+    sy = 0.6
+    dy = 0.01
+    type = ['a','b','c']
+    Uplift_discrete = DB.Uplift_Te_discrete
+    for ip in range(3):
+        fg = figure(figsize=(18*cm, 9*cm)) 
+        ax0 = fg.add_axes([bx, by, sx, sy])
+        ax1 = fg.add_axes([bx+sx+dx,by,sx,sy])
+
+        fn = os.path.join(path_save,'%s%s.png'%(figure_name,type[ip]))
+
+        uplift = DB.uplift[:,ip]
+        colors = ['royalblue','goldenrod','tomato']#,'orange','grey','pink']
+        label_fig = [r'$v_s = 10$ [$\frac{\mathrm{cm}}{\mathrm{yr}}$]',r'$v_s = 5.0$ [$\frac{\mathrm{cm}}{\mathrm{yr}}$]',r'$v_s = 2.5$ [$\frac{\mathrm{cm}}{\mathrm{yr}}$]']
+
+        T_u = np.sort(np.unique(T))
+        T_u = T_u[T_u>0.0]
+        for i in range(len(T_u)):
+            ax0.scatter(depth_tearing[(T == T_u[i]),0],uplift[(T == T_u[i])],c=colors[i],s=50,edgecolor = 'k',label=label_fig[i])
+            ax1.scatter(depth_tearing[(T == T_u[i]),0],Uplift_discrete[(T == T_u[i])],c=colors[i],s=50,edgecolor = 'k',label=label_fig[i])
+        #ax0.axvline(2,linewidth=0.8,color='k',alpha=0.5)
+        #ax0.axvline(94,linewidth=0.8,color='k',alpha=0.5)
+        #ax1.axvline(2,linewidth=0.8,color='k',alpha=0.5)
+        #ax1.axvline(94,linewidth=0.8,color='k',alpha=0.5)
+
+
+        ax0.legend(loc='upper center', bbox_to_anchor=(1.1, 1.30),ncol=3, columnspacing=0.02,handletextpad=0.005, shadow=True,fontsize=8)
+        ax0.tick_params(axis="y",direction="in")
+        ax1.tick_params(axis="y",direction="in")
+        ax0.tick_params(axis="x",direction="in")
+        ax1.tick_params(axis="x",direction="in")
+
+        ax0.tick_params(left=True,right=True,labelbottom=True) 
+        ax0.set_ylim(0.01,100)
+        ax1.set_ylim(0.01,100)
+
+
+        plt.setp(ax0.spines.values(), linewidth=1.4)
+        plt.setp(ax1.spines.values(), linewidth=1.4)
+        ax1.tick_params(left=True,right=True,labelbottom=True,labelleft = False) 
+
+    
+
+        ax0.tick_params(width=1.2)
+    
+
+        ax0.set_xlabel(r'$d_{\mathrm{tearing}}$ [$\frac{\mathrm{cm}}{\mathrm{yr}}$]',fontsize=fnt_g.label_)
+        ax0.set_ylabel(r'$\dot{H}_{\mathrm{mean}}$ [$\frac{\mathrm{mm}}{\mathrm{yr}}$]',fontsize=fnt_g.label_)
+        ax1.set_xlabel(r'$d_{\mathrm{tearing}}$ [$\frac{\mathrm{cm}}{\mathrm{yr}}$]',fontsize=fnt_g.label_)
+
+
+        ax0.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax0.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+        
+        
+        ax1.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax1.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+        #ax0.set_xscale('log')
+        #ax1.set_xscale('log')
+        props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+        ax0.text(0.05, 0.96, '$[a]$', transform=ax0.transAxes, fontsize=fnt_g.label_,
+            verticalalignment='top', bbox=props,color='white')
+        ax1.text(0.05, 0.96, '$[b]$', transform=ax1.transAxes, fontsize=fnt_g.label_,
+            verticalalignment='top', bbox=props,color='white')
+    
+
+        if ip == 0:
+            ax0.set_yscale('log')
+            ax1.set_yscale('log')
+
+            print('Hell ya')
+        
+
+        fg.savefig(fn,dpi=600)
+        plt.close()
+        ax0 = []

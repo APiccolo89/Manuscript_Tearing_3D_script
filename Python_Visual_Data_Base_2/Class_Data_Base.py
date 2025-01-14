@@ -79,8 +79,9 @@ class Data_Base(object):
         
         self.tau_max   = np.zeros([self.n_test],dtype = float)
         
-        self.Uplift_max_discrete   = np.zeros([self.n_test],dtype = float)
+        self.Uplift_Te_discrete   = np.zeros([self.n_test],dtype = float)
 
+        self.depth_tearing = np.zeros([self.n_test,2],dtype = float)
         
         self.latex_table = []
    
@@ -200,7 +201,8 @@ class Data_Base(object):
         return buf
     @timer
     def _post_process_data(self,path:str,path_save:str,save_data:bool,print_topography:bool,check:bool):
-        
+        from figure_functions import figure_experimental_supplementary
+
         perform = True
         if check == True: 
             if 'General_DB' in self.Tests_Name[0][:]: 
@@ -210,10 +212,10 @@ class Data_Base(object):
                 
         if perform == True:
             itest = 0 
-            self.latex_table = [['Test Name',r'$v_c$',r'$\tau_{lim}$',r'$V_{a,\mathrm{dis}}$',r'$v_{\mathrm{tearing}}$',r'$\dot{H}_{\mathrm{N}}$',r'$\dot{H}_{Te}$',r'$\dot{H}_{\mathrm{LT}}$']]
+            self.latex_table = [['Test Name',r'$v_c$',r'$\tau_{lim}$',r'$V_{a,\mathrm{dis}}$',r'$v_{\mathrm{tearing}}$',r'$\dot{H}_{\mathrm{N}}$',r'$\dot{H}_{Te}$',r'$\dot{H}_{\mathrm{LT}}$',r'D_{\mathrm{tearing}}',r'std']]
             for it in range(self.n_test):
                 test_name = self.Tests_Name[it]
-                if ((test_name[0] != 'PR_no') & (test_name[0] != 'General_DB')):
+                if ((test_name[0] != 'PR_no') & (test_name[0] != 'General_DB') & (test_name[1] != 'TSD2_V15_HC')&(test_name[1] != 'TSD2_CO')):
                     path_save_b = os.path.join(path_save,test_name[1])
                     if not os.path.isdir(path_save_b):
                         os.mkdir(path_save_b)
@@ -236,13 +238,20 @@ class Data_Base(object):
                     v_test = test.Det.vel_tear[0,:]
 
                     det_vec = test.Det.det_vec
+                    # Filter the necking along the width
 
                     det_vec[test.Det.depth_vec>=-60.0]=np.nan
 
                     corrected_depth = test.Det.depth_vec
-
+                    # Filter the necking along the width
                     corrected_depth[test.Det.depth_vec>=-60.0]=np.nan
-
+                    
+                    self.depth_tearing[itest,0] = np.nanmean(corrected_depth)
+                    self.depth_tearing[itest,1] = np.nanstd(corrected_depth)
+                    
+                    print('Average depth of tearing is %2f \u00B1 %2f'%(self.depth_tearing[itest,0],self.depth_tearing[itest,1]))
+                    
+                    # Compute the average velocity of the tearing v_mean = scale*(1000 km)/(max(t_detachment)-min(t_detachment))
                     mean_v = (1000.0*1000*100)/(np.nanmax(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6-np.nanmin(det_vec[(x_sp>=100) & (x_sp<=1100) ])*1e6)
 
                     self.detachment_velocity[itest] = mean_v
@@ -269,7 +278,7 @@ class Data_Base(object):
 
                     self.tau_max[itest] = test.Det.maxtau/(self.StressLimit[itest]/1e6)
                     
-                    self.Uplift_max_discrete[itest] = test.FS.time_0D_series_d_max
+                    self.Uplift_Te_discrete[itest] = test.FS.time_0D_series_tearing
 
                     print("Average uplift during necking stage is %.2f, during tearing stage is %.2f and the long term is %.2f"%(self.uplift[itest,0],self.uplift[itest,1],self.uplift[itest,2]))
 
@@ -279,7 +288,8 @@ class Data_Base(object):
                     if print_topography == True:
                         test._print_topographic_data_ASCI(test_name[1],path_save_b)
 
-                    self.latex_table.append([test_name[1],f"{self.Temp[itest]:.1f}",f"{self.StressLimit[itest]/1e6:.1f}",f"{self.Avolume[itest]:.1f}",f"{mean_v:.1e}",f"{self.uplift[itest,1]:.1e}",f"{self.uplift[itest,0]:.1e}",f"{self.uplift[itest,2]:.1e}"])
+                    self.latex_table.append([test_name[1],f"{self.Temp[itest]:.1f}",f"{self.StressLimit[itest]/1e6:.1f}",f"{self.Avolume[itest]:.1f}",f"{mean_v:.1e}",f"{self.uplift[itest,1]:.1e}",f"{self.uplift[itest,0]:.1e}",f"{self.uplift[itest,2]:.1e}",f"{self.depth_tearing[itest,0]:.1f}",f"{self.depth_tearing[itest,1]}"])
+                    figure_experimental_supplementary(test,path_save,test_name[1],[]) 
                 #self.create_latex_table(path_save,latex_table)
                 itest = itest+1
             self._save_new_DB_voice()
@@ -301,8 +311,8 @@ class Data_Base(object):
         from texttable import Texttable
         import latextable
         table = Texttable()
-        table.set_cols_align(["l", "c", "c","c","c","c","c","c"])
-        table.set_cols_valign(["m", "m", "m","m","m","m","m","m"])
+        table.set_cols_align(["l", "c", "c","c","c","c","c","c","c","c"])
+        table.set_cols_valign(["m", "m", "m","m","m","m","m","m","m","m"])
         table.add_rows(self.latex_table)
         print(table.draw())
         print('\nLatextable Output:')
@@ -494,6 +504,9 @@ class Test(Data_Base):
         ptsave_b=os.path.join(ptsave,'DataBase_FS')
         if not os.path.isdir(ptsave_b):
             os.mkdir(ptsave_b)
+        ptsave_c=os.path.join(ptsave,'DataBase_pic')
+        if not os.path.isdir(ptsave_c):
+            os.mkdir(ptsave_c)
 
         filename = os.path.join(ptsave_b,file_name)
         Y,X = np.meshgrid(self.C.xg,self.C.yg)
@@ -519,6 +532,20 @@ class Test(Data_Base):
         f.write('\n')
         np.savetxt(f, np.transpose(S),fmt='%.6f', delimiter=' ', newline = '\n') 
         f.close()
+        ifig = "{:05d}".format(ipic)
+        fname = 'fig_%s' %(ifig)
+        fn = os.path.join(ptsave_c,fname)
+
+        fg = figure()
+        ax0 = fg.gca()
+        p1 = ax0.pcolormesh(X,Y,(vz_fil),shading='auto',cmap = 'cmc.lajolla',vmin = np.nanpercentile(vz_M,10), vmax=np.nanpercentile(vz_M,90))
+        cbar0 = fg.colorbar(p1, ax=ax0,orientation='horizontal',extend="both")
+        cbar0.set_label(label=r'vz') 
+        fg.savefig(fn,dpi=600)
+        plt.close()
+    
+        
+        
         #print('Free surface data of the timestep %d, has been printed' %(ipic))
 
     def ASCI_time_Vec(self,Test_Name,ptsave):
@@ -777,6 +804,7 @@ class FS():
         self.Thickness = T._read_variable(self.dict['Thickness'],Test_name)
         self.tau_mean = T._read_variable(self.dict['tau_mean'],Test_name)
         self.eps = T._read_variable(self.dict['eps'],Test_name)
+        
         # Derivative Data Set [filtered and post processed]
         self.dH_fil =  np.zeros(np.shape(self.dH),dtype=float)
         self.vz_fil =  np.zeros(np.shape(self.dH),dtype=float)
@@ -794,10 +822,10 @@ class FS():
         self.dH_uplift_min         = np.zeros([3,2],dtype=float)
         self.dH_uplift_mean        = np.zeros([3,2],dtype=float)
         
-        self.time_series           = []
-        self.time_1D_series_c      = [] # Uplift rate along the slab trench
-        self.time_0D_series_c      = [] # Average uplift rate along the slab trench per each timestep
-        self.time_0D_series_d_max  = [] # Maximum value of uplift rate along the slab trench 
+        self.time_series             = []
+        self.time_1D_series_c        = [] # Uplift rate along the slab trench
+        self.time_0D_series_c        = [] # Average uplift rate along the slab trench per each timestep
+        self.time_0D_series_tearing  = [] # Maximum value of uplift rate along the slab trench 
         
 
         self.dH_fil = self.filter_array('dH')
@@ -813,7 +841,7 @@ class FS():
         
         self.time_1D_series_c = np.zeros([len(T.C.x_trench_p),len(T.time)],dtype = float)
         for i in range(len(T.time)):
-            self.time_1D_series_c[:,i] = _interpolate_2D(self.dH_fil[:,:,i],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
+            self.time_1D_series_c[:,i] = _interpolate_2D(self.vz_fil[:,:,i],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
 
         self.time_0D_series_c = np.zeros([len(T.time)],dtype = float)
 
@@ -839,10 +867,18 @@ class FS():
             t_buf = (time>=t0) & (time<t1)
         
             for ix in range(len(T.C.x_trench_p)):
-                time_1D_d[ix,t_buf==1] = np.mean(time_1D[ix,t_buf==1])
-                time_0D_d[t_buf==1]    = np.mean(time_0D[t_buf==1])
+                time_1D_d[ix,t_buf==1] = np.nanmean(time_1D[ix,t_buf==1])
+                time_0D_d[t_buf==1]    = np.nanmean(time_0D[t_buf==1])
             
-            self.time_0D_series_d_max = np.max(time_0D_d)
+            start_detaching = np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100)])
+            end_detaching = np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100)])
+            
+            i0 = np.where(time==start_detaching)
+            i1 = np.where(time==end_detaching)
+            i0 = i0[0][0]
+            i1 = i1[0][0]
+            # Low time resolution 
+            self.time_0D_series_tearing = np.nanmean(time_0D_d[i0:i1])
     
 
         return self 
@@ -863,9 +899,9 @@ class FS():
         new_array = np.zeros(np.shape(buf_array),dtype=float)
         # Prepare loop
         nit = len(new_array[0,0,:])
-        # Loop 
+        # Loop size=7
         for i in range(nit):
-            new_array[:,:,i]=scp.ndimage.median_filter(buf_array[:,:,i], size=(7))
+            new_array[:,:,i]=scp.ndimage.median_filter(buf_array[:,:,i],size=12)
     
         return new_array 
 
@@ -888,6 +924,7 @@ class FS():
         i1 = np.where(T.time==np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
         # Find when do the tearing end: 
         i2 = np.where(T.time==np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
+        
         # Filter isostatic 
         i_iso = np.where(T.time>1.0)
         i_iso = i_iso[0][0]
@@ -895,8 +932,8 @@ class FS():
         dt_det = T.time[i2[0][0]]-T.time[i1[0][0]]
         dt_long = T.time[i2[0][0]]-T.time[i_iso]
         # Compute anomaly
-        self.dH_detachment= self.H[:,:,i2]-self.H[:,:,i1]
-        self.dH_long_term = self.H[:,:,i1]-self.H[:,:,i_iso]
+        self.dH_detachment= self.H[:,:,i2[0][0]]-self.H[:,:,i1[0][0]]
+        self.dH_long_term = self.H[:,:,i1[0][0]]-self.H[:,:,i_iso]
        
         self.Uplift_det = self.dH_detachment/dt_det
         self.Uplift_LT  = self.dH_long_term/dt_long
@@ -959,9 +996,6 @@ class FS():
                 return dH,max_dH,min_dH,mean_dH
             else:
                 return dH,max_dH,min_dH,mean_dH,time_series_cum*sc
-        
-        
-        
         simulation_st = np.where(T.time>1.0)
         simulation_st = simulation_st[0][0]
         i = np.where(T.time==np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ]))
@@ -1006,19 +1040,20 @@ class Ptr():
         self.T = T._read_variable(self.dict['T'],Test_name)
 
         
-def _merge_database(FileA:str,FileB:str,FileC:str,FileD:str,Dest_file:str):
+def _merge_database(FileA:str,FileB:str,FileC:str,Dest_file:str):
         import h5py 
 
         with h5py.File(Dest_file,'w') as f_dest:
             with h5py.File(FileA,'r') as f_src:
                 f_src.copy(f_src["/PR_r"],f_dest["/"],"PR_r")
+                print('Merging the first Database')
                 with h5py.File(FileB,'r') as f_src2:
                     f_src.copy(f_src2["/PR_200"],f_dest["/"],"PR_200")
+                    print('Merging the second Database')
                     with h5py.File(FileC,'r') as f_src3:
                         f_src3.copy(f_src3["/PR_600"],f_dest["/"],"PR_600")
-                        with h5py.File(FileD,'r') as f_src4:
-                            f_src4.copy(f_src4["/PR_no"],f_dest["/"],"PR_no")
-                        
+                        print('Merging the last Database')
+
                         
 
 
