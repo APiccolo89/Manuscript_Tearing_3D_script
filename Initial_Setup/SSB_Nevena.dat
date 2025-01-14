@@ -1,0 +1,1066 @@
+#
+#----------------------------------------------------------------------------------------------------------------------
+# A basic parameter file for FDSTAG setups - Galapagos Setup
+# ----------------------------------------------------------------------------------------------------------------------
+#===============================================================================
+# Grid & discretization parameters
+#===============================================================================
+#Refined grid in x-direction
+	nel_x   = 256
+	nseg_x  = 1
+	bias    = 1.0
+	coord_x = -800.0 800.0
+# constant grid in y
+	nel_y = 256
+	coord_y = -800.0 800.0
+# Refined grid in z-direction
+	nel_z = 256
+	coord_z = -700 50
+#===============================================================================
+# Scaling
+#===============================================================================
+	units = geo
+	unit_temperature = 1000
+	unit_length      = 1000e3
+	unit_viscosity   = 1e20
+	unit_stress      = 1e9
+#===============================================================================
+# Time stepping parameters
+#===============================================================================
+	time_end  = 0.1    # simulation end time 
+	dt        = 0.0000001    # time step
+	dt_min    = 0.00000001  # minimum time step (declare divergence if lower value is attempted)
+	dt_max    = 0.05  	# maximum time step
+	CFL       = 0.5   	# CFL (Courant-Friedrichs-Lewy) criterion
+	#dt_out    = 0.5   # output step (output at least at fixed time intervals)
+	nstep_out = 10     	# save output every n steps
+	nstep_rdb = 40     # save restart database every n steps
+#===============================================================================
+# Boundary conditions
+#===============================================================================
+# Default conditions on all the boundaries:
+# * (mechanical): free-slip with zero normal velocity
+# * (thermal)   : zero heat flux
+# NO Free surface top boundary flag
+	open_top_bound = 1
+# No-slip boundary flag mask (left right front back bottom top)
+	noslip = 0 0 0 0 0 0
+# Temperature on the top & bottom boundaries
+	temp_top = 20.0
+	temp_bot = 1375.0;
+
+#===============================================================================
+# NO Free surface
+#===============================================================================
+	surf_use        = 1                # free surface activation flag
+	surf_corr_phase = 1                # air phase ratio correction flag (due to surface position)
+	surf_level      = 0.0              # initial level
+	surf_air_phase  = 0                # phase ID of sticky air layer
+	surf_max_angle  = 45.0             # maximum angle with horizon (smoothed if larger)
+    	surf_topo_file     = Topo.dat # initial topography file (redundant)
+#===============================================================================
+# Solution parameters & controls
+#===============================================================================
+	gravity        = 0.0 0.0 -9.81  # gravity vector
+	FSSA           = 1.0            # free surface stabilization parameter [0 - 1]
+	shear_heat_eff = 1.0            # shear heating efficiency parameter   [0 - 1]
+	act_temp_diff  = 1              # temperature diffusion activation flag
+    act_steady_temp = 0              # steady-state temperature initial guess activation flag
+    steady_temp_t   = 1.0            # time for (quasi-)steady-state temperature initial guess
+	Adiabatic_Heat  = 0.0           # Adiabatic Heating activaction flag and efficiency. [0.0 - 1.0] (e.g. 0.5 means that only 50% of the potential adiabatic heating affects the energy equation)   
+	act_steady_temp = 100              # steady-state temperature initial guess activation flag
+	nstep_steady    = 0             # number of steps for (quasi-)steady-state temperature initial guess (default = 1)
+	act_p_shift    = 0              # pressure shift activation flag (zero pressure in the top cell layer)
+	init_guess     = 1              # initial guess flag
+	p_litho_visc   = 1              # use lithostatic pressure for creep laws
+	p_litho_plast  = 1              # use lithostatic pressure for plasticity
+	p_lim_plast    = 1              # limit pressure at first iteration for plasticity
+	jac_mat_free   = 0              # matrix-free closed-form jacobian
+	init_lith_pres  = 1              # initial pressure with lithostatic pressure (stabilizes compressible setups in the first steps)
+	eta_min        = 1e16           # viscosity upper bound
+	eta_max        = 1e26           # viscosity lower limit
+	eta_ref        = 1e21           # reference viscosity (initial guess)
+	DII_ref        = 1e-15          # background (reference) strain-rate
+#===============================================================================
+# Model setup & advection
+#===============================================================================
+	msetup         = files              # setup type
+	nmark_x        = 3                 # markers per cell in x-direction
+	nmark_y        = 3                 # ...                 y-direction
+	nmark_z        = 3                 # ...                 z-direction
+	rand_noise     = 1                 # random noise flag
+	bg_phase       = 0                 # background phase ID
+	save_mark      = 0                 # save marker to disk flag
+	advect         = rk2               # advection scheme
+	interp         = stag              # velocity interpolation scheme
+	mark_ctrl      = subgrid           # marker control type
+	nmark_sub      = 5                # max number of same phase markers per subcell (subgrid marker control)
+
+#===========================================================================
+# Solver Options
+#===========================================================================\
+	SolverType              =       multigrid                # solver [direct or multigrid]
+	DirectSolver            =      	mumps                   # mumps/superlu_dist/pastix         
+#===============================================================================
+# Output
+#===============================================================================
+
+    Passive_Tracer              = 1                               # Activate passive tracers?
+    PassiveTracer_Box           =  -600 600 -200 400 -50 -10         # Dimensions of Box in which we disttribute passive tracers  
+    PassiveTracer_Resolution    =  120 400 50                      # The number of passive tracers in every direction
+    PassiveTracer_ActiveType    =  Always                  		  # Under which condition are they activated? [] 
+    PassiveTracer_ActiveValue   =  0.1                            # When this value is exceeded the tracers are being activated 
+    #<VelBoxStart>
+    #	cenX     =   -1300  # X-coordinate of center of box
+    #	cenY     =   0.0  # Y-coordinate of center of box
+    #	cenZ     =   -50.0  # Z-coordinate of center of box
+   #	widthX   =   100.0  # Width of box in x-direction
+    #	widthY   =   2.0  # Width of box in y-direction
+    #	widthZ   =   200.0  # Width of box in z-direction
+    #	vx       =   5.0  # Vx velocity of box (default is unconstrained)
+    #	vy       =   0.0  # Vy velocity of box (default is unconstrained)
+    #	vz       =   0.0  # Vz velocity of box (default is unconstrained) 
+    #	advect   =   1    # box advection flag
+     #   number_time_interval = 1
+#	time_intervals = 0.1 8.0
+ #   <VelBoxEnd> 
+	<PhaseAggStart>
+		name     = _Continental_Crust_1  # phase aggregate output vector name
+		numPhase = 3     	# number of phases to aggregate
+		phaseID  = 1 2 3 		# list of phase IDs to aggregate
+	<PhaseAggEnd>
+
+	<PhaseAggStart>
+		name     = _Continental_Crust_2  # phase aggregate output vector name
+		numPhase = 3     	# number of phases to aggregate
+		phaseID  = 4 10 11  		# list of phase IDs to aggregate
+	<PhaseAggEnd>
+
+
+	<PhaseAggStart>
+		name     = _Crust_all_  # phase aggregate output vector name
+		numPhase = 8       	 # number of phases to aggregate
+		phaseID  = 1 2 10 11 12 13 15 16  # list of phase IDs to aggregate
+	<PhaseAggEnd>
+	
+	<PhaseAggStart>
+		name     = _Lithosphere_all_  # phase aggregate output vector name
+		numPhase = 12       	 # number of phases to aggregate
+		phaseID  = 1 2 3 4 9 10 11 12 13 14 15 16  # list of phase IDs to aggregate
+	<PhaseAggEnd>
+	
+
+	<PhaseAggStart>
+		name     = _Oceanic_Lit_  	 	# phase aggregate output vector name
+		numPhase = 2      	 	# number of phases to aggregate
+		phaseID  = 6 7   		# list of phase IDs to aggregate
+	<PhaseAggEnd>
+	
+	
+	<PhaseAggStart>
+		name     = _Sediments_  	 	# phase aggregate output vector name
+		numPhase = 1      	 	# number of phases to aggregate
+		phaseID  = 13		# list of phase IDs to aggregate
+	<PhaseAggEnd>
+
+	<PhaseAggStart>
+		name     = _Prism  	 	# phase aggregate output vector name
+		numPhase = 2      	 	# number of phases to aggregate
+		phaseID  = 12 16		# list of phase IDs to aggregate
+	<PhaseAggEnd>
+# Grid output options (output is always active)
+
+	out_file_name       = SDet # output file name
+	out_pvd             = 1      # activate writing .pvd file
+	#out_phase           = 1
+	out_density         = 1
+	out_visc_total      = 1
+	out_visc_creep      = 1
+	out_velocity        = 1
+	out_pressure        = 1
+	out_temperature     = 1
+	out_j2_dev_stress   = 1
+	out_j2_strain_rate  = 1
+	out_plast_strain    = 1
+	out_plast_dissip    = 1
+	#out_moment_res      = 1
+	#out_cont_res        = 1
+	#out_energ_res       = 1
+	out_rel_dif_rate    = 1
+        out_rel_dis_rate    = 1
+	out_rel_prl_rate    = 1
+	out_strain_rate     = 1
+	out_dev_stress      = 1
+	out_tot_displ       = 1
+# Free surface output options (can be activated only if surface tracking is enabled)
+
+	out_surf            = 1 # activate surface output
+	out_surf_pvd        = 1 # activate writing .pvd file
+	out_surf_velocity   = 1
+	out_surf_topography = 1
+	out_surf_amplitude  = 1
+	# place holder out_moho_dept = 1 
+
+    out_ptr              = 1    # activate  
+    out_ptr_ID           = 1    # ID of the passive tracers
+    out_ptr_phase        = 1    # phase of the passive tracers
+    out_ptr_Pressure     = 1    # interpolated pressure
+    
+out_avd     = 1 # activate AVD phase output
+    out_avd_pvd = 1 # activate writing .pvd file
+    out_avd_ref = 3 # AVD grid refinement factor
+################################################################################################################
+#      Phase Transition
+################################################################################################################
+
+#<PhaseTransitionStart>
+#	ID                      =   0                           # Phase_transition law ID
+ #   Type                    =   Clapeyron                   # Use the pressure retrieved by the clapeyron linear equation to trigger the phase transition
+#	Name_Clapeyron          =   Mantle_Transition_660km     # predefined profiles; see SetClapeyron_Eq in phase_transition.cpp for options 		# The value @ which the phase transition occurs
+ #   number_phases           =   2
+#	PhaseBelow              =   14 15 
+#	PhaseAbove              =   17 18 
+ #   DensityAbove            =   3560 3560 
+  #  DensityBelow            =   3300 3300 
+   #  PhaseDirection          =   BothWays    # [BothWays=default; BelowToAbove; AboveToBelow]
+#<PhaseTransitionEnd>
+
+#<PhaseTransitionStart>
+#	ID                      =   1                           # Phase_transition law ID
+ #   Type                    =   Clapeyron                   # Use the pressure retrieved by the clapeyron linear equation to trigger the phase transition
+#	Name_Clapeyron          =   Eclogite     # predefined profiles; see SetClapeyron_Eq in phase_transition.cpp for options 		# The value @ which the phase transition occurs
+ #   number_phases           =   1
+#	PhaseBelow              =   7 
+#	PhaseAbove              =   16
+ #   DensityAbove            =   3460  
+  #  DensityBelow            =   2900  
+   #  PhaseDirection          =   BothWays    # [BothWays=default; BelowToAbove; AboveToBelow]
+#<PhaseTransitionEnd>
+#<PhaseTransitionStart>
+#	ID                      =   2                           # Phase_transition law ID
+ #   Type                    =   Clapeyron                   # Use the pressure retrieved by the clapeyron linear equation to trigger the phase transition
+#	Name_Clapeyron          =   Mantle_Transition_WadsleyiteRingwoodite_dry     # predefined profiles; see SetClapeyron_Eq in phase_transition.cpp for options 		# The value @ which the phase transition occurs
+ #   number_phases           =   3
+#	PhaseBelow              =   5 6 8
+#	PhaseAbove              =   14 15 15
+ #   DensityAbove            =   3400 3400 3400
+  #  DensityBelow            =   3300 3300 3300
+   #  PhaseDirection          =   BothWays    # [BothWays=default; BelowToAbove; AboveToBelow]
+#<PhaseTransitionEnd>
+
+#===============================================================================
+# Material phase parameters
+#===============================================================================
+
+#	<SofteningStart>
+#		ID   = 0   # softening law ID
+#		APS1 = 0.000001 # begin of softening APS
+#		APS2 = 0.7 # end of softening APS
+#		A    = 0.9 # reduction ratio
+#	<SofteningEnd>
+	############################################################################################################################################################
+	# AIR
+	#########################################################################################################################################################
+	
+	<MaterialStart>
+		ID = 0     # phase id  [-]
+		rho = 40 # density - if dimensional [kg/m3]
+		eta = 1e13 # viscosity - if dimensional [Pa.s]
+		# Thermal properties
+		k = 100 # conductivity
+		Cp = 1e6 # heat capacity - should be artificially large for sticky air
+		G = 5e10
+			ch = 1000e6 # cohesion [MPa]
+			fr = 30 # friction angle
+	<MaterialEnd>
+	
+	#########################################Continental_lithosphere_1########################################################
+
+	##########################################################################################################################
+	
+	##    _UC1_   #
+	
+	<MaterialStart>
+		ID = 1 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2700 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+	##    _LC1_   #
+	
+	<MaterialStart>
+		ID = 2 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2800 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e24   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+	##    _LM1_ ##
+	
+	<MaterialStart>
+		ID = 3 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		#eta0          = 1e24   # initial visocisty
+		#tau0          = 400    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+	##    _LM2_ ##
+	
+	<MaterialStart>
+		ID = 4 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+	        disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		
+		#eta0          = 1e24   # initial visocisty
+		#tau0          = 400    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+	##    _AST_ ##
+	
+	<MaterialStart>
+		ID = 5 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 
+		#eta  =  1e22 # Modified using the script
+		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	#Ed         = 375e3  # activation energy
+    	        Vd         = 5e-6   # activation volume
+		Vn         = 10e-6
+		# Dislocation------------------------------------------------------------#
+		#eta0 = 1e19 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+	##    _OL_   ##
+	
+	<MaterialStart>
+		ID = 6 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 		
+		#eta  =  1e23 # Modified using the script
+		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	#Ed         = 375e3  # activation energy
+        	Vd         = 5e-6   # activation volume
+		Vn         = 8e-6
+		# Dislocation------------------------------------------------------------#
+		#eta0 = 1e22 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 0.001
+		ch       = 400e6
+		# Plastic Weakening------------------------------------------------------#
+		#chSoftID = 0  # cohesion softening law ID
+		#frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+#       _OC_1_
+	
+	<MaterialStart>
+		ID = 7 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 		
+		#eta  =  1e23 # Modified using the script
+		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	#Ed         = 375e3  # activation energy
+    	#Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		#eta0 = 1e22 # Modified using the scrip
+		
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 10
+		ch       = 1e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+	# _Sediments_Ocean 
+
+	<MaterialStart>
+		ID = 8 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		# Diffusion--------------------------------------------------------------# 		
+		diff_prof = Wet_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Wet_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+				#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	#Ed         = 375e3  # activation energy
+    	#Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		#eta0 = 1e22 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 1
+		ch       = 1e5
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+<MaterialStart>
+		ID = 9 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Wet_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Wet_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 
+#		eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+	# _LC2_
+
+	<MaterialStart>
+		ID = 10 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2800 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24 
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000   		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+	# UC_1#
+
+	<MaterialStart>
+		ID = 11 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2700 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		# Diffusion--------------------------------------------------------------# 
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 5
+		ch       = 1e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+	# _Prism_
+
+	<MaterialStart>
+		ID = 12 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2700 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+				disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 15
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		#chSoftID = 0  # cohesion softening law ID
+		#frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+	# _pas_mar
+
+	<MaterialStart>
+		ID = 13 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2700 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 15
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		#chSoftID = 0  # cohesion softening law ID
+		#frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	# _Olit2_
+	<MaterialStart>
+		ID = 14 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 
+		#eta  =  1e22 # Modified using the script
+		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	#Ed         = 375e3  # activation energy
+    	Vd         = 5e-6   # activation volume
+		Vn         = 8e-6
+		# Dislocation------------------------------------------------------------#
+		#eta0 = 1e19 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+	
+	##    _OC2_   ##
+	
+	<MaterialStart>
+		ID = 15 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 3300 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		diff_prof = Dry_Olivine_diff_creep-Hirth_Kohlstedt_2003 # DIFFUSION creep profile
+		disl_prof = Dry_Olivine_disl_creep-Hirth_Kohlstedt_2003   
+		# Diffusion--------------------------------------------------------------# 		
+		#eta  =  1e23 # Modified using the script
+		#Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	#Ed         = 375e3  # activation energy
+        	Vd         = 5e-6   # activation volume
+		Vn         = 8e-6
+		# Dislocation------------------------------------------------------------#
+		#eta0 = 1e22 # Modified using the scrip
+		#tau0 = 100.000000 # Modified using the scrip
+		#n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+##    _LC_Prism_
+	<MaterialStart>
+		ID = 16 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2950 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		disl_prof = Dry_Plagioclase_RybackiDresen_2000
+		diff_prof = Dry_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 30
+		ch       = 10e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+	<MaterialStart>
+		ID = 17 # phase id  [-]
+		
+		#------------------------------------------------------------------------#
+		# Density 
+		rho = 2680 # density [kg/m3]
+		alpha = 3e-5 # coeff. of thermal expansion [1/K]
+		#beta      = 1e-11  # pressure-dependent density model parameter
+		#------------------------------------------------------------------------#
+		# Thermal properties
+		k = 3              # conductivity
+		Cp = 1050       # heat capacity
+		#------------------------------------------------------------------------#
+		## _Rheology_
+		#------------------------------------------------------------------------#
+		disl_prof = Wet_Plagioclase_RybackiDresen_2000
+		diff_prof = Wet_Plagioclase_RybackiDresen_2000
+		# Diffusion--------------------------------------------------------------# 
+		#eta        = 1e24    		
+		# _Bd         = 1.5e9  # DIFFUSION creep pre-exponential constant
+    	# _Ed         = 375e3  # activation energy
+    	# _Vd         = 5e-6   # activation volume
+		# Dislocation------------------------------------------------------------#
+		# _eta0          = 1e21   # initial visocisty
+		# _tau0          = 200    # reference Tau 
+		# _En         = 532e3  # activation energy
+		# _Vn         = 17e-6  # activation volume
+		# _n           = 3.5    # power law exponent
+		# Elastic----------------------------------------------------------------#
+		G        = 5e10
+		# _K        = x 
+		# Plastic----------------------------------------------------------------# 
+		fr       = 5
+		ch       = 1e6
+		# Plastic Weakening------------------------------------------------------#
+		chSoftID = 0  # cohesion softening law ID
+		frSoftID = 0  # friction softening law ID
+		# Viscous Damage Weakening [Place Holder]--------------------------------#
+	<MaterialEnd>
+
+##########################################################################################################################
+
+# ----------------------------------------------------
+# PETSC OPTIONS (SOLVER)
+# ----------------------------------------------------
+
+<PetscOptionsStart>
+	-snes_ksp_ew 	
+	-snes_ksp_ew_rtol0   1e-2
+#-snes_ksp_ew_rtolmax 1e-1
+ 	-snes_max_it 		18
+   		
+	# Newton/picard options
+	-snes_PicardSwitchToNewton_rtol 1e-4 # relative tolerance to switch to Newton (1e-2)
+
+	# Linesearch options
+	#-snes_linesearch_maxstep 	1.0				# very important to prevent the code from "blowing up"
+	
+	
+	# Jacobian solver
+	-js_ksp_type fgmres	
+	-js_ksp_max_it 20
+	-js_ksp_min_it 4
+	### SNES
+#	-snes_npicard 2
+	-snes_monitor
+#	-snes_atol 1e-3
+#	-snes_rtol 1e-4
+#	-snes_max_it 30
+	-gmg_pc_mg_levels 6
+	-gmg_pc_mg_galerkin
+	-gmg_pc_mg_type multiplicative
+	-gmg_pc_mg_cycle_type v
+#
+	-gmg_mg_levels_ksp_type richardson
+	-gmg_mg_levels_ksp_richardson_scale 0.5
+	-gmg_mg_levels_ksp_max_it 3
+	-gmg_mg_levels_pc_type jacobi
+	-crs_pc_type redundant
+	-crs_pc_redundant_number 5	
+#	-crs_redundant_pc_factor_mat_solver_package pastix
+
+#	-objects_dump
+<PetscOptionsEnd>
+##########################################################################################################################
+
+# ----------------------------------------------------
+# PETSC OPTIONS (SOLVER)
+# ----------------------------------------------------
+
+<PetscOptionsStart>
+	-snes_ksp_ew 	
+	-snes_ksp_ew_rtol0   1e-2
+#-snes_ksp_ew_rtolmax 1e-1
+ 	-snes_max_it 		18
+   		
+	# Newton/picard options
+	-snes_PicardSwitchToNewton_rtol 1e-4 # relative tolerance to switch to Newton (1e-2)
+
+	# Linesearch options
+	#-snes_linesearch_maxstep 	1.0				# very important to prevent the code from "blowing up"
+	
+	
+	# Jacobian solver
+	-js_ksp_type fgmres	
+	-js_ksp_max_it 20
+	-js_ksp_min_it 4
+	### SNES
+#	-snes_npicard 2
+	-snes_monitor
+#	-snes_atol 1e-3
+#	-snes_rtol 1e-4
+#	-snes_max_it 30
+	-gmg_pc_mg_levels 6
+	-gmg_pc_mg_galerkin
+	-gmg_pc_mg_type multiplicative
+	-gmg_pc_mg_cycle_type v
+#
+	-gmg_mg_levels_ksp_type richardson
+	-gmg_mg_levels_ksp_richardson_scale 0.5
+	-gmg_mg_levels_ksp_max_it 3
+	-gmg_mg_levels_pc_type jacobi
+	-crs_pc_type redundant
+	-crs_pc_redundant_number 5	
+#	-crs_redundant_pc_factor_mat_solver_package pastix
+
+#	-objects_dump
+<PetscOptionsEnd>
