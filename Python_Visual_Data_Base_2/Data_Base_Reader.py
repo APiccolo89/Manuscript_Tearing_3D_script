@@ -24,11 +24,11 @@ from time import perf_counter
 from figure_functions import *
 from figure_functions import make_figure3
 from figure_functions import make_figure6
-from figure_functions import make_figure7
+from figure_functions import make_figure8
 #from figure_functions import make_figure7_sub_Depth
 #from figure_functions import make_figure9_sub_Depth
 from figure_functions import make_figure9
-from figure_functions import make_figure6_sup
+from figure_functions import _make_gif
 
 path = r'../../Data_Bases'
 
@@ -52,16 +52,18 @@ Figure 3: Complementary figure of Fast tearing scenario
 Figure 4: Paraview figure: Figure depicting the slow tearing scenario
 Figure 5: Complementary figure of Slow tearing scenario
 Figure 6: Comulative uplift 
-Figure 7: Tearing velocity vs Parameters
-Figure 8: Tearing velocity vs uplift 
-Figure 9: [Working on]: Time resolution/result. 
-Figure S1:
-Figure S2:
-Figure S3: 
-Figure S4: 
-Figure S5: 
-Figure S6:
-Figure S7:
+Figure 7: Time resolution/result.
+Figure 8: Tearing velocity vs parameter 
+Figure 9: Tearing velocity vs uplift /pm linearcorrelation
+Figure S1: LaMEM constitutive model (inkscape)
+Figure S2: Geothermal gradient of the slab
+Figure S3: Initial topography
+Figure S4: Plot low resolution 1
+Figure S5: Plot low resolution 2
+Figure S6: Plot low resolution 3
+Figure S7: Plot low resolution 4
+Figure S8: Shear Heating and stress evolution
+Figure S9: Depth and parameters of slab tearing
 """
 # Merge Data Base
 #_merge_database(file_A,file_B,file_C,file_DB)
@@ -79,11 +81,6 @@ DB = Data_Base(file_DB)
 # to create a subclasses you do not have to put a decorator for the classes}
 DB._post_process_data(path,path_save,False,False,True)
 
-make_figure7_sup_Depth(DB,path_save,'Figure_depth')
-
-make_figure9_sup_Depth(DB,path_save,'Figure_uplift_depth')
-
-
 path_figure = os.path.join(path_save,'FM_def')
 
 path_gif = os.path.join(path_figure,'gif')
@@ -95,38 +92,23 @@ if not os.path.isdir(path_figure):
 if not os.path.isdir(path_gif):
     os.mkdir(path_gif)
 
-initial_profile_phase(path_figure)
+
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
-TSD2.print_topography_timeseries(path_figure)
 
 TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
-#TSD2_V10.print_topography_timeseries(path_figure)
 
 TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
-#TSD2_V11.print_topography_timeseries(path_figure)
 
 TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
-#TSD2_V12.print_topography_timeseries(path_figure)
 
 TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
-#TSD2_V13.print_topography_timeseries(path_figure)
 
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
-#TSD2_V15.print_topography_timeseries(path_figure)
-
-#TSD2_V15_HC = Test(file_DB,['PR_r','TSD2_V15_HC'])
-
-#figure_experimental_supplementary(TSD2_V15_HC,path_figure,'Figure_SUP5_HC',['[e]','[f]','[g]','[h]'])
-figure_experimental_supplementary(TSD2_V15,path_figure,'Figure_SUP5',['[e]','[f]','[g]','[h]'])
 
 
 # Figure 1 
-# Figure S1
-initial_geotherm(path_figure)
-# Figure S3
-initial_topography(TSD2,path_figure)
-
+initial_profile_phase(path_figure)
 # Figure 2: 
 """
 Figure 3_5: Figure depicting two end member scenarios (TSD2 and TSD2_V15)
@@ -141,8 +123,6 @@ within the slab at ca 200 km
 # Figure3 
 
 make_figure3(TSD2,path_figure,'figure3',[10.15,10.20,10.24],False)
-# Figure supplementary
-make_figure_Sup(TSD2,path_figure,'Figure_SUP',[10.18,10.20,10.24])
 
 # Figure 4 PARAVIEW
 
@@ -156,31 +136,50 @@ Figure depicting the total uplift within 1->end of tearing
 
 """
 make_figure6(TSD2,TSD2_V15,path_figure,'figure6',1)
-make_figure6_sup(TSD2,TSD2_V15,path_figure,'figure6_sup',1)
 
 """
-Figure 8: 
+Figure 7
+"""
+figure_experimental_supplementary(TSD2,    path_figure,'Figure_7A',[])
+figure_experimental_supplementary(TSD2_V15,path_figure,'Figure_7B',['[e]','[f]','[g]','[h]'])
 
 """
+Figure 8: Figure depicting the tearing velocity as a function of the main controlling parameter 
+"""
 
-make_figure7(DB,path_figure,'figure7')
+make_figure8(DB,path_figure,'figure8')
 
 """
-Figure 8: 
+Figure 9: correlation between uplift and tearing velocity
 """
 
 make_figure9(DB,path_figure,'figure9')
 
 """
-Supplementary figure 
+Supplementary figure: Figure that are in the supplementary+gif_maker
 """
 
+# Figure S2
+initial_geotherm(path_figure)
+# Figure S3
+initial_topography(TSD2,path_figure)
 
 
-figure_experimental_supplementary(TSD2,    path_figure,'Figure_SUP0',[])
-figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_SUP1',[])
-figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_SUP2',[])
-figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_SUP3',[])
-figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_SUP4',[])
-figure_experimental_supplementary(TSD2_V15,path_figure,'Figure_SUP5',['[e]','[f]','[g]','[h]'])
+figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_S4',[])
+figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_S5',[])
+figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_S6',[])
+figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_S7',[])
+make_figure_Sup(TSD2,path_figure,'Figure_S8',[10.18,10.20,10.24])
+
+
+make_figure8_sup_Depth(DB,path_figure,'Figure_S9')
+
+
+_make_gif(TSD2,path_gif)
+_make_gif(TSD2_V10,path_gif)
+_make_gif(TSD2_V11,path_gif)
+_make_gif(TSD2_V12,path_gif)
+_make_gif(TSD2_V13,path_gif)
+_make_gif(TSD2_V15,path_gif)
+
 

@@ -20,6 +20,7 @@ import matplotlib.cbook as cbook
 from Class_Data_Base import * 
 from Class_Data_Base import _interpolate_2D
 from Class_Data_Base import timer
+import matplotlib.cm as colmap
 
 from time import perf_counter 
 plugin='DICOM'
@@ -309,8 +310,8 @@ def initial_geotherm(path_save):
     
     # Figure s.s.
     
-    fn = os.path.join(path_save,'Initial_Temperature.svg')
-    fn2 = os.path.join(path_save,'Initial_Temperature.png')
+    fn = os.path.join(path_save,'Figure_S2.svg')
+    fn2 = os.path.join(path_save,'Figure_S3.png')
 
     
     cm = 1/2.54  # centimeters in inches
@@ -492,8 +493,17 @@ def _make_gif(test,ptsave_b):
     cm = 1/2.54  # centimeters in inches
     file_list = []
 
+    check = 1
+
     for ipic in range(len(test.time)):
-        if test.time[ipic]>1.0:
+        if test.time[ipic]>=1.0:
+            if check == 1: 
+                lim_1 = np.nanmin(test.FS.dH[:,:,ipic::])
+                lim_2 = np.nanmax(test.FS.dH[:,:,ipic::])
+                lim_psi = [round(np.nanpercentile(np.log10(test.Det.Psi[:,:,ipic::]),40),0),round(np.nanpercentile(np.log10(test.Det.Psi[:,:,ipic::]),100),0)]
+                check = 0
+
+
             dH_trench = np.zeros(len(test.C.x_trench_p),dtype=float)
 
             # interpolate dh along the trench (filtered)
@@ -524,12 +534,12 @@ def _make_gif(test,ptsave_b):
             ax1b.spines['top'].set_color('w') 
             ax1b.spines['left'].set_color('k')
             ax1b.spines['right'].set_color('k')
-            if (np.isnan(np.nanmin(dH_trench)) == False) and  (np.isnan(np.nanmax(dH_trench)) == False):
+            if (np.isnan(lim_1) == False) and  (np.isnan(lim_2) == False):
     #secax_y0b1= ax0b.secondary_yaxis(1.2, functions=(celsius_to_anomaly, anomaly_to_celsius))
     #secax_y0b1set_ylabel(r'$T - \ overline{T}\ [^oC]$')
                 ax1.plot(test.C.x_sp,dH_trench,color='k',linewidth=1.2)
                 ax1.axhline(y=0.0, color = 'k', linestyle=':', linewidth = 0.4)
-                ax1.set_yticks([round(np.nanmin(dH_trench),2),round(np.nanmax(dH_trench),2)])
+                ax1.set_yticks([round(lim_1,2),round(lim_2,2)])
             else:
                 ax1.set_yticks([-1,1])
 
@@ -547,8 +557,6 @@ def _make_gif(test,ptsave_b):
             ax1b.tick_params(axis='y', colors='k')
             secax_y0b.yaxis.label.set_color('firebrick')
             secax_y0b.tick_params(axis='y',color='white')
-    
-    #ax0.xaxis.set_label_coords(0.5,-0.02)
             ax1.yaxis.set_label_coords(-0.1,0.5)
 
             ax1b.yaxis.set_label_coords(1.03,0.5)
@@ -566,20 +574,21 @@ def _make_gif(test,ptsave_b):
 
             
             buf = np.log10(test.Det.Psi[:,:,ipic]) # Hard coded value i know. 
-            lim_psi = [round(np.nanpercentile(np.log10(test.Det.Psi[:,:,ipic]),5),0),round(np.nanpercentile(np.log10(test.Det.Psi[:,:,ipic]),95),0)]
             levels = np.linspace(np.round(0.1), np.round(0.75), num=10, endpoint=True, retstep=False, dtype=float)
-            cf=ax0.pcolormesh(test.C.x_sp,test.C.zp,np.transpose(buf),cmap='cmc.lipari',vmin = lim_psi[0], vmax=lim_psi[1])
+            cmap2 = colmap.get_cmap("cmc.lipari",lut=10)
+            cmap2.set_under("k")
+            cf=ax0.pcolormesh(test.C.x_sp,test.C.zp,np.transpose(buf),cmap=cmap2,vmin = lim_psi[0], vmax=lim_psi[1])
             cbar = fg.colorbar(cf,ax=ax0,orientation='horizontal',label=r'$\dot{\Psi}$ [$\mathrm{\frac{W}{m^3}}$]',extend="both",shrink=0.5)
             
             depth = test.Det.depth_vec
             depth[depth>=-80]=np.nan
             
             condition = (test.C.x_sp > 100) & (test.C.x_sp <1100)
-            cf2=ax0.plot(test.C.x_sp[condition==1],depth[condition==1],color='forestgreen',linewidth=0.1)
-            dummy_var = test.C.x_sp[condition==1]/test.C.x_sp[condition==1]
-            cf2=ax0.fill_between(test.C.x_sp[condition==1],dummy_var*np.nanmin(depth[condition==1]),dummy_var*np.nanmax(depth[condition==1]),color='forestgreen',alpha=0.2,linewidth=1.2)
-            p1 = ax0.contour(test.C.x_sp,test.C.zp,np.transpose(test.Det.T[:,:,ipic]),levels = [800,900,1000,1100,1200],colors = 'k',linewidths=0.5)
-            ax0.clabel(p1, p1.levels, inline=True, fmt=fmt2, fontsize=6)
+            cf2=ax0.plot(test.C.x_sp[condition==1],depth[condition==1],color='red',linewidth=1.0)
+            #dummy_var = test.C.x_sp[condition==1]/test.C.x_sp[condition==1]
+            #cf2=ax0.fill_between(test.C.x_sp[condition==1],dummy_var*np.nanmin(depth[condition==1]),dummy_var*np.nanmax(depth[condition==1]),color='forestgreen',alpha=0.2,linewidth=1.2)
+            #p1 = ax0.contour(test.C.x_sp,test.C.zp,np.transpose(test.Det.T[:,:,ipic]),levels = [800,900,1000,1100,1200],colors = 'k',linewidths=0.5)
+            #ax0.clabel(p1, p1.levels, inline=True, fmt=fmt2, fontsize=6)
             
             ax1.set_title(tick)
             ax0.tick_params(axis='both',bottom=True, top=True, left=True, right=True, direction='in', which='major')
@@ -598,17 +607,12 @@ def _make_gif(test,ptsave_b):
             ax0.set_xticks([200,600,1000])
             ax0.set_yticks([-80,-200,-400])
             ax0.set_ylim([-500,-60])
-
-            
-
             ax1.set_xticks([200,600,1000])
             ax0.set_xticklabels([r'$200$','','$1200$'])
             ax0.xaxis.set_label_coords(0.5,-0.02)
             ax0.yaxis.set_label_coords(-0.01,0.5)
-
             ax1.yaxis.set_label_coords(-0.02,0.5)
             ax1b.yaxis.set_label_coords(1.02,0.5)
-
             #plt.draw()    # necessary to render figure before saving
             fg.savefig(fn,dpi=600)
             plt.close() 
@@ -915,7 +919,7 @@ def initial_topography(A,path_save):
         
     fg = figure()
         
-    fn = os.path.join(path_save,'Figure_S2')
+    fn = os.path.join(path_save,'Figure_S3')
     ax = fg.gca()
     p1 = ax.contourf(A.C.xg,A.C.yg,A.FS.H[:,:,10],levels = [-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5],cmap = 'cmc.oleron',linewidths=0.5)
     #ax.clabel(p1, p1.levels, inline=True, fmt=fmt, fontsize=fnt_g.axis_)
@@ -1100,12 +1104,12 @@ def figure_experimental_supplementary(A,path_figure,figure_name,letters_):
     sx = 0.30 
     sy1 = 0.8
     sy2 = 0.25
-    #if time_max>20:
-        #time_max = 30
-    #ticks = [4,8,12,16,20]
-        #ticks_label = [r"4",r"8",r"12",r"16",r"20"]
-    #if len(letters_)>0:
-        #time_max = 30
+    if time_max>20:
+        time_max = 30
+        ticks = [4,8,12,16,20]
+        ticks_label = [r"4",r"8",r"12",r"16",r"20"]
+    if len(letters_)>0:
+        time_max = 30
 
         
     # First panel with the pcolormap
@@ -1501,7 +1505,7 @@ def make_figure6_sup(A,B,path_figure,figure_name,det):
 
 
 
-def make_figure7(DB,path_save,figure_name):
+def make_figure8(DB,path_save,figure_name):
     """
     Major update: better to put everything in a row otherwise it is horrible in a paper
     
@@ -1617,8 +1621,18 @@ def make_figure7(DB,path_save,figure_name):
     fg.savefig(fn,dpi=600)
 
 def make_figure9(DB,path_save,figure_name):
-    
+    from scipy import stats
     # figure name
+    def linear_fuc(x,slope,intercept):
+        return (x*slope+intercept)
+    
+
+    def linear_internal_regression(a,b,min_v,max_v):
+        slope, intercept, r, p, std_err = stats.linregress(a, b)
+        x = np.linspace((min_v),(max_v),num=1000)
+        eq = linear_fuc(x,slope,intercept)
+        return x,eq,eq+std_err,eq-std_err,slope,intercept
+
     
     # Prepare variables
     vel_tearing = (DB.detachment_velocity)
@@ -1639,7 +1653,7 @@ def make_figure9(DB,path_save,figure_name):
     dy = 0.01
     type = ['a','b','c']
     Uplift_discrete = DB.Uplift_Te_discrete
-    for ip in range(3):
+    for ip in range(1):
         fg = figure(figsize=(18*cm, 9*cm)) 
         ax0 = fg.add_axes([bx, by, sx, sy])
         ax1 = fg.add_axes([bx+sx+dx,by,sx,sy])
@@ -1649,12 +1663,30 @@ def make_figure9(DB,path_save,figure_name):
         uplift = DB.uplift[:,ip]
         colors = ['royalblue','goldenrod','tomato','orange','grey','pink']
         label_fig = [r'$V_{a,dis} = 8$ [$\frac{\mathrm{m^3}}{\mathrm{Pa}}$]',r'$V_{a,dis} = 10$ [$\frac{\mathrm{m^3}}{\mathrm{Pa}}$]',r'$V_{a,dis} = 11$ [$\frac{\mathrm{m^3}}{\mathrm{Pa}}$]',r'$V_{a,dis} = 12$ [$\frac{\mathrm{m^3}}{\mathrm{Pa}}$]',r'$V_{a,dis} = 13 $ [$\frac{\mathrm{m^3}}{\mathrm{Pa}}$]',r'$V_{a,dis} = 15$ [$\frac{\mathrm{m^3}}{\mathrm{Pa}}$]']
+        a=np.log10(vel_tearing[(AVol > 0)])
+        b=np.log10(uplift[(AVol > 0) ])
+        c=np.log10(Uplift_discrete[(AVol > 0) ])
+
+
 
         AVol_u = np.sort(np.unique(AVol))
         AVol_u = AVol_u[AVol_u>0.0]
         for i in range(len(AVol_u)):
             ax0.scatter(vel_tearing[(AVol == AVol_u[i])],uplift[(AVol == AVol_u[i])],c=colors[i],s=50,edgecolor = 'k',label=label_fig[i])
+           
             ax1.scatter(vel_tearing[(AVol == AVol_u[i])],Uplift_discrete[(AVol == AVol_u[i])],c=colors[i],s=50,edgecolor = 'k',label=label_fig[i])
+
+        v,u,ea1,ea2,slope,intercept=linear_internal_regression(a,b,np.min(a),np.max(a))
+        ax0.plot(10**v,10**u,color = 'forestgreen',linewidth=1.2)
+        ax0.fill_between(10**v,10**ea2,10**ea1,color='forestgreen',alpha=0.2,linewidth=1.2)
+        u_alp=linear_fuc(np.log10([10,45]),slope,intercept)
+        ax0.scatter([10,45],10**u_alp,s=50,color="forestgreen")
+
+        v,u2,ea1,ea2,slope2,intercept2=linear_internal_regression(a,c,np.min(a),np.max(a))
+        ax1.plot(10**v,10**u2,color = 'forestgreen',linewidth=1.2)
+        ax1.fill_between(10**v,10**ea2,10**ea1,color='forestgreen',alpha=0.2,linewidth=1.2)
+
+
         #ax0.axvline(2,linewidth=0.8,color='k',alpha=0.5)
         #ax0.axvline(94,linewidth=0.8,color='k',alpha=0.5)
         #ax1.axvline(2,linewidth=0.8,color='k',alpha=0.5)
@@ -1701,6 +1733,12 @@ def make_figure9(DB,path_save,figure_name):
         ax1.text(0.05, 0.96, '$[b]$', transform=ax1.transAxes, fontsize=fnt_g.label_,
             verticalalignment='top', bbox=props,color='white')
     
+        ax0.text(0.2, 0.1, '$log_{10}(\dot{H})=%.1f log_{10}(v_{tearing})%.1f$'%(slope,intercept), transform=ax0.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props,color='white')
+        ax1.text(0.2, 0.1, '$log_{10}(\dot{H})=%.1f log_{10}(v_{tearing})%.1f$'%(slope2,intercept2), transform=ax1.transAxes, fontsize=10,
+            verticalalignment='top', bbox=props,color='white')
+
+
 
         if ip == 0:
             ax0.set_yscale('log')
@@ -1713,7 +1751,7 @@ def make_figure9(DB,path_save,figure_name):
         plt.close()
         ax0 = []
         
-def make_figure7_sup_Depth(DB,path_save,figure_name):
+def make_figure8_sup_Depth(DB,path_save,figure_name):
     """
     Major update: better to put everything in a row otherwise it is horrible in a paper
     

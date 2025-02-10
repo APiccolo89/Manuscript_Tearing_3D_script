@@ -69,6 +69,8 @@ class Data_Base(object):
         
         self.uplift            = np.zeros([self.n_test,3],dtype=float) 
         
+        self.uplift_max           = np.zeros([self.n_test,3],dtype=float) 
+
         self.dt             = np.zeros([self.n_test,3],dtype=float) 
         
         self.Avolume = np.zeros([self.n_test],dtype = float)
@@ -275,6 +277,13 @@ class Data_Base(object):
                     self.uplift[itest,1] = test.FS.dH_uplift_mean[0,1]
 
                     self.uplift[itest,2]  = test.FS.dH_uplift_mean[2,1]
+
+                    
+                    self.uplift_max[itest,0] = test.FS.dH_uplift_max[1,1]
+
+                    self.uplift_max[itest,1] = test.FS.dH_uplift_max[0,1]
+
+                    self.uplift_max[itest,2]  = test.FS.dH_uplift_max[2,1]
 
                     self.tau_max[itest] = test.Det.maxtau/(self.StressLimit[itest]/1e6)
                     
