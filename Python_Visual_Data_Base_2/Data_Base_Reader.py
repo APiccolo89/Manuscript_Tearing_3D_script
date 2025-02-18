@@ -29,6 +29,8 @@ from figure_functions import make_figure8
 #from figure_functions import make_figure9_sub_Depth
 from figure_functions import make_figure9
 from figure_functions import _make_gif
+from figure_functions import make_figureXSup
+from figure_functions import figure_tearing_instantaneous
 
 path = r'../../Data_Bases'
 
@@ -92,6 +94,8 @@ if not os.path.isdir(path_figure):
 if not os.path.isdir(path_gif):
     os.mkdir(path_gif)
 
+make_figure9(DB,path_figure,'figure9')
+make_figureXSup(DB,path_figure,'Bonus_Supplementary')
 
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
@@ -106,6 +110,7 @@ TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
 
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 
+figure_tearing_instantaneous(TSD2,TSD2_V10,TSD2_V11,TSD2_V12,TSD2_V13,TSD2_V15,path_figure,'figure_optional')
 
 # Figure 1 
 initial_profile_phase(path_figure)
