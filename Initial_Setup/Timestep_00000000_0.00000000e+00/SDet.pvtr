@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+<VTKFile type="PRectilinearGrid" version="1.0" byte_order="LittleEndian" header_type="UInt64">
+	<PRectilinearGrid GhostLevel="0" WholeExtent="1 257 1 257 1 257">
+		<PCellData>
+		</PCellData>
+		<PCoordinates>
+			<PDataArray type="Float32" Name="x" NumberOfComponents="1" format="appended" header_type="UInt64"/>
+			<PDataArray type="Float32" Name="y" NumberOfComponents="1" format="appended" header_type="UInt64"/>
+			<PDataArray type="Float32" Name="z" NumberOfComponents="1" format="appended" header_type="UInt64"/>
+		</PCoordinates>
+		<PPointData>
+			<PDataArray type="Float32" Name="phase [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="density [kg/m^3]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="visc_total [Pa*s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="visc_creep [Pa*s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="velocity [cm/yr]" NumberOfComponents="3" format="appended"/>
+			<PDataArray type="Float32" Name="pressure [MPa]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="temperature [C]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="dev_stress [MPa]" NumberOfComponents="9" format="appended"/>
+			<PDataArray type="Float32" Name="strain_rate [1/s]" NumberOfComponents="9" format="appended"/>
+			<PDataArray type="Float32" Name="j2_dev_stress [MPa]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="j2_strain_rate [1/s]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="plast_strain [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="plast_dissip [W/m^3]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="tot_displ [km]" NumberOfComponents="3" format="appended"/>
+			<PDataArray type="Float32" Name="rel_dif_rate [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="rel_dis_rate [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="rel_prl_rate [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Continental_Crust_1 [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Continental_Crust_2 [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Crust_all_ [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Lithosphere_all_ [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Oceanic_Lit_ [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Sediments_ [ ]" NumberOfComponents="1" format="appended"/>
+			<PDataArray type="Float32" Name="_Prism [ ]" NumberOfComponents="1" format="appended"/>
+		</PPointData>
+		<Piece Extent="1 65 1 65 1 33" Source="SDet_p00000000.vtr"/>
+		<Piece Extent="65 129 1 65 1 33" Source="SDet_p00000001.vtr"/>
+		<Piece Extent="129 193 1 65 1 33" Source="SDet_p00000002.vtr"/>
+		<Piece Extent="193 257 1 65 1 33" Source="SDet_p00000003.vtr"/>
+		<Piece Extent="1 65 65 129 1 33" Source="SDet_p00000004.vtr"/>
+		<Piece Extent="65 129 65 129 1 33" Source="SDet_p00000005.vtr"/>
+		<Piece Extent="129 193 65 129 1 33" Source="SDet_p00000006.vtr"/>
+		<Piece Extent="193 257 65 129 1 33" Source="SDet_p00000007.vtr"/>
+		<Piece Extent="1 65 129 193 1 33" Source="SDet_p00000008.vtr"/>
+		<Piece Extent="65 129 129 193 1 33" Source="SDet_p00000009.vtr"/>
+		<Piece Extent="129 193 129 193 1 33" Source="SDet_p00000010.vtr"/>
+		<Piece Extent="193 257 129 193 1 33" Source="SDet_p00000011.vtr"/>
+		<Piece Extent="1 65 193 257 1 33" Source="SDet_p00000012.vtr"/>
+		<Piece Extent="65 129 193 257 1 33" Source="SDet_p00000013.vtr"/>
+		<Piece Extent="129 193 193 257 1 33" Source="SDet_p00000014.vtr"/>
+		<Piece Extent="193 257 193 257 1 33" Source="SDet_p00000015.vtr"/>
+		<Piece Extent="1 65 1 65 33 65" Source="SDet_p00000016.vtr"/>
+		<Piece Extent="65 129 1 65 33 65" Source="SDet_p00000017.vtr"/>
+		<Piece Extent="129 193 1 65 33 65" Source="SDet_p00000018.vtr"/>
+		<Piece Extent="193 257 1 65 33 65" Source="SDet_p00000019.vtr"/>
+		<Piece Extent="1 65 65 129 33 65" Source="SDet_p00000020.vtr"/>
+		<Piece Extent="65 129 65 129 33 65" Source="SDet_p00000021.vtr"/>
+		<Piece Extent="129 193 65 129 33 65" Source="SDet_p00000022.vtr"/>
+		<Piece Extent="193 257 65 129 33 65" Source="SDet_p00000023.vtr"/>
+		<Piece Extent="1 65 129 193 33 65" Source="SDet_p00000024.vtr"/>
+		<Piece Extent="65 129 129 193 33 65" Source="SDet_p00000025.vtr"/>
+		<Piece Extent="129 193 129 193 33 65" Source="SDet_p00000026.vtr"/>
+		<Piece Extent="193 257 129 193 33 65" Source="SDet_p00000027.vtr"/>
+		<Piece Extent="1 65 193 257 33 65" Source="SDet_p00000028.vtr"/>
+		<Piece Extent="65 129 193 257 33 65" Source="SDet_p00000029.vtr"/>
+		<Piece Extent="129 193 193 257 33 65" Source="SDet_p00000030.vtr"/>
+		<Piece Extent="193 257 193 257 33 65" Source="SDet_p00000031.vtr"/>
+		<Piece Extent="1 65 1 65 65 97" Source="SDet_p00000032.vtr"/>
+		<Piece Extent="65 129 1 65 65 97" Source="SDet_p00000033.vtr"/>
+		<Piece Extent="129 193 1 65 65 97" Source="SDet_p00000034.vtr"/>
+		<Piece Extent="193 257 1 65 65 97" Source="SDet_p00000035.vtr"/>
+		<Piece Extent="1 65 65 129 65 97" Source="SDet_p00000036.vtr"/>
+		<Piece Extent="65 129 65 129 65 97" Source="SDet_p00000037.vtr"/>
+		<Piece Extent="129 193 65 129 65 97" Source="SDet_p00000038.vtr"/>
+		<Piece Extent="193 257 65 129 65 97" Source="SDet_p00000039.vtr"/>
+		<Piece Extent="1 65 129 193 65 97" Source="SDet_p00000040.vtr"/>
+		<Piece Extent="65 129 129 193 65 97" Source="SDet_p00000041.vtr"/>
+		<Piece Extent="129 193 129 193 65 97" Source="SDet_p00000042.vtr"/>
+		<Piece Extent="193 257 129 193 65 97" Source="SDet_p00000043.vtr"/>
+		<Piece Extent="1 65 193 257 65 97" Source="SDet_p00000044.vtr"/>
+		<Piece Extent="65 129 193 257 65 97" Source="SDet_p00000045.vtr"/>
+		<Piece Extent="129 193 193 257 65 97" Source="SDet_p00000046.vtr"/>
+		<Piece Extent="193 257 193 257 65 97" Source="SDet_p00000047.vtr"/>
+		<Piece Extent="1 65 1 65 97 129" Source="SDet_p00000048.vtr"/>
+		<Piece Extent="65 129 1 65 97 129" Source="SDet_p00000049.vtr"/>
+		<Piece Extent="129 193 1 65 97 129" Source="SDet_p00000050.vtr"/>
+		<Piece Extent="193 257 1 65 97 129" Source="SDet_p00000051.vtr"/>
+		<Piece Extent="1 65 65 129 97 129" Source="SDet_p00000052.vtr"/>
+		<Piece Extent="65 129 65 129 97 129" Source="SDet_p00000053.vtr"/>
+		<Piece Extent="129 193 65 129 97 129" Source="SDet_p00000054.vtr"/>
+		<Piece Extent="193 257 65 129 97 129" Source="SDet_p00000055.vtr"/>
+		<Piece Extent="1 65 129 193 97 129" Source="SDet_p00000056.vtr"/>
+		<Piece Extent="65 129 129 193 97 129" Source="SDet_p00000057.vtr"/>
+		<Piece Extent="129 193 129 193 97 129" Source="SDet_p00000058.vtr"/>
+		<Piece Extent="193 257 129 193 97 129" Source="SDet_p00000059.vtr"/>
+		<Piece Extent="1 65 193 257 97 129" Source="SDet_p00000060.vtr"/>
+		<Piece Extent="65 129 193 257 97 129" Source="SDet_p00000061.vtr"/>
+		<Piece Extent="129 193 193 257 97 129" Source="SDet_p00000062.vtr"/>
+		<Piece Extent="193 257 193 257 97 129" Source="SDet_p00000063.vtr"/>
+		<Piece Extent="1 65 1 65 129 161" Source="SDet_p00000064.vtr"/>
+		<Piece Extent="65 129 1 65 129 161" Source="SDet_p00000065.vtr"/>
+		<Piece Extent="129 193 1 65 129 161" Source="SDet_p00000066.vtr"/>
+		<Piece Extent="193 257 1 65 129 161" Source="SDet_p00000067.vtr"/>
+		<Piece Extent="1 65 65 129 129 161" Source="SDet_p00000068.vtr"/>
+		<Piece Extent="65 129 65 129 129 161" Source="SDet_p00000069.vtr"/>
+		<Piece Extent="129 193 65 129 129 161" Source="SDet_p00000070.vtr"/>
+		<Piece Extent="193 257 65 129 129 161" Source="SDet_p00000071.vtr"/>
+		<Piece Extent="1 65 129 193 129 161" Source="SDet_p00000072.vtr"/>
+		<Piece Extent="65 129 129 193 129 161" Source="SDet_p00000073.vtr"/>
+		<Piece Extent="129 193 129 193 129 161" Source="SDet_p00000074.vtr"/>
+		<Piece Extent="193 257 129 193 129 161" Source="SDet_p00000075.vtr"/>
+		<Piece Extent="1 65 193 257 129 161" Source="SDet_p00000076.vtr"/>
+		<Piece Extent="65 129 193 257 129 161" Source="SDet_p00000077.vtr"/>
+		<Piece Extent="129 193 193 257 129 161" Source="SDet_p00000078.vtr"/>
+		<Piece Extent="193 257 193 257 129 161" Source="SDet_p00000079.vtr"/>
+		<Piece Extent="1 65 1 65 161 193" Source="SDet_p00000080.vtr"/>
+		<Piece Extent="65 129 1 65 161 193" Source="SDet_p00000081.vtr"/>
+		<Piece Extent="129 193 1 65 161 193" Source="SDet_p00000082.vtr"/>
+		<Piece Extent="193 257 1 65 161 193" Source="SDet_p00000083.vtr"/>
+		<Piece Extent="1 65 65 129 161 193" Source="SDet_p00000084.vtr"/>
+		<Piece Extent="65 129 65 129 161 193" Source="SDet_p00000085.vtr"/>
+		<Piece Extent="129 193 65 129 161 193" Source="SDet_p00000086.vtr"/>
+		<Piece Extent="193 257 65 129 161 193" Source="SDet_p00000087.vtr"/>
+		<Piece Extent="1 65 129 193 161 193" Source="SDet_p00000088.vtr"/>
+		<Piece Extent="65 129 129 193 161 193" Source="SDet_p00000089.vtr"/>
+		<Piece Extent="129 193 129 193 161 193" Source="SDet_p00000090.vtr"/>
+		<Piece Extent="193 257 129 193 161 193" Source="SDet_p00000091.vtr"/>
+		<Piece Extent="1 65 193 257 161 193" Source="SDet_p00000092.vtr"/>
+		<Piece Extent="65 129 193 257 161 193" Source="SDet_p00000093.vtr"/>
+		<Piece Extent="129 193 193 257 161 193" Source="SDet_p00000094.vtr"/>
+		<Piece Extent="193 257 193 257 161 193" Source="SDet_p00000095.vtr"/>
+		<Piece Extent="1 65 1 65 193 225" Source="SDet_p00000096.vtr"/>
+		<Piece Extent="65 129 1 65 193 225" Source="SDet_p00000097.vtr"/>
+		<Piece Extent="129 193 1 65 193 225" Source="SDet_p00000098.vtr"/>
+		<Piece Extent="193 257 1 65 193 225" Source="SDet_p00000099.vtr"/>
+		<Piece Extent="1 65 65 129 193 225" Source="SDet_p00000100.vtr"/>
+		<Piece Extent="65 129 65 129 193 225" Source="SDet_p00000101.vtr"/>
+		<Piece Extent="129 193 65 129 193 225" Source="SDet_p00000102.vtr"/>
+		<Piece Extent="193 257 65 129 193 225" Source="SDet_p00000103.vtr"/>
+		<Piece Extent="1 65 129 193 193 225" Source="SDet_p00000104.vtr"/>
+		<Piece Extent="65 129 129 193 193 225" Source="SDet_p00000105.vtr"/>
+		<Piece Extent="129 193 129 193 193 225" Source="SDet_p00000106.vtr"/>
+		<Piece Extent="193 257 129 193 193 225" Source="SDet_p00000107.vtr"/>
+		<Piece Extent="1 65 193 257 193 225" Source="SDet_p00000108.vtr"/>
+		<Piece Extent="65 129 193 257 193 225" Source="SDet_p00000109.vtr"/>
+		<Piece Extent="129 193 193 257 193 225" Source="SDet_p00000110.vtr"/>
+		<Piece Extent="193 257 193 257 193 225" Source="SDet_p00000111.vtr"/>
+		<Piece Extent="1 65 1 65 225 257" Source="SDet_p00000112.vtr"/>
+		<Piece Extent="65 129 1 65 225 257" Source="SDet_p00000113.vtr"/>
+		<Piece Extent="129 193 1 65 225 257" Source="SDet_p00000114.vtr"/>
+		<Piece Extent="193 257 1 65 225 257" Source="SDet_p00000115.vtr"/>
+		<Piece Extent="1 65 65 129 225 257" Source="SDet_p00000116.vtr"/>
+		<Piece Extent="65 129 65 129 225 257" Source="SDet_p00000117.vtr"/>
+		<Piece Extent="129 193 65 129 225 257" Source="SDet_p00000118.vtr"/>
+		<Piece Extent="193 257 65 129 225 257" Source="SDet_p00000119.vtr"/>
+		<Piece Extent="1 65 129 193 225 257" Source="SDet_p00000120.vtr"/>
+		<Piece Extent="65 129 129 193 225 257" Source="SDet_p00000121.vtr"/>
+		<Piece Extent="129 193 129 193 225 257" Source="SDet_p00000122.vtr"/>
+		<Piece Extent="193 257 129 193 225 257" Source="SDet_p00000123.vtr"/>
+		<Piece Extent="1 65 193 257 225 257" Source="SDet_p00000124.vtr"/>
+		<Piece Extent="65 129 193 257 225 257" Source="SDet_p00000125.vtr"/>
+		<Piece Extent="129 193 193 257 225 257" Source="SDet_p00000126.vtr"/>
+		<Piece Extent="193 257 193 257 225 257" Source="SDet_p00000127.vtr"/>
+	</PRectilinearGrid>
+</VTKFile>

@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<VTKFile type="PRectilinearGrid" version="1.0" byte_order="LittleEndian" header_type="UInt64">
+  <PRectilinearGrid WholeExtent="0 768 0 768 0 768" GhostLevel="0" >
+    <PCoordinates>
+      <PDataArray type="Float32" Name = "x" NumberOfComponents="1" format="appended" />
+      <PDataArray type="Float32" Name = "y" NumberOfComponents="1" format="appended" />
+      <PDataArray type="Float32" Name = "z" NumberOfComponents="1" format="appended" />
+    </PCoordinates>
+    <PCellData>
+      <PDataArray type="UInt8" Name="phase" NumberOfComponents="1" format="appended" />
+    </PCellData>
+    <PPointData>
+    </PPointData>
+    <Piece Extent="0 192 0 192 0 96" Source="SDet_phase_p000000.vtr" />
+    <Piece Extent="192 384 0 192 0 96" Source="SDet_phase_p000001.vtr" />
+    <Piece Extent="384 576 0 192 0 96" Source="SDet_phase_p000002.vtr" />
+    <Piece Extent="576 768 0 192 0 96" Source="SDet_phase_p000003.vtr" />
+    <Piece Extent="0 192 192 384 0 96" Source="SDet_phase_p000004.vtr" />
+    <Piece Extent="192 384 192 384 0 96" Source="SDet_phase_p000005.vtr" />
+    <Piece Extent="384 576 192 384 0 96" Source="SDet_phase_p000006.vtr" />
+    <Piece Extent="576 768 192 384 0 96" Source="SDet_phase_p000007.vtr" />
+    <Piece Extent="0 192 384 576 0 96" Source="SDet_phase_p000008.vtr" />
+    <Piece Extent="192 384 384 576 0 96" Source="SDet_phase_p000009.vtr" />
+    <Piece Extent="384 576 384 576 0 96" Source="SDet_phase_p000010.vtr" />
+    <Piece Extent="576 768 384 576 0 96" Source="SDet_phase_p000011.vtr" />
+    <Piece Extent="0 192 576 768 0 96" Source="SDet_phase_p000012.vtr" />
+    <Piece Extent="192 384 576 768 0 96" Source="SDet_phase_p000013.vtr" />
+    <Piece Extent="384 576 576 768 0 96" Source="SDet_phase_p000014.vtr" />
+    <Piece Extent="576 768 576 768 0 96" Source="SDet_phase_p000015.vtr" />
+    <Piece Extent="0 192 0 192 96 192" Source="SDet_phase_p000016.vtr" />
+    <Piece Extent="192 384 0 192 96 192" Source="SDet_phase_p000017.vtr" />
+    <Piece Extent="384 576 0 192 96 192" Source="SDet_phase_p000018.vtr" />
+    <Piece Extent="576 768 0 192 96 192" Source="SDet_phase_p000019.vtr" />
+    <Piece Extent="0 192 192 384 96 192" Source="SDet_phase_p000020.vtr" />
+    <Piece Extent="192 384 192 384 96 192" Source="SDet_phase_p000021.vtr" />
+    <Piece Extent="384 576 192 384 96 192" Source="SDet_phase_p000022.vtr" />
+    <Piece Extent="576 768 192 384 96 192" Source="SDet_phase_p000023.vtr" />
+    <Piece Extent="0 192 384 576 96 192" Source="SDet_phase_p000024.vtr" />
+    <Piece Extent="192 384 384 576 96 192" Source="SDet_phase_p000025.vtr" />
+    <Piece Extent="384 576 384 576 96 192" Source="SDet_phase_p000026.vtr" />
+    <Piece Extent="576 768 384 576 96 192" Source="SDet_phase_p000027.vtr" />
+    <Piece Extent="0 192 576 768 96 192" Source="SDet_phase_p000028.vtr" />
+    <Piece Extent="192 384 576 768 96 192" Source="SDet_phase_p000029.vtr" />
+    <Piece Extent="384 576 576 768 96 192" Source="SDet_phase_p000030.vtr" />
+    <Piece Extent="576 768 576 768 96 192" Source="SDet_phase_p000031.vtr" />
+    <Piece Extent="0 192 0 192 192 288" Source="SDet_phase_p000032.vtr" />
+    <Piece Extent="192 384 0 192 192 288" Source="SDet_phase_p000033.vtr" />
+    <Piece Extent="384 576 0 192 192 288" Source="SDet_phase_p000034.vtr" />
+    <Piece Extent="576 768 0 192 192 288" Source="SDet_phase_p000035.vtr" />
+    <Piece Extent="0 192 192 384 192 288" Source="SDet_phase_p000036.vtr" />
+    <Piece Extent="192 384 192 384 192 288" Source="SDet_phase_p000037.vtr" />
+    <Piece Extent="384 576 192 384 192 288" Source="SDet_phase_p000038.vtr" />
+    <Piece Extent="576 768 192 384 192 288" Source="SDet_phase_p000039.vtr" />
+    <Piece Extent="0 192 384 576 192 288" Source="SDet_phase_p000040.vtr" />
+    <Piece Extent="192 384 384 576 192 288" Source="SDet_phase_p000041.vtr" />
+    <Piece Extent="384 576 384 576 192 288" Source="SDet_phase_p000042.vtr" />
+    <Piece Extent="576 768 384 576 192 288" Source="SDet_phase_p000043.vtr" />
+    <Piece Extent="0 192 576 768 192 288" Source="SDet_phase_p000044.vtr" />
+    <Piece Extent="192 384 576 768 192 288" Source="SDet_phase_p000045.vtr" />
+    <Piece Extent="384 576 576 768 192 288" Source="SDet_phase_p000046.vtr" />
+    <Piece Extent="576 768 576 768 192 288" Source="SDet_phase_p000047.vtr" />
+    <Piece Extent="0 192 0 192 288 384" Source="SDet_phase_p000048.vtr" />
+    <Piece Extent="192 384 0 192 288 384" Source="SDet_phase_p000049.vtr" />
+    <Piece Extent="384 576 0 192 288 384" Source="SDet_phase_p000050.vtr" />
+    <Piece Extent="576 768 0 192 288 384" Source="SDet_phase_p000051.vtr" />
+    <Piece Extent="0 192 192 384 288 384" Source="SDet_phase_p000052.vtr" />
+    <Piece Extent="192 384 192 384 288 384" Source="SDet_phase_p000053.vtr" />
+    <Piece Extent="384 576 192 384 288 384" Source="SDet_phase_p000054.vtr" />
+    <Piece Extent="576 768 192 384 288 384" Source="SDet_phase_p000055.vtr" />
+    <Piece Extent="0 192 384 576 288 384" Source="SDet_phase_p000056.vtr" />
+    <Piece Extent="192 384 384 576 288 384" Source="SDet_phase_p000057.vtr" />
+    <Piece Extent="384 576 384 576 288 384" Source="SDet_phase_p000058.vtr" />
+    <Piece Extent="576 768 384 576 288 384" Source="SDet_phase_p000059.vtr" />
+    <Piece Extent="0 192 576 768 288 384" Source="SDet_phase_p000060.vtr" />
+    <Piece Extent="192 384 576 768 288 384" Source="SDet_phase_p000061.vtr" />
+    <Piece Extent="384 576 576 768 288 384" Source="SDet_phase_p000062.vtr" />
+    <Piece Extent="576 768 576 768 288 384" Source="SDet_phase_p000063.vtr" />
+    <Piece Extent="0 192 0 192 384 480" Source="SDet_phase_p000064.vtr" />
+    <Piece Extent="192 384 0 192 384 480" Source="SDet_phase_p000065.vtr" />
+    <Piece Extent="384 576 0 192 384 480" Source="SDet_phase_p000066.vtr" />
+    <Piece Extent="576 768 0 192 384 480" Source="SDet_phase_p000067.vtr" />
+    <Piece Extent="0 192 192 384 384 480" Source="SDet_phase_p000068.vtr" />
+    <Piece Extent="192 384 192 384 384 480" Source="SDet_phase_p000069.vtr" />
+    <Piece Extent="384 576 192 384 384 480" Source="SDet_phase_p000070.vtr" />
+    <Piece Extent="576 768 192 384 384 480" Source="SDet_phase_p000071.vtr" />
+    <Piece Extent="0 192 384 576 384 480" Source="SDet_phase_p000072.vtr" />
+    <Piece Extent="192 384 384 576 384 480" Source="SDet_phase_p000073.vtr" />
+    <Piece Extent="384 576 384 576 384 480" Source="SDet_phase_p000074.vtr" />
+    <Piece Extent="576 768 384 576 384 480" Source="SDet_phase_p000075.vtr" />
+    <Piece Extent="0 192 576 768 384 480" Source="SDet_phase_p000076.vtr" />
+    <Piece Extent="192 384 576 768 384 480" Source="SDet_phase_p000077.vtr" />
+    <Piece Extent="384 576 576 768 384 480" Source="SDet_phase_p000078.vtr" />
+    <Piece Extent="576 768 576 768 384 480" Source="SDet_phase_p000079.vtr" />
+    <Piece Extent="0 192 0 192 480 576" Source="SDet_phase_p000080.vtr" />
+    <Piece Extent="192 384 0 192 480 576" Source="SDet_phase_p000081.vtr" />
+    <Piece Extent="384 576 0 192 480 576" Source="SDet_phase_p000082.vtr" />
+    <Piece Extent="576 768 0 192 480 576" Source="SDet_phase_p000083.vtr" />
+    <Piece Extent="0 192 192 384 480 576" Source="SDet_phase_p000084.vtr" />
+    <Piece Extent="192 384 192 384 480 576" Source="SDet_phase_p000085.vtr" />
+    <Piece Extent="384 576 192 384 480 576" Source="SDet_phase_p000086.vtr" />
+    <Piece Extent="576 768 192 384 480 576" Source="SDet_phase_p000087.vtr" />
+    <Piece Extent="0 192 384 576 480 576" Source="SDet_phase_p000088.vtr" />
+    <Piece Extent="192 384 384 576 480 576" Source="SDet_phase_p000089.vtr" />
+    <Piece Extent="384 576 384 576 480 576" Source="SDet_phase_p000090.vtr" />
+    <Piece Extent="576 768 384 576 480 576" Source="SDet_phase_p000091.vtr" />
+    <Piece Extent="0 192 576 768 480 576" Source="SDet_phase_p000092.vtr" />
+    <Piece Extent="192 384 576 768 480 576" Source="SDet_phase_p000093.vtr" />
+    <Piece Extent="384 576 576 768 480 576" Source="SDet_phase_p000094.vtr" />
+    <Piece Extent="576 768 576 768 480 576" Source="SDet_phase_p000095.vtr" />
+    <Piece Extent="0 192 0 192 576 672" Source="SDet_phase_p000096.vtr" />
+    <Piece Extent="192 384 0 192 576 672" Source="SDet_phase_p000097.vtr" />
+    <Piece Extent="384 576 0 192 576 672" Source="SDet_phase_p000098.vtr" />
+    <Piece Extent="576 768 0 192 576 672" Source="SDet_phase_p000099.vtr" />
+    <Piece Extent="0 192 192 384 576 672" Source="SDet_phase_p000100.vtr" />
+    <Piece Extent="192 384 192 384 576 672" Source="SDet_phase_p000101.vtr" />
+    <Piece Extent="384 576 192 384 576 672" Source="SDet_phase_p000102.vtr" />
+    <Piece Extent="576 768 192 384 576 672" Source="SDet_phase_p000103.vtr" />
+    <Piece Extent="0 192 384 576 576 672" Source="SDet_phase_p000104.vtr" />
+    <Piece Extent="192 384 384 576 576 672" Source="SDet_phase_p000105.vtr" />
+    <Piece Extent="384 576 384 576 576 672" Source="SDet_phase_p000106.vtr" />
+    <Piece Extent="576 768 384 576 576 672" Source="SDet_phase_p000107.vtr" />
+    <Piece Extent="0 192 576 768 576 672" Source="SDet_phase_p000108.vtr" />
+    <Piece Extent="192 384 576 768 576 672" Source="SDet_phase_p000109.vtr" />
+    <Piece Extent="384 576 576 768 576 672" Source="SDet_phase_p000110.vtr" />
+    <Piece Extent="576 768 576 768 576 672" Source="SDet_phase_p000111.vtr" />
+    <Piece Extent="0 192 0 192 672 768" Source="SDet_phase_p000112.vtr" />
+    <Piece Extent="192 384 0 192 672 768" Source="SDet_phase_p000113.vtr" />
+    <Piece Extent="384 576 0 192 672 768" Source="SDet_phase_p000114.vtr" />
+    <Piece Extent="576 768 0 192 672 768" Source="SDet_phase_p000115.vtr" />
+    <Piece Extent="0 192 192 384 672 768" Source="SDet_phase_p000116.vtr" />
+    <Piece Extent="192 384 192 384 672 768" Source="SDet_phase_p000117.vtr" />
+    <Piece Extent="384 576 192 384 672 768" Source="SDet_phase_p000118.vtr" />
+    <Piece Extent="576 768 192 384 672 768" Source="SDet_phase_p000119.vtr" />
+    <Piece Extent="0 192 384 576 672 768" Source="SDet_phase_p000120.vtr" />
+    <Piece Extent="192 384 384 576 672 768" Source="SDet_phase_p000121.vtr" />
+    <Piece Extent="384 576 384 576 672 768" Source="SDet_phase_p000122.vtr" />
+    <Piece Extent="576 768 384 576 672 768" Source="SDet_phase_p000123.vtr" />
+    <Piece Extent="0 192 576 768 672 768" Source="SDet_phase_p000124.vtr" />
+    <Piece Extent="192 384 576 768 672 768" Source="SDet_phase_p000125.vtr" />
+    <Piece Extent="384 576 576 768 672 768" Source="SDet_phase_p000126.vtr" />
+    <Piece Extent="576 768 576 768 672 768" Source="SDet_phase_p000127.vtr" />
+  </PRectilinearGrid>
+</VTKFile>

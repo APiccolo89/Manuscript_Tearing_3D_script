@@ -1,0 +1,80 @@
+[0]PETSC ERROR: --------------------- Error Message --------------------------------------------------------------
+[0]PETSC ERROR: 2 entry(ies) are missing in parameter "[-]phaseID" 
+
+[0]PETSC ERROR: WARNING! There are option(s) set that were not used! Could be the program crashed before they were used or a spelling mistake, etc!
+[0]PETSC ERROR: Option left: name:-crs_ksp_type value: preonly
+[0]PETSC ERROR: Option left: name:-crs_pc_redundant_number value: 5
+[0]PETSC ERROR: Option left: name:-crs_pc_type value: redundant
+[0]PETSC ERROR: Option left: name:-gmg_mg_levels_ksp_max_it value: 3
+[0]PETSC ERROR: Option left: name:-gmg_mg_levels_ksp_richardson_scale value: 0.5
+[0]PETSC ERROR: Option left: name:-gmg_mg_levels_ksp_type value: richardson
+[0]PETSC ERROR: Option left: name:-gmg_mg_levels_pc_type value: jacobi
+[0]PETSC ERROR: Option left: name:-gmg_pc_mg_cycle_type value: v
+[0]PETSC ERROR: Option left: name:-gmg_pc_mg_galerkin (no value)
+[0]PETSC ERROR: Option left: name:-gmg_pc_mg_levels value: 6
+[0]PETSC ERROR: Option left: name:-gmg_pc_mg_log (no value)
+[0]PETSC ERROR: Option left: name:-gmg_pc_mg_type value: multiplicative
+[0]PETSC ERROR: Option left: name:-gmg_pc_type value: mg
+[0]PETSC ERROR: Option left: name:-jp_type value: mg
+[0]PETSC ERROR: Option left: name:-js_ksp_converged_reason (no value)
+[0]PETSC ERROR: Option left: name:-js_ksp_max_it value: 20
+[0]PETSC ERROR: Option left: name:-js_ksp_min_it value: 4
+[0]PETSC ERROR: Option left: name:-js_ksp_type value: fgmres
+[0]PETSC ERROR: Option left: name:-ParamFile value: SSB_Nevena.dat
+[0]PETSC ERROR: Option left: name:-pcmat_type value: mono
+[0]PETSC ERROR: Option left: name:-snes_atol value: 1e-7
+[0]PETSC ERROR: Option left: name:-snes_ksp_ew (no value)
+[0]PETSC ERROR: Option left: name:-snes_ksp_ew_rtol0 value: 1e-2
+[0]PETSC ERROR: Option left: name:-snes_linesearch_maxstep value: 1.0
+[0]PETSC ERROR: Option left: name:-snes_linesearch_type value: basic
+[0]PETSC ERROR: Option left: name:-snes_max_funcs value: 500000
+[0]PETSC ERROR: Option left: name:-snes_max_it value: 18
+[0]PETSC ERROR: Option left: name:-snes_max_linear_solve_fail value: 10000
+[0]PETSC ERROR: Option left: name:-snes_monitor (no value)
+[0]PETSC ERROR: Option left: name:-snes_PicardSwitchToNewton_rtol value: 1e-4
+[0]PETSC ERROR: Option left: name:-snes_rtol value: 1e-4
+[0]PETSC ERROR: Option left: name:-snes_stol value: 1e-16
+[0]PETSC ERROR: See https://petsc.org/release/faq/ for trouble shooting.
+[0]PETSC ERROR: Petsc Release Version 3.18.4, Jan 30, 2023 
+[0]PETSC ERROR: ../lamem_new/bin/opt/LaMEM on a  named r12n01 by bt307806 Fri Jul 12 10:18:19 2024
+[0]PETSC ERROR: Configure options --prefix=/opt/ohpc/pub/libs/intel/impi/petsc/petsc-3.18.4 --with-mkl_pardiso-dir=/opt/ohpc/pub/intel2023_0/mkl/2023.0.0/lib/intel64 --with-mkl_cpardiso-dir=/opt/ohpc/pub/intel2023_0/mkl/2023.0.0/lib/intel64 --with-blaslapack-dir=/opt/ohpc/pub/intel2023_0/mkl/2023.0.0/lib/intel64 --with-scalapack-lib="-L=/opt/ohpc/pub/intel2023_0/mkl/2023.0.0/lib/intel64 -lmkl_scalapack_lp64 -lmkl_blacs_intelmpi_lp64" --COPTFLAGS="-O2 -diag-disable=10441" --FOPTFLAGS=-O2 --CXXOPTFLAGS="-O2 -diag-disable=10441" --with-debugging=0 --with-large-file-io=1 --with-c++-support=1 --with-cc=mpiicc --with-cxx=mpiicpc --with-fc=mpiifort --download-metis=1 --download-parmetis=1 --download-ptscotch=1 --download-mumps=1 --download-superlu_dist=1 --with-clean
+[0]PETSC ERROR: #1 getIntParam() at parsing.cpp:597
+[0]PETSC ERROR: #2 PVOutCreate() at paraViewOutBin.cpp:389
+[0]PETSC ERROR: #3 LaMEMLibCreate() at LaMEMLib.cpp:193
+[0]PETSC ERROR: #4 LaMEMLibMain() at LaMEMLib.cpp:113
+[0]PETSC ERROR: #5 main() at LaMEM.cpp:48
+[0]PETSC ERROR: PETSc Option Table entries:
+[0]PETSC ERROR: -crs_ksp_type preonly
+[0]PETSC ERROR: -crs_pc_redundant_number 5
+[0]PETSC ERROR: -crs_pc_type redundant
+[0]PETSC ERROR: -gmg_mg_levels_ksp_max_it 3
+[0]PETSC ERROR: -gmg_mg_levels_ksp_richardson_scale 0.5
+[0]PETSC ERROR: -gmg_mg_levels_ksp_type richardson
+[0]PETSC ERROR: -gmg_mg_levels_pc_type jacobi
+[0]PETSC ERROR: -gmg_pc_mg_cycle_type v
+[0]PETSC ERROR: -gmg_pc_mg_galerkin
+[0]PETSC ERROR: -gmg_pc_mg_levels 6
+[0]PETSC ERROR: -gmg_pc_mg_log
+[0]PETSC ERROR: -gmg_pc_mg_type multiplicative
+[0]PETSC ERROR: -gmg_pc_type mg
+[0]PETSC ERROR: -jp_type mg
+[0]PETSC ERROR: -js_ksp_converged_reason
+[0]PETSC ERROR: -js_ksp_max_it 20
+[0]PETSC ERROR: -js_ksp_min_it 4
+[0]PETSC ERROR: -js_ksp_type fgmres
+[0]PETSC ERROR: -ParamFile SSB_Nevena.dat
+[0]PETSC ERROR: -pcmat_type mono
+[0]PETSC ERROR: -snes_atol 1e-7
+[0]PETSC ERROR: -snes_ksp_ew
+[0]PETSC ERROR: -snes_ksp_ew_rtol0 1e-2
+[0]PETSC ERROR: -snes_linesearch_maxstep 1.0
+[0]PETSC ERROR: -snes_linesearch_type basic
+[0]PETSC ERROR: -snes_max_funcs 500000
+[0]PETSC ERROR: -snes_max_it 18
+[0]PETSC ERROR: -snes_max_linear_solve_fail 10000
+[0]PETSC ERROR: -snes_monitor
+[0]PETSC ERROR: -snes_PicardSwitchToNewton_rtol 1e-4
+[0]PETSC ERROR: -snes_rtol 1e-4
+[0]PETSC ERROR: -snes_stol 1e-16
+[0]PETSC ERROR: ----------------End of Error Message -------send entire error message to petsc-maint@mcs.anl.gov----------
+Abort(83) on node 0 (rank 0 in comm 16): application called MPI_Abort(MPI_COMM_SELF, 83) - process 0

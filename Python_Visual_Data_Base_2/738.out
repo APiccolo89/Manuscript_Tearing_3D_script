@@ -1,0 +1,41 @@
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:730: RuntimeWarning: Mean of empty slice
+  self.D_x_t_det[i,j] = np.nanmean(self.D[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:731: RuntimeWarning: Mean of empty slice
+  self.tau_x_t_det[i,j] = np.nanmean(self.tau_max[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:732: RuntimeWarning: All-NaN slice encountered
+  self.T_det[i,j] = np.nanmax(self.T[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:733: RuntimeWarning: All-NaN slice encountered
+  self.Psi_det[i,j] = np.nanmax(self.Psi[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:746: RuntimeWarning: Mean of empty slice
+  self.meanD[i]=np.nanmean(a)/100
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:747: RuntimeWarning: All-NaN slice encountered
+  self.maxD[i]=np.nanmax(a)/100
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:748: RuntimeWarning: All-NaN slice encountered
+  self.minD[i]=np.nanmin(a)/100
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:741: RuntimeWarning: All-NaN slice encountered
+  if (np.nanmax(b) > max_tau) and (time_d[i]>1.0) :
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:730: RuntimeWarning: Mean of empty slice
+  self.D_x_t_det[i,j] = np.nanmean(self.D[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:731: RuntimeWarning: Mean of empty slice
+  self.tau_x_t_det[i,j] = np.nanmean(self.tau_max[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:732: RuntimeWarning: All-NaN slice encountered
+  self.T_det[i,j] = np.nanmax(self.T[i,i_along_x,j])
+/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py:733: RuntimeWarning: All-NaN slice encountered
+  self.Psi_det[i,j] = np.nanmax(self.Psi[i,i_along_x,j])
+Traceback (most recent call last):
+  File "/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Data_Base_Reader.py", line 110, in <module>
+    TSD2_V15_HC = Test(file_DB,['PR_r','TSD2_V15_HC'])
+  File "/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py", line 42, in wrapper
+    result = func(*args, **kwargs)
+  File "/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py", line 355, in __init__
+    self.time = self._read_variable(['/time','Myr', 'Time vector'],Test_name)
+  File "/home/zaphod/data/apiccolo/Scripts/Python_Visual_Data_Base_2/Class_Data_Base.py", line 197, in _read_variable
+    buf = np.array(f[path2variable])
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "/home/apiccolo/.local/lib/python3.10/site-packages/h5py/_hl/group.py", line 357, in __getitem__
+    oid = h5o.open(self.id, self._e(name), lapl=self._lapl)
+  File "h5py/_objects.pyx", line 54, in h5py._objects.with_phil.wrapper
+  File "h5py/_objects.pyx", line 55, in h5py._objects.with_phil.wrapper
+  File "h5py/h5o.pyx", line 189, in h5py.h5o.open
+KeyError: 'Unable to synchronously open object (component not found)'

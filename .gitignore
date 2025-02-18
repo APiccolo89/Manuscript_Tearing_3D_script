@@ -11,3 +11,4 @@ markers/mdb.00000079.dat
 3D_numerical_setup/@Rift/VTK_ModelSetup_paraview_binary.vtr
 >>>>>>> Python_3D_post_process
 *.txt
+Python_Visual_Data_Base/__pycache__/Auxilary_function.cpython-310.pyc
