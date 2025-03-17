@@ -21,6 +21,7 @@ import matplotlib.cbook as cbook
 from Class_Data_Base import * 
 from Class_Data_Base import _merge_database
 from time import perf_counter 
+import figure_functions as ff 
 from figure_functions import *
 from figure_functions import make_figure3
 from figure_functions import make_figure6
@@ -66,6 +67,8 @@ Figure S6: Plot low resolution 3
 Figure S7: Plot low resolution 4
 Figure S8: Shear Heating and stress evolution
 Figure S9: Depth and parameters of slab tearing
+Figure S10: Tearing velocity
+Figure S11: migration shore line
 """
 # Merge Data Base
 #_merge_database(file_A,file_B,file_C,file_DB)
@@ -100,17 +103,25 @@ make_figureXSup(DB,path_figure,'Bonus_Supplementary')
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
 
-TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
-
-TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
-
-TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
-
-TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
 
 TSD2_V15 = Test(file_DB,['PR_r','TSD2_V15'])
 
-figure_tearing_instantaneous(TSD2,TSD2_V10,TSD2_V11,TSD2_V12,TSD2_V13,TSD2_V15,path_figure,'figure_optional')
+
+TSD2_V10 = Test(file_DB,['PR_r','TSD2_V10'])
+
+
+TSD2_V11 = Test(file_DB,['PR_r','TSD2_V11'])
+
+
+TSD2_V12 = Test(file_DB,['PR_r','TSD2_V12'])
+
+
+TSD2_V13 = Test(file_DB,['PR_r','TSD2_V13'])
+
+
+
+
+
 
 # Figure 1 
 initial_profile_phase(path_figure)
@@ -161,6 +172,10 @@ Figure 9: correlation between uplift and tearing velocity
 make_figure9(DB,path_figure,'figure9')
 
 """
+Figure 10: migration velocity of slab
+"""
+
+"""
 Supplementary figure: Figure that are in the supplementary+gif_maker
 """
 
@@ -169,17 +184,18 @@ initial_geotherm(path_figure)
 # Figure S3
 initial_topography(TSD2,path_figure)
 
+make_figureXSup(DB,path_figure,'Figure_S4')
 
-figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_S4',[])
-figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_S5',[])
-figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_S6',[])
-figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_S7',[])
-make_figure_Sup(TSD2,path_figure,'Figure_S8',[10.18,10.20,10.24])
+figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_S5',[])
+figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_S6',[])
+figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_S7',[])
+figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_S8',[])
+make_figure_Sup(TSD2,path_figure,'Figure_S9',[10.18,10.20,10.24])
+make_figure8_sup_Depth(DB,path_figure,'Figure_S10')
+figure_tearing_instantaneous(TSD2,TSD2_V10,TSD2_V11,TSD2_V12,TSD2_V13,TSD2_V15,path_figure,'Figure_S11')
+ff.plot_test_migration(TSD2,TSD2_V10,TSD2_V11,TSD2_V12,TSD2_V13,TSD2_V15,path_save,'Figure_S12')
 
-
-make_figure8_sup_Depth(DB,path_figure,'Figure_S9')
-
-
+# Make Gif
 _make_gif(TSD2,path_gif)
 _make_gif(TSD2_V10,path_gif)
 _make_gif(TSD2_V11,path_gif)

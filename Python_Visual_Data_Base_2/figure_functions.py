@@ -2124,8 +2124,6 @@ def figure_tearing_instantaneous(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test
 
         det_vec[T.Det.depth_vec>=-60.0]=np.nan
 
-        mean_v = (1000.0*1000*100)/(np.nanmax(det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])*1e6-np.nanmin(det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])*1e6)
-
 
         #Data
         time = T.time 
@@ -2134,6 +2132,8 @@ def figure_tearing_instantaneous(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test
         Ending_tearing    = np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
         t = time[(time>=Starting_tearing)&(time<=Ending_tearing)]
         uplift = _extracte_average_uplift(time,t,Starting_tearing,Ending_tearing,T)
+        mean_v = np.mean(tear_vel[(time>=Starting_tearing)&(time<=Ending_tearing)])
+
         
         # Main plot
         ax.plot(t,tear_vel[(time>=Starting_tearing)&(time<=Ending_tearing)],linewidth=1.2,color='firebrick')
@@ -2162,7 +2162,7 @@ def figure_tearing_instantaneous(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test
         ax.text(0.94, 0.94, letter, transform=ax.transAxes, fontsize=fnt_g.label_,
             verticalalignment='top', bbox=props,color='white')
     
-        ax.text(0.12, 1.30, r'$t= %.2f-%.2f$'%(Starting_tearing,Ending_tearing), transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
+        ax.text(0.12, 1.30, r'$time = %.2f-%.2f$ [Myr]'%(Starting_tearing,Ending_tearing), transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
         
         return ax,axb
 
@@ -2195,9 +2195,510 @@ def figure_tearing_instantaneous(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test
     fg.savefig(fn,dpi=600)
 
 
+def _gif_topography(A,path_save):
+    
+    def fmt(x):
+        s = f"{x:.1f}"
+        if s.endswith("0"):
+            s = f"{x:.0f}"
+        return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
+
+    def define_colorbar_S(cf,ax,lim:list,ticks:list,label:str):
+        
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    
+        cbaxes = inset_axes(ax, borderpad=1.3,  width="100%", height="15%", loc=3)   
+        cbar=plt.colorbar(cf,cax=cbaxes, ticks=ticks, orientation='horizontal',extend="both")
+        print(lim[0])
+        print(lim[1])
+        cbar.set_label(label=label,size=fnt_g.label_) 
+        cbar.ax.xaxis.set_ticks_position('top')
+        cbar.ax.xaxis.set_label_coords(0.5,-0.15)
+        cbar.ax.xaxis.set_tick_params(pad=0.1)
+        cbar.ax.xaxis.set_label_position('bottom')
+        cbar.ax.tick_params(labelsize=fnt_g.axis_)
+    
+        return cbaxes,cbar
+    
+    def _compute_velocity_migration(A):
+
+        vel    = np.zeros([len(A.time),1],dtype=float)
+        x_depo = np.zeros([len(A.time),1],dtype=float)
+        y_depo = np.zeros([len(A.time),1],dtype=float)
+        dH     = np.zeros([len(A.time),3],dtype=float)
 
 
+        for ipic in range(len(A.time)):
+            if A.time[ipic]>1:
+                H_trench = _interpolate_2D(A.FS.H[:,:,ipic],A.C.xg,A.C.yg,A.C.x_trench_p,A.C.y_trench_p)
+                dH_trench = _interpolate_2D(A.FS.dH_fil[:,:,ipic],A.C.xg,A.C.yg,A.C.x_trench_p,A.C.y_trench_p)
+
+                Depo = np.where((H_trench<=0) & (A.C.x_sp>=100))
+                if len(Depo[0])>0:
+                    ind = Depo[0][0]
+                    tt = A.time[ipic]
+                    x_depo[ipic] = A.C.x_trench_p[ind]
+                    y_depo[ipic] = A.C.y_trench_p[ind]
+                    d=((x_depo[ipic]-x_depo[ipic-1])**2+(y_depo[ipic]-y_depo[ipic-1])**2)**0.5
+                    d *= 1e3*1e2
+                    v_sig = np.sign(x_depo[ipic]-x_depo[ipic-1])
+                    dt = (A.time[ipic]-A.time[ipic-1])*1e6
+                    vel[ipic] = v_sig*d/dt
+                    dH[ipic,0]   = np.nanmin(dH_trench)
+                    dH[ipic,1] = np.nanmean(dH_trench)
+                    dH[ipic,2] = np.nanmax(dH_trench)
+                    print('v depocenter is %.2f'%vel[ipic])
+        
+        return x_depo, y_depo,vel,dH
+
+
+
+    x_depo,y_depo,vel,dH = _compute_velocity_migration(A)
+
+
+    path_saveb = os.path.join(path_save,'FM_def',A.Test_Name)
+    if os.path.isdir(path_saveb)==False:
+        os.mkdir(path_saveb)
+
+ 
+    check = 0
+    for ipic in range(len(A.time)):
+        if A.time[ipic]>1.0:
+            if check ==0:
+                itf = ipic
+                check = 1
+
+            figure_name = 'Figure_TopoGif_%d'%ipic
+            fg = figure()        
+            cm = 1/2.54  # centimeters in inches
+            fg = figure(figsize=(14*cm, 14*cm))  
+            bx = 0.15
+            by = 0.10
+            sx = 0.8
+            sx2 = 0.7
+            sxc = 0.6
+            sy1 = 0.20
+            sy2 = 0.14
+            sy3 = 0.38
+            dx = 0.04
+            dy = 0.08
+            dy2 = 0.05
+            fn = os.path.join(path_save,'%s.png'%(figure_name))
+            # Prepare axis 
+            ax0 = fg.add_axes([bx, by, sx2, sy1])
+            ax1 = fg.add_axes([bx,by+sy1+dy,sxc,sy2])
+            ax2 = fg.add_axes([bx, by+sy1+sy2+2*dy, sx, sy3])
+            
+
+            fn = os.path.join(path_saveb,figure_name)
+            p1 = ax2.contourf(A.C.xg,A.C.yg,A.FS.H[:,:,ipic],levels = [-4.5,-4.0,-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5],cmap = 'cmc.oleron')#linewidths=0.5)
+            ax2.plot(A.C.x_trench_p,A.C.y_trench_p,linewidth = 2.0,linestyle = 'dashdot',label = r'Slab position',color = 'firebrick')
+            ax2.scatter(x_depo[ipic],y_depo[ipic],s=50,marker='D',c = 'firebrick')
+            ax2.set_xlabel(r'$x$ [km]',fontsize=fnt_g.label_)
+            ax2.set_ylabel(r'$y$ [km]',fontsize=fnt_g.label_)
+            ax2.legend(loc='upper right')
+            ax2.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+            ax2.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+            
+            cbaxes,cbar =define_colorbar_S(p1,ax1,[-4.5,4.5],[-4.0,-2.0,0.0,2.0,4.0],r'${{H}}$ [$\mathrm{km}$]')
+            ax1.axis('off')
+            ax0.plot(range(itf,ipic),vel[itf:ipic],linewidth=1.5,color='forestgreen')
+            ax0.set_xlabel(r'$time$ [Myr]',fontsize=fnt_g.label_)
+            ax0.set_ylabel(r'$v_{mig}$ $[\frac{\mathrm{cm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
+            
+            Starting_tearing  = np.nanmin(A.Det.det_vec[(A.C.x_sp>=100) & (A.C.x_sp<=1100) ])
+            Ending_tearing  = np.nanmax(A.Det.det_vec[(A.C.x_sp>=100) & (A.C.x_sp<=1100) ])
+            indTb = np.where(A.time==Starting_tearing)
+            indTe = np.where(A.time==Ending_tearing)
+            indTb = indTb[0][0]
+            indTe = indTe[0][0]
+
+            ax0.spines['bottom'].set_color('k')
+            ax0.spines['top'].set_color('w') 
+            ax0.spines['right'].set_color('k')
+            ax0.spines['left'].set_color('k')
+            ax0.set_xlim(np.round(indTb)-10,len(A.time))
+            ax0.set_ylim([0,np.max(vel)])
+            ax0.axvspan(indTb, indTe, alpha=0.1, color='red')
+            axb = ax0.twinx()
+            axb.plot(range(itf,ipic),(dH[itf:ipic,1]),linewidth=0.8,linestyle=':',color='blue')
+            axb.set_ylim([np.nanmin(dH[:,0]),np.nanmax(dH[:,2])])
+            axb.fill_between(range(itf,ipic),(dH[itf:ipic,0]),(dH[itf:ipic,2]),linewidth=0.2,color='blue', alpha = 0.3)
+
+            axb.set_ylabel(r'$\dot{\bar{H}}$ $[\frac{\mathrm{mm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
+            ax0.set_xlim(np.round(indTb)-10,len(A.time))
+            ax0.set_xticks([np.round(indTb)-10,np.round(indTb)-5,np.round(indTb),np.round(indTe),np.round(indTe)+5])
+            ax0.set_xlabel([np.round(A.time[np.round(indTb)-10],3),np.round(A.time[np.round(indTb)-5],3),np.round(A.time[np.round(indTb)],3),np.round(A.time[np.round(indTe)],3)
+                            ,np.round(A.time[np.round(indTe)],3)])
+
+            axb.set_xticks([np.round(indTb)-10,np.round(indTb)-5,np.round(indTb),np.round(indTe),np.round(indTe)+5])
+
+            axb.set_xlabel([np.round(A.time[np.round(indTb)-10],3),np.round(A.time[np.round(indTb)-5],3),np.round(A.time[np.round(indTb)],3),np.round(A.time[np.round(indTe)],3)
+                            ,np.round(A.time[np.round(indTe)],3)])
+
+
+
+            ax0.tick_params(axis="y",direction="in")
+            ax0.tick_params(axis="x",direction="in")
+            ax0.tick_params(width=1.2)
+
+
+            ax2.tick_params(axis="y",direction="in")
+            ax2.tick_params(axis="x",direction="in")
+            ax2.tick_params(width=1.2)
+
+
+            
+            props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+
+            ax2.text(0.05, 0.95, r'$t= %.2f Myr$ $v_{mig} = %.2f [\frac{\mathrm{cm}}{\mathrm{yr}}]$'%(A.time[ipic],vel[ipic]), transform=ax2.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
+
+            fg.savefig(fn,dpi=600,transparent=False)
+
+
+
+def plot_test_migration(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_save:str,figure_name:str):
+    
+    def _compute_velocity_migration(T):
+
+        vel    = np.zeros([len(T.time),1],dtype=float)
+        x_depo = np.zeros([len(T.time),1],dtype=float)
+        y_depo = np.zeros([len(T.time),1],dtype=float)
+        dH     = np.zeros([len(T.time),3],dtype=float)
+
+
+        for ipic in range(len(T.time)):
+            if T.time[ipic]>1:
+                H_trench = _interpolate_2D(T.FS.H[:,:,ipic],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
+                dH_trench = _interpolate_2D(T.FS.dH_fil[:,:,ipic],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
+
+                Depo = np.where((H_trench<=0) & (T.C.x_sp>=100))
+                if len(Depo[0])>0:
+                    ind = Depo[0][0]
+                    tt = T.time[ipic]
+                    x_depo[ipic] = T.C.x_trench_p[ind]
+                    y_depo[ipic] = T.C.y_trench_p[ind]
+                    d=((x_depo[ipic]-x_depo[ipic-1])**2+(y_depo[ipic]-y_depo[ipic-1])**2)**0.5
+                    d *= 1e3*1e2
+                    v_sig = np.sign(x_depo[ipic]-x_depo[ipic-1])
+                    dt = (T.time[ipic]-T.time[ipic-1])*1e6
+                    vel[ipic] = v_sig*d/dt
+                    dH[ipic,0]   = np.nanmin(dH_trench)
+                    dH[ipic,1] = np.nanmean(dH_trench)
+                    dH[ipic,2] = np.nanmax(dH_trench)
+                    print('v depocenter is %.2f'%vel[ipic])
+        
+        return x_depo, y_depo,vel,dH
+
+
+
+
+
+    
+    def _create_plot_(T,ax,flag_axis,letter):
+
+        x_depo,y_depo,vel,dH = _compute_velocity_migration(T)
+
+        ipic = len(T.time)
+        itf = np.where(T.time>=1.0)
+        itf = itf[0][0]
+        
+        ax.spines['bottom'].set_color('k')
+        ax.spines['top'].set_color('w') 
+        ax.spines['right'].set_color('k')
+        ax.spines['left'].set_color('k')
+
+        ax.tick_params(axis="y",direction="in")
+        ax.tick_params(axis="x",direction="in")
+        ax.tick_params(width=1.2)
+        ax.xaxis.set_tick_params(labelsize=fnt_g.axis_,pad=7)
+        ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+
+        ax.plot(range(itf,ipic),vel[itf:ipic],linewidth=1.5,color='forestgreen')
+        ax.set_ylabel(r'$v_{mig}$ $[\frac{\mathrm{cm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
+            
+        Starting_tearing  = np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        Ending_tearing  = np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        indTb = np.where(T.time==Starting_tearing)
+        indTe = np.where(T.time==Ending_tearing)
+        indTb = indTb[0][0]
+        indTe = indTe[0][0]
+
+        ax.spines['bottom'].set_color('k')
+        ax.spines['top'].set_color('w') 
+        ax.spines['right'].set_color('k')
+        ax.spines['left'].set_color('k')
+        ax.set_xlim(np.round(indTb)-5,np.round(indTe)+1)
+
+        ax.set_ylim([0,np.max(vel)])
+        ax.axvspan(indTb, indTe, alpha=0.1, color='red')
+        axb = ax.twinx()
+        axb.plot(range(itf,ipic),(dH[itf:ipic,1]),linewidth=0.8,linestyle=':',color='blue')
+        axb.set_ylim([np.nanmin(dH[:,0]),np.nanmax(dH[:,2])])
+        axb.fill_between(range(itf,ipic),(dH[itf:ipic,0]),(dH[itf:ipic,2]),linewidth=0.2,color='blue', alpha = 0.3)
+
+        axb.set_ylabel(r'$\dot{\bar{H}}$ $[\frac{\mathrm{mm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
+        ax.set_xlim(np.round(indTb)-10,len(T.time))
+        ax.set_xticks([np.round(indTb)-10,np.round(indTb)-5,np.round(indTb),np.round(indTe)])
+        
+        labels_x = np.round([T.time[np.round(indTb)-10],T.time[np.round(indTb)-5],T.time[np.round(indTb)],T.time[np.round(indTe)]],3)
+        axb.set_xticklabels([r'$%.1f$'%(labels_x[0]),r'$%.1f$'%(labels_x[1]),r'$%.1f$'%(labels_x[2]),r'$%.1f$'%(labels_x[3])])
+        axb.set_xlim(np.round(indTb)-5,np.round(indTe)+1)
+
+        axb.set_xlabel([])
+
+
+
+        ax.tick_params(axis="y",direction="in")
+        ax.tick_params(axis="x",direction="in")
+        ax.tick_params(width=1.2)
+
+
+        axb.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        axb.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+        props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+
+        ax.text(0.01, 0.95,letter, transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
+
+
+        if flag_axis == True: 
+            ax.set_xlabel(r'$time$ [Myr]')
+
+
+        
+        return ax,axb
+
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(19*cm, 18*cm))  
+    bx = 0.15
+    by = 0.10
+    sx = 0.70
+    dx = 0.02
+    sy = 0.10
+    dy = 0.05
+    path_save = os.path.join(path_save,'FM_def')
+
+    fn = os.path.join(path_save,'%s.png'%(figure_name))
+
+    # Prepare axis 
+    ax0 = fg.add_axes([bx, by, sx, sy])
+    ax1 = fg.add_axes([bx, by+dy+sy, sx, sy])
+    ax2 = fg.add_axes([bx, by+2*(dy+sy), sx, sy]) 
+    ax3 = fg.add_axes([bx, by+3*(dy+sy), sx, sy])
+    ax4 = fg.add_axes([bx, by+4*(dy+sy), sx, sy])
+    ax5 = fg.add_axes([bx, by+5*(dy+sy), sx, sy])
+    # Create Axis 
+    ax0,ax0tw = _create_plot_(T6,ax0,True,'$[f]$')
+    ax1,ax1tw = _create_plot_(T5,ax1,False,'$[e]$')
+    ax2,ax2tw = _create_plot_(T4,ax2,False,'$[d]$')
+    ax3,ax3tw = _create_plot_(T3,ax3,False,'$[c]$')
+    ax4,ax4tw = _create_plot_(T2,ax4,False,'$[b]$')
+    ax5,ax5tw = _create_plot_(T1,ax5,False,'$[a]$')
+
+    fg.savefig(fn,dpi=600)
 
 
 
  
+
+
+
+def _figure_10(A,B,tA,tB,path_save):
+    
+    def fmt(x):
+        s = f"{x:.1f}"
+        if s.endswith("0"):
+            s = f"{x:.0f}"
+        return rf"{s} km" if plt.rcParams["text.usetex"] else f"{s} km"
+
+    def define_colorbar_S(cf,ax,lim:list,ticks:list,label:str):
+        
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+    
+        cbaxes = inset_axes(ax, borderpad=1.3,  width="100%", height="15%", loc=3)   
+        cbar=plt.colorbar(cf,cax=cbaxes, ticks=ticks, orientation='horizontal',extend="both")
+        print(lim[0])
+        print(lim[1])
+        cbar.set_label(label=label,size=fnt_g.label_) 
+        cbar.ax.xaxis.set_ticks_position('top')
+        cbar.ax.xaxis.set_label_coords(0.5,-0.15)
+        cbar.ax.xaxis.set_tick_params(pad=0.1)
+        cbar.ax.xaxis.set_label_position('bottom')
+        cbar.ax.tick_params(labelsize=fnt_g.axis_)
+    
+        return cbaxes,cbar
+    
+    def _compute_velocity_migration(T):
+
+        vel    = np.zeros([len(T.time),1],dtype=float)
+        x_depo = np.zeros([len(T.time),1],dtype=float)
+        y_depo = np.zeros([len(T.time),1],dtype=float)
+        dH     = np.zeros([len(T.time),3],dtype=float)
+
+
+        for ipic in range(len(T.time)):
+            if T.time[ipic]>1:
+                H_trench = _interpolate_2D(T.FS.H[:,:,ipic],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
+                dH_trench = _interpolate_2D(T.FS.dH_fil[:,:,ipic],T.C.xg,T.C.yg,T.C.x_trench_p,T.C.y_trench_p)
+
+                Depo = np.where((H_trench<=0) & (A.C.x_sp>=100))
+                if len(Depo[0])>0:
+                    ind = Depo[0][0]
+                    tt = T.time[ipic]
+                    x_depo[ipic] = T.C.x_trench_p[ind]
+                    y_depo[ipic] = T.C.y_trench_p[ind]
+                    d=((x_depo[ipic]-x_depo[ipic-1])**2+(y_depo[ipic]-y_depo[ipic-1])**2)**0.5
+                    d *= 1e3*1e2
+                    v_sig = np.sign(x_depo[ipic]-x_depo[ipic-1])
+                    dt = (T.time[ipic]-T.time[ipic-1])*1e6
+                    vel[ipic] = v_sig*d/dt
+                    dH[ipic,0]   = np.nanmin(dH_trench)
+                    dH[ipic,1] = np.nanmean(dH_trench)
+                    dH[ipic,2] = np.nanmax(dH_trench)
+        return x_depo, y_depo,vel,dH
+
+
+    def _create_pic_typeA(ax,T,tv,letter):
+        x_depo,y_depo,vel,dH = _compute_velocity_migration(T)
+
+        ipic = np.where(T.time==tv)[0]
+        
+        pa = ax.contourf(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [-4.5,-4.0,-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5],cmap = 'cmc.oleron')#linewidths=0.5)
+        pb = ax.contour(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [0.0],linewidths=0.8,colors='k')
+        ax.set_xlim([-650,650])
+        ax.set_ylim([-250,100])
+        ax.plot(T.C.x_trench_p,T.C.y_trench_p,linewidth = 2.0,linestyle = 'dashdot',label = r'Slab position',color = 'firebrick')
+        ax.scatter(x_depo[ipic],y_depo[ipic],s=50,marker='X',c = 'k')
+        ax.set_ylabel(r'$y$ [km]',fontsize=fnt_g.label_)
+        if (letter == '[c]') or letter == '[g]':
+            ax.set_xlabel(r'$x$ [km]',fontsize=fnt_g.label_)
+        
+
+        props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+
+        ax.text(0.01, 0.95,letter, transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
+
+
+        return ax,pa
+
+    def _create_pic_typeB(ax,T,tv,letter):
+        x_depo,y_depo,vel,dH = _compute_velocity_migration(T)
+
+        ipic = len(T.time)
+        itf = np.where(T.time>=1.0)
+        itf = itf[0][0]
+        
+        ax.spines['bottom'].set_color('k')
+        ax.spines['top'].set_color('w') 
+        ax.spines['right'].set_color('k')
+        ax.spines['left'].set_color('k')
+
+        ax.tick_params(axis="y",direction="in")
+        ax.tick_params(axis="x",direction="in")
+        ax.tick_params(width=1.2)
+        ax.xaxis.set_tick_params(labelsize=fnt_g.axis_,pad=7)
+        ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+
+        ax.plot(range(itf,ipic),vel[itf:ipic],linewidth=1.5,color='forestgreen')
+        ax.set_ylabel(r'$v_{mig}$ $[\frac{\mathrm{cm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
+            
+        Starting_tearing  = np.nanmin(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        Ending_tearing  = np.nanmax(T.Det.det_vec[(T.C.x_sp>=100) & (T.C.x_sp<=1100) ])
+        indTb = np.where(T.time==Starting_tearing)
+        indTe = np.where(T.time==Ending_tearing)
+        indTb = indTb[0][0]
+        indTe = indTe[0][0]
+
+        ax.spines['bottom'].set_color('k')
+        ax.spines['top'].set_color('w') 
+        ax.spines['right'].set_color('k')
+        ax.spines['left'].set_color('k')
+        ax.set_xlim(np.round(indTb)-5,np.round(indTe)+1)
+
+        ax.set_ylim([0,np.max(vel)])
+        ax.axvspan(indTb, indTe, alpha=0.1, color='red')
+        axb = ax.twinx()
+        axb.plot(range(itf,ipic),(dH[itf:ipic,1]),linewidth=0.8,linestyle=':',color='blue')
+        axb.set_ylim([np.nanmin(dH[:,0]),np.nanmax(dH[:,2])])
+        axb.set_ylabel(r'$\dot{\bar{H}}$ $[\frac{\mathrm{mm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
+        ax.set_xlim(np.round(indTb)-10,len(T.time))
+        ax.set_xticks([np.round(indTb)-10,np.round(indTb)-5,np.round(indTb),np.round(indTe)])
+        
+        labels_x = np.round([T.time[np.round(indTb)-10],T.time[np.round(indTb)-5],T.time[np.round(indTb)],T.time[np.round(indTe)]],3)
+        axb.set_xticklabels([r'$%.1f$'%(labels_x[0]),r'$%.1f$'%(labels_x[1]),r'$%.1f$'%(labels_x[2]),r'$%.1f$'%(labels_x[3])])
+        axb.set_xlim(np.round(indTb)-5,np.round(indTe)+1)
+
+        axb.set_xlabel([])
+
+
+
+        ax.tick_params(axis="y",direction="in")
+        ax.tick_params(axis="x",direction="in")
+        ax.tick_params(width=1.2)
+
+
+        axb.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        axb.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+        props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
+
+        ax.text(0.01, 0.95,letter, transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
+
+
+       
+        ax.set_xlabel(r'$time$ [Myr]')
+
+
+        
+        return ax,axb
+
+
+
+
+    path_saveb = os.path.join(path_save,'FM_def')
+    if os.path.isdir(path_saveb)==False:
+        os.mkdir(path_saveb)
+    fn = os.path.join(path_saveb,figure_name)
+    fg = figure()        
+    cm = 1/2.54  # centimeters in inches
+    fg = figure(figsize=(18*cm, 15*cm))  
+    bx = 0.10
+    by = 0.10
+    sx = 0.375  
+    sx2 = 0.35
+    dx  = 0.05
+    dx2 = 0.1 
+    dy = 0.05 
+    sy = 0.15 
+    sy2 = 0.13
+
+    ax0 = fg.add_axes([bx, by, sx2, sy2])
+    ax1 = fg.add_axes([bx, by+dy+sy, sx, sy2])
+    ax2 = fg.add_axes([bx, by+dy+sy+sy2, sx, sy2])
+    ax3 = fg.add_axes([bx, by+dy+sy+2*sy2, sx, sy2])
+    ax4 = fg.add_axes([bx+sx2+dx2, by, sx, sy2])
+    ax5 = fg.add_axes([bx+sx2+dx2, by+dy+sy, sx, sy2])
+    ax6 = fg.add_axes([bx+sx2+dx2, by+dy+sy+sy2, sx, sy2])
+    ax7 = fg.add_axes([bx+sx2+dx2, by+dy+sy+2*sy2, sx, sy2])
+
+    ax_cb = fg.add_axes([0.2, by+sy, 0.8, 0.15])
+
+    ax3,p1 = _create_pic_typeA(ax3,A,tA[0],'[a]')
+    ax2,p2 = _create_pic_typeA(ax2,A,tA[1],'[b]')
+    ax1,p3 = _create_pic_typeA(ax1,A,tA[2],'[c]')
+    ax0,ax0b = _create_pic_typeB(ax0,A,'[d]')
+
+    ax7,p4 = _create_pic_typeA(ax7,B,tB[0],'[e]')
+    ax6,p5 = _create_pic_typeA(ax6,B,tB[1],'[f]')
+    ax5,p6 = _create_pic_typeA(ax5,B,tB[2],'[g]')
+    ax4,ax4b = _create_pic_typeB(ax4,B,'[h]')
+
+    ax_cb,cbar =define_colorbar_S(p1,ax1,[-4.5,4.5],[-4.0,-2.0,0.0,2.0,4.0],r'${{H}}$ [$\mathrm{km}$]')
+
+ 
+    fg.savefig(fn,dpi=600,transparent=False)
+
+

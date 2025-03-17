@@ -713,6 +713,7 @@ class Det():
                      'vel_tear' : ['/Slab_Detachment/average_tearing_velocity', 'cm/yrs','Velocity of detachment'],
                      'x_slab1'  : ['/Slab_Detachment/x1', 'km','Position slab x1'] , 
                      'x_slab2'  :  ['/Slab_Detachment/x2', 'km','Position slab x2'],
+                     'node_tearing'  :  ['/Slab_Detachment/nodes_tearing_', 'km','Position slab x2'],
                      }
         self.D = T._read_variable(self.dict['D'],Test_name)
         self.Psi = T._read_variable(self.dict['Psi'],Test_name)
@@ -726,6 +727,8 @@ class Det():
         self.vel_tear = T._read_variable(self.dict['vel_tear'],Test_name)
         self.y1 = T._read_variable(self.dict['x_slab1'],Test_name)
         self.y2 = T._read_variable(self.dict['x_slab2'],Test_name)
+        self.nodeT = T._read_variable(self.dict['node_tearing'],Test_name)
+
         # Derivative values 
         self.D_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
         self.tau_x_t_det = np.zeros([len(self.x_vec),len(T.time)],dtype = float)
