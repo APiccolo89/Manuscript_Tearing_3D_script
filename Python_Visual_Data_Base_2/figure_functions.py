@@ -2505,7 +2505,7 @@ def plot_test_migration(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_sav
 
 
 
-def _figure_10(A,B,tA,tB,path_save):
+def make_figure_10(A,B,tA,tB,path_save,figure_name):
     
     def fmt(x):
         s = f"{x:.1f}"
@@ -2563,27 +2563,50 @@ def _figure_10(A,B,tA,tB,path_save):
     def _create_pic_typeA(ax,T,tv,letter):
         x_depo,y_depo,vel,dH = _compute_velocity_migration(T)
 
-        ipic = np.where(T.time==tv)[0]
+        ipic = np.where(T.time>=tv)[0][0]
+
+        ax.spines['bottom'].set_color('k')
+        ax.spines['top'].set_color('k') 
+        ax.spines['right'].set_color('k')
+        ax.spines['left'].set_color('k')
+
+        ax.tick_params(axis="y",direction="in")
+        ax.tick_params(axis="x",direction="in")
+        ax.tick_params(width=1.2)
+        ax.xaxis.set_tick_params(labelsize=fnt_g.axis_)
+        ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
+
+
+        ax.set_ylabel(r'$v_{mig}$ $[\frac{\mathrm{cm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
         
         pa = ax.contourf(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [-4.5,-4.0,-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5],cmap = 'cmc.oleron')#linewidths=0.5)
-        pb = ax.contour(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [0.0],linewidths=0.8,colors='k')
+        pb = ax.contour(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [0.0],linewidths=1.2,colors='k')
         ax.set_xlim([-650,650])
         ax.set_ylim([-250,100])
         ax.plot(T.C.x_trench_p,T.C.y_trench_p,linewidth = 2.0,linestyle = 'dashdot',label = r'Slab position',color = 'firebrick')
         ax.scatter(x_depo[ipic],y_depo[ipic],s=50,marker='X',c = 'k')
-        ax.set_ylabel(r'$y$ [km]',fontsize=fnt_g.label_)
         if (letter == '[c]') or letter == '[g]':
             ax.set_xlabel(r'$x$ [km]',fontsize=fnt_g.label_)
+        else: 
+            ax.set_xticklabels([])
         
+        if (letter == '[a]') or letter == '[b]' or letter == '[c]':
+            ax.set_ylabel(r'$y$ [km]',fontsize=fnt_g.label_)
+        else:
+            ax.set_yticklabels([])
+
+        
+
 
         props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
 
         ax.text(0.01, 0.95,letter, transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
+        ax.text(0.12, 1.30, r'$time = %.2f$ [Myr]'%(tv), transform=ax.transAxes, fontsize=fnt_g.axis_,verticalalignment='top', bbox=props,color='white')
 
 
         return ax,pa
 
-    def _create_pic_typeB(ax,T,tv,letter):
+    def _create_pic_typeB(ax,T,letter):
         x_depo,y_depo,vel,dH = _compute_velocity_migration(T)
 
         ipic = len(T.time)
@@ -2620,28 +2643,17 @@ def _figure_10(A,B,tA,tB,path_save):
 
         ax.set_ylim([0,np.max(vel)])
         ax.axvspan(indTb, indTe, alpha=0.1, color='red')
-        axb = ax.twinx()
-        axb.plot(range(itf,ipic),(dH[itf:ipic,1]),linewidth=0.8,linestyle=':',color='blue')
-        axb.set_ylim([np.nanmin(dH[:,0]),np.nanmax(dH[:,2])])
-        axb.set_ylabel(r'$\dot{\bar{H}}$ $[\frac{\mathrm{mm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
-        ax.set_xlim(np.round(indTb)-10,len(T.time))
-        ax.set_xticks([np.round(indTb)-10,np.round(indTb)-5,np.round(indTb),np.round(indTe)])
+        ax.set_xlim(np.round(indTb)-10,indTe+2)
+        ax.set_xticks([np.round(indTb)-10,np.round(indTb),np.round(indTe)])
         
-        labels_x = np.round([T.time[np.round(indTb)-10],T.time[np.round(indTb)-5],T.time[np.round(indTb)],T.time[np.round(indTe)]],3)
-        axb.set_xticklabels([r'$%.1f$'%(labels_x[0]),r'$%.1f$'%(labels_x[1]),r'$%.1f$'%(labels_x[2]),r'$%.1f$'%(labels_x[3])])
-        axb.set_xlim(np.round(indTb)-5,np.round(indTe)+1)
-
-        axb.set_xlabel([])
-
-
+        labels_x = np.round([T.time[np.round(indTb)-10],T.time[np.round(indTb)],T.time[np.round(indTe)]],3)
+        ax.set_xticklabels([r'$%.1f$'%(labels_x[0]),r'$%.1f$'%(labels_x[1]),r'$%.1f$'%(labels_x[2])])
+   
 
         ax.tick_params(axis="y",direction="in")
         ax.tick_params(axis="x",direction="in")
         ax.tick_params(width=1.2)
 
-
-        axb.xaxis.set_tick_params(labelsize=fnt_g.axis_)
-        axb.yaxis.set_tick_params(labelsize=fnt_g.axis_)
 
         props = dict(boxstyle='round', facecolor='black',edgecolor='none', alpha=0.8)
 
@@ -2653,50 +2665,48 @@ def _figure_10(A,B,tA,tB,path_save):
 
 
         
-        return ax,axb
+        return ax
 
 
 
 
-    path_saveb = os.path.join(path_save,'FM_def')
-    if os.path.isdir(path_saveb)==False:
-        os.mkdir(path_saveb)
-    fn = os.path.join(path_saveb,figure_name)
+    fn = os.path.join(path_save,figure_name)
     fg = figure()        
     cm = 1/2.54  # centimeters in inches
     fg = figure(figsize=(18*cm, 15*cm))  
     bx = 0.10
-    by = 0.10
-    sx = 0.375  
-    sx2 = 0.35
+    by = 0.07
+    sx = 0.38  
+    sx2 = 0.42
     dx  = 0.05
-    dx2 = 0.1 
-    dy = 0.05 
+    dx2 = 0.08
+    dy = 0.04 
     sy = 0.15 
     sy2 = 0.13
 
     ax0 = fg.add_axes([bx, by, sx2, sy2])
-    ax1 = fg.add_axes([bx, by+dy+sy, sx, sy2])
-    ax2 = fg.add_axes([bx, by+dy+sy+sy2, sx, sy2])
-    ax3 = fg.add_axes([bx, by+dy+sy+2*sy2, sx, sy2])
+    ax1 = fg.add_axes([bx, by+sy2+sy+2*dy, sx, sy2])
+    ax2 = fg.add_axes([bx, by+3*dy+2*sy+sy2, sx, sy2])
+    ax3 = fg.add_axes([bx, by+4*dy+3*sy+sy2, sx, sy2])
     ax4 = fg.add_axes([bx+sx2+dx2, by, sx, sy2])
-    ax5 = fg.add_axes([bx+sx2+dx2, by+dy+sy, sx, sy2])
-    ax6 = fg.add_axes([bx+sx2+dx2, by+dy+sy+sy2, sx, sy2])
-    ax7 = fg.add_axes([bx+sx2+dx2, by+dy+sy+2*sy2, sx, sy2])
+    ax5 = fg.add_axes([bx+sx2+dx, by+sy2+sy+2*dy, sx, sy2])
+    ax6 = fg.add_axes([bx+sx2+dx, by+3*dy+2*sy+sy2, sx, sy2])
+    ax7 = fg.add_axes([bx+sx2+dx, by+4*dy+3*sy+sy2, sx, sy2])
 
-    ax_cb = fg.add_axes([0.2, by+sy, 0.8, 0.15])
+    ax_cb = fg.add_axes([0.2, by+sy2+dy, 0.6, 0.15])
 
     ax3,p1 = _create_pic_typeA(ax3,A,tA[0],'[a]')
     ax2,p2 = _create_pic_typeA(ax2,A,tA[1],'[b]')
     ax1,p3 = _create_pic_typeA(ax1,A,tA[2],'[c]')
-    ax0,ax0b = _create_pic_typeB(ax0,A,'[d]')
+    ax0= _create_pic_typeB(ax0,A,'[d]')
 
     ax7,p4 = _create_pic_typeA(ax7,B,tB[0],'[e]')
     ax6,p5 = _create_pic_typeA(ax6,B,tB[1],'[f]')
     ax5,p6 = _create_pic_typeA(ax5,B,tB[2],'[g]')
-    ax4,ax4b = _create_pic_typeB(ax4,B,'[h]')
+    ax4 = _create_pic_typeB(ax4,B,'[h]')
 
-    ax_cb,cbar =define_colorbar_S(p1,ax1,[-4.5,4.5],[-4.0,-2.0,0.0,2.0,4.0],r'${{H}}$ [$\mathrm{km}$]')
+    cbar_ax,cbar =define_colorbar_S(p1,ax_cb,[-4.5,4.5],[-4.0,-2.0,0.0,2.0,4.0],r'${{H}}$ [$\mathrm{km}$]')
+    ax_cb.axis('off')
 
  
     fg.savefig(fn,dpi=600,transparent=False)
