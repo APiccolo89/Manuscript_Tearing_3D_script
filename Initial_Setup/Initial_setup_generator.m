@@ -1,9 +1,9 @@
 
 clear all;
 close all;
-addpath(genpath('../matlab'))
-addpath(genpath('../3D_numerical_setup'))
-addpath(genpath('../inpoly-master'))
+addpath(genpath('../Function_utilities_matlab'))
+addpath(genpath('../Function_utilities_matlab/3D_numerical_setup'))
+addpath(genpath('../Function_utilities_matlab/inpoly-master'))
 
 npart = [3,3,3];
 % See model setup in Paraview 1-YES; 0-NO
