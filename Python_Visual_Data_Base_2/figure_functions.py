@@ -131,7 +131,7 @@ class MidpointNormalize(mpl.colors.Normalize):
         x, y = [self.vmin, self.midpoint, self.vmax], [normalized_min, normalized_mid, normalized_max]
         return np.ma.masked_array(np.interp(value, x, y))
             
-def initial_profile_phase(path_save):
+def figure1_par(path_save):
     
     """
 
@@ -262,7 +262,7 @@ def initial_profile_phase(path_save):
     
     fg.savefig(fn2,dpi=600,transparent=True)
     
-def initial_geotherm(path_save):
+def figure_S2(path_save):
         
     def create_axis(ax, top_row:bool,letter:str,right:bool):
         plt.setp(ax.spines.values(), linewidth=1.4)
@@ -621,7 +621,7 @@ def _make_gif(test,ptsave_b):
 
         # make gif
     
-def make_figure3(A,path_figure,figure_name,time,Flag):
+def figure3_5(A,path_figure,figure_name,time,Flag):
     # figure name
     cm = 1/2.54  # centimeters in inches
 
@@ -910,7 +910,7 @@ def make_figure3(A,path_figure,figure_name,time,Flag):
     #ax2.yaxis.set_label_coords(1.02,0.5)
     fg.savefig(fn,dpi=600)
 
-def initial_topography(A,path_save):
+def figure_S3(A,path_save):
 
     def fmt(x):
         s = f"{x:.1f}"
@@ -936,7 +936,7 @@ def initial_topography(A,path_save):
         
     fg.savefig(fn,dpi=600,transparent=False)
 
-def make_figure_Sup(A,path_figure,figure_name,time):
+def figure_S9(A,path_figure,figure_name,time):
     # figure name
     from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
     def setup_axix(ax,ylabel):
@@ -1032,7 +1032,7 @@ def make_figure_Sup(A,path_figure,figure_name,time):
     #ax2.yaxis.set_label_coords(1.02,0.5)
     fg.savefig(fn,dpi=600)
     
-def figure_experimental_supplementary(A,path_figure,figure_name,letters_):
+def figure_S4_S7(A,path_figure,figure_name,letters_):
 
     """
     This is a picture that I wanted to do after reading the complete suite of articles of Fox. The exhumation rate that he provides has a maximum 
@@ -1213,7 +1213,7 @@ figure_name = figure name
 output the figure. 
 """
 
-def make_figure6(A,B,path_figure,figure_name,det):
+def figure6(A,B,path_figure,figure_name,det):
     
     """
     make axis for each of the subplot
@@ -1506,7 +1506,7 @@ def make_figure6_sup(A,B,path_figure,figure_name,det):
 
 
 
-def make_figure8(DB,path_save,figure_name):
+def figure8(DB,path_save,figure_name):
     """
     Major update: better to put everything in a row otherwise it is horrible in a paper
     
@@ -1621,7 +1621,7 @@ def make_figure8(DB,path_save,figure_name):
     
     fg.savefig(fn,dpi=600)
 
-def make_figure9(DB,path_save,figure_name):
+def figure9(DB,path_save,figure_name):
     from scipy import stats
     # figure name
     def linear_fuc(x,slope,intercept):
@@ -1729,7 +1729,9 @@ def make_figure9(DB,path_save,figure_name):
 
         ax0.set_xscale('log')
         ax1.set_xscale('log')
-        props = dict(boxstyle='round', facecolor='w',edgecolor='none', alpha=0.8)
+        props = dict(boxstyle='round', facecolor='k',edgecolor='none', alpha=0.8)
+        props2 = dict(boxstyle='round', facecolor='w',edgecolor='none', alpha=0.8)
+
         ax0.text(0.05, 0.96, '$[a]$', transform=ax0.transAxes, fontsize=fnt_g.label_,
             verticalalignment='top', bbox=props,color='white')
         ax1.text(0.05, 0.96, '$[b]$', transform=ax1.transAxes, fontsize=fnt_g.label_,
@@ -1738,7 +1740,7 @@ def make_figure9(DB,path_save,figure_name):
         ax0.text(0.25, 0.1, '$log_{10}(\dot{H})=%.1f log_{10}(v_{tearing})%.1f$'%(slope,intercept), transform=ax0.transAxes, fontsize=9,
             verticalalignment='top', bbox=props,color='k')
         ax1.text(0.25, 0.1, '$log_{10}(\dot{H})=%.1f log_{10}(v_{tearing})%.1f$'%(slope2,intercept2), transform=ax1.transAxes, fontsize=9,
-            verticalalignment='top', bbox=props,color='k')
+            verticalalignment='top', bbox=props2,color='k')
 
 
 
@@ -1751,7 +1753,7 @@ def make_figure9(DB,path_save,figure_name):
         plt.close()
         ax0 = []
         
-def make_figure8_sup_Depth(DB,path_save,figure_name):
+def figure_S10(DB,path_save,figure_name):
     """
     Major update: better to put everything in a row otherwise it is horrible in a paper
     
@@ -1963,7 +1965,7 @@ def make_figure9_sup_Depth(DB,path_save,figure_name):
         ax0 = []
 
 
-def make_figureXSup(DB,path_save,figure_name):
+def figure_S8(DB,path_save,figure_name):
     """
     Major update: better to put everything in a row otherwise it is horrible in a paper
     This figure represents the summary of the results as a function of vs,Va 
@@ -2089,7 +2091,7 @@ def make_figureXSup(DB,path_save,figure_name):
     fg.savefig(fn,dpi=600)
 
 
-def figure_tearing_instantaneous(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_save:str,figure_name:str):
+def figure_S11(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_save:str,figure_name:str):
     
     def _extracte_average_uplift(time,t,Starting_tearing,Ending_tearing,T1):
         uplift = np.zeros([3,len(t)],dtype=float)
@@ -2356,7 +2358,7 @@ def _gif_topography(A,path_save):
 
 
 
-def plot_test_migration(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_save:str,figure_name:str):
+def figure_S12(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_save:str,figure_name:str):
     
     def _compute_velocity_migration(T):
 
@@ -2504,7 +2506,7 @@ def plot_test_migration(T1:Test,T2:Test,T3:Test,T4:Test,T5:Test,T6:Test,path_sav
 
 
 
-def make_figure_10(A,B,tA,tB,path_save,figure_name):
+def figure_10(A,B,tA,tB,path_save,figure_name):
     
     def fmt(x):
         s = f"{x:.1f}"
@@ -2574,9 +2576,6 @@ def make_figure_10(A,B,tA,tB,path_save,figure_name):
         ax.tick_params(width=1.2)
         ax.xaxis.set_tick_params(labelsize=fnt_g.axis_)
         ax.yaxis.set_tick_params(labelsize=fnt_g.axis_)
-
-
-        ax.set_ylabel(r'$v_{mig}$ $[\frac{\mathrm{cm}}{\mathrm{yr}}]$',fontsize=fnt_g.label_)
         
         pa = ax.contourf(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [-4.5,-4.0,-3.5,-3.0,-2.5,-2.0,-1.5,-0.5,0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5],cmap = 'cmc.oleron')#linewidths=0.5)
         pb = ax.contour(T.C.xg,T.C.yg,T.FS.H[:,:,ipic],levels = [0.0],linewidths=1.2,colors='k')
