@@ -37,29 +37,6 @@ file_C = os.path.join(path,name_PR600)
 file_D = os.path.join(path,name_PRNO)
 file_DB = os.path.join(path,name_DB)
 
-"""
-Figure 1: Initial setup: Python/Paraview: part of the figure is
-        done using python and part in Paraview 
-Figure 2: Paraview figure: Figure depicting the fast tearing scenario
-Figure 3: Complementary figure of Fast tearing scenario
-Figure 4: Paraview figure: Figure depicting the slow tearing scenario
-Figure 5: Complementary figure of Slow tearing scenario
-Figure 6: Comulative uplift 
-Figure 7: Time resolution/result.
-Figure 8: Tearing velocity vs parameter 
-Figure 9: Tearing velocity vs uplift /pm linearcorrelation
-Figure S1: LaMEM constitutive model (inkscape)
-Figure S2: Geothermal gradient of the slab
-Figure S3: Initial topography
-Figure S4: Plot low resolution 1
-Figure S5: Plot low resolution 2
-Figure S6: Plot low resolution 3
-Figure S7: Plot low resolution 4
-Figure S8: Shear Heating and stress evolution
-Figure S9: Depth and parameters of slab tearing
-Figure S10: Tearing velocity
-Figure S11: migration shore line
-"""
 # Merge Data Base
 #_merge_database(file_A,file_B,file_C,file_DB)
 
@@ -152,12 +129,12 @@ ff.initial_geotherm(path_figure)
 # Figure S3
 ff.initial_topography(TSD2,path_figure)
 
-ff.make_figureXSup(DB,path_figure,'Figure_S4')
 
-ff.figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_S5',[])
-ff.figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_S6',[])
-ff.figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_S7',[])
-ff.figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_S8',[])
+ff.figure_experimental_supplementary(TSD2_V10,path_figure,'Figure_S4',[])
+ff.figure_experimental_supplementary(TSD2_V11,path_figure,'Figure_S5',[])
+ff.figure_experimental_supplementary(TSD2_V12,path_figure,'Figure_S6',[])
+ff.figure_experimental_supplementary(TSD2_V13,path_figure,'Figure_S7',[])
+ff.make_figureXSup(DB,path_figure,'Figure_S8')
 ff.make_figure_Sup(TSD2,path_figure,'Figure_S9',[10.18,10.20,10.24])
 ff.make_figure8_sup_Depth(DB,path_figure,'Figure_S10')
 ff.figure_tearing_instantaneous(TSD2,TSD2_V10,TSD2_V11,TSD2_V12,TSD2_V13,TSD2_V15,path_figure,'Figure_S11')
