@@ -34,7 +34,12 @@ import  Read_VTK_files_LAMEM as RW
 import  Slab_detachment      as SD 
 from mycolorpy import colorlist as mcp
 
-
+"""
+Short disclaimer: The functions here are to plot the relevant data using 
+the small database that I created from the real numerical simulation. During the 
+several months of work and revision, the functions are not exactly well documented. 
+Before the publication I will remove most of the deadly sins that I accumulated.
+"""
 
 
 os.environ["PATH"] += os.pathsep + '/usr/local/texlive/2015/bin/x86_64-darwin'
@@ -436,13 +441,7 @@ def compute_McKenzie_Field(TS,TP,vl,d,L0,dc):
     T_hc = compute_OC_geoterhm(TS,TP,D*D0,1e-6,30e6*60*60*24*365.25)
     n = 26 
     Sigma = np.zeros(np.shape(L),dtype = float)
-    """
-    
-     a = (-1).^(i)./(i.*pi);
-    b = (Re-(Re.^2+i^2*pi^2).^(0.5)).*obj.l_slab(~isnan(obj.d_slab)).*sc;
-    c = sin(i.*pi.*(1-abs(obj.d_slab(~isnan(obj.d_slab)).*sc)));
-    e = exp(b);
-    """
+
     
     for ir in range(n):
         i = ir+1

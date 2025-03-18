@@ -1,9 +1,9 @@
 
 clear all;
 close all;
-addpath(genpath('../Lukas_Initial_Setup/matlab'))
-addpath(genpath('../Lukas_Initial_Setup/3D_numerical_setup'))
-addpath(genpath('../Lukas_Initial_Setup/inpoly-master'))
+addpath(genpath('../matlab'))
+addpath(genpath('../3D_numerical_setup'))
+addpath(genpath('../inpoly-master'))
 
 npart = [3,3,3];
 % See model setup in Paraview 1-YES; 0-NO
