@@ -1738,7 +1738,7 @@ def figure9(DB,path_save,figure_name):
             verticalalignment='top', bbox=props,color='white')
     
         ax0.text(0.25, 0.1, '$log_{10}(\dot{H})=%.1f log_{10}(v_{tearing})%.1f$'%(slope,intercept), transform=ax0.transAxes, fontsize=9,
-            verticalalignment='top', bbox=props,color='k')
+            verticalalignment='top', bbox=props2,color='k')
         ax1.text(0.25, 0.1, '$log_{10}(\dot{H})=%.1f log_{10}(v_{tearing})%.1f$'%(slope2,intercept2), transform=ax1.transAxes, fontsize=9,
             verticalalignment='top', bbox=props2,color='k')
 

@@ -14,6 +14,7 @@ from pylab import figure, axes, pie, title, show
 import pylab
 #from matplotlib import rcParams
 #import json
+import argparse 
 import matplotlib.colors as colors
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from numpy.ma import masked_array
@@ -22,28 +23,51 @@ from Class_Data_Base import *
 from Class_Data_Base import _merge_database
 from time import perf_counter 
 import figure_functions as ff 
+"""
+parser = argparse.ArgumentParser()
 
-path = r'../../Data_Bases'
+parser.add_argument("path", help="path to the databases folder",type=str)
+parser.add_argument("path_save", help="path to the choosen save folder (i.e., where the user wants to save the results)",type=str)
+parser.add_argument("save_h5", help = 'Save a small database with relevant data')
+parser.add_argument("print_txt", help = 'Print .txt file suitable for other software such Petrell')
+parser.add_argument("merge_database",help = 'Merge database from the first step of postprocessing')
 
-name_PR = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
+args = parser.parse_args()
+
+path           = args.path 
+path_save      = args.path_save
+print(path_save)
+save_h5        = args.save_h5
+print_txt      = args.print_txt
+merge_database = args.merge_database 
+"""
+
+
+
+
+
+
+path = r'../../Data_Bases' ;path_save = r'../../Data_Base_KIT_GLA'
+merge_database = False; save_h5 = False; print_txt = False 
+
+name_PR    = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
 name_PR200 = 'Data_base_Slab_detachment_3D_PR_200.hdf5'
-name_PR600 ='Data_base_Slab_detachment_3D_PR_600.hdf5'
-name_PRNO ='Data_base_Slab_detachment_3D_PR_no.hdf5'
+name_PR600 = 'Data_base_Slab_detachment_3D_PR_600.hdf5'
 
 name_DB    = '3D_numerical_suites.hd5f'
-file_A = os.path.join(path,name_PR)
-file_B = os.path.join(path,name_PR200)
-file_C = os.path.join(path,name_PR600)
-file_D = os.path.join(path,name_PRNO)
-file_DB = os.path.join(path,name_DB)
+file_A     = os.path.join(path,name_PR)
+file_B     = os.path.join(path,name_PR200)
+file_C     = os.path.join(path,name_PR600)
+file_DB    = os.path.join(path,name_DB)
 
 # Merge Data Base
-#_merge_database(file_A,file_B,file_C,file_DB)
+if merge_database == True:
+    _merge_database(file_A,file_B,file_C,file_DB)
 
-path_save = r'../../Data_Base_KIT_GLA'
 
 if not os.path.isdir(path_save):
     os.mkdir(path_save)
+    print(path_save)
 
 
 # [A.2] Create the database
@@ -51,7 +75,12 @@ DB = Data_Base(file_DB)
 
 # Loop over the avaiable test and collect data, save a smaller database, and ascii file {TIP: if you want 
 # to create a subclasses you do not have to put a decorator for the classes}
-DB._post_process_data(path,path_save,False,False,True)
+DB._post_process_data(path,      # path to DB
+                      path_save, # path to save the postprocessed data
+                      save_h5,     # save database of postprocessed data
+                      print_txt,     # print topography in .txt {compatible with Petrel}
+                      True)      # Check if exist already a post processed dataset within the current 
+                                 # h5 file; if not, repeat the postprocess 
 
 path_figure = os.path.join(path_save,'FM_def')
 
@@ -64,6 +93,7 @@ if not os.path.isdir(path_figure):
 if not os.path.isdir(path_gif):
     os.mkdir(path_gif)
 
+ff.figure9(DB,path_figure,'figure9')
 
 TSD2 = Test(file_DB,['PR_r','TSD2'])
 
