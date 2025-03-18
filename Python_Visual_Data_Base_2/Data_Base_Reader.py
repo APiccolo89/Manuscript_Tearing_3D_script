@@ -23,7 +23,7 @@ from Class_Data_Base import *
 from Class_Data_Base import _merge_database
 from time import perf_counter 
 import figure_functions as ff 
-"""
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument("path", help="path to the databases folder",type=str)
@@ -40,15 +40,15 @@ print(path_save)
 save_h5        = args.save_h5
 print_txt      = args.print_txt
 merge_database = args.merge_database 
-"""
 
 
 
 
 
 
-path = r'../../Data_Bases' ;path_save = r'../../Data_Base_KIT_GLA'
-merge_database = False; save_h5 = False; print_txt = False 
+
+#path = r'../../Data_Bases' ;path_save = r'../../Data_Base_KIT_GLA'
+#merge_database = False; save_h5 = False; print_txt = False 
 
 name_PR    = 'Data_base_Slab_detachment_3D_PR_r.hdf5'
 name_PR200 = 'Data_base_Slab_detachment_3D_PR_200.hdf5'
