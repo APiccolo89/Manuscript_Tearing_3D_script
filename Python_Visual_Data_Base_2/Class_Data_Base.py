@@ -203,7 +203,6 @@ class Data_Base(object):
         return buf
     @timer
     def _post_process_data(self,path:str,path_save:str,save_data:bool,print_topography:bool,check:bool):
-        from figure_functions import figure_experimental_supplementary
 
         perform = True
         if check == True: 
@@ -298,7 +297,6 @@ class Data_Base(object):
                         test._print_topographic_data_ASCI(test_name[1],path_save_b)
 
                     self.latex_table.append([test_name[1],f"{self.Temp[itest]:.1f}",f"{self.StressLimit[itest]/1e6:.1f}",f"{self.Avolume[itest]:.1f}",f"{mean_v:.1e}",f"{self.uplift[itest,1]:.1e}",f"{self.uplift[itest,0]:.1e}",f"{self.uplift[itest,2]:.1e}",f"{self.depth_tearing[itest,0]:.1f}",f"{self.depth_tearing[itest,1]}"])
-                    figure_experimental_supplementary(test,path_save,test_name[1],[]) 
                 #self.create_latex_table(path_save,latex_table)
                 itest = itest+1
             self._save_new_DB_voice()
