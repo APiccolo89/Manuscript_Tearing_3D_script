@@ -36,6 +36,8 @@ if strcmp(Type,'ContinentalGeotherm') % Is continental
 
 elseif strcmp(Type,'HalfSpace')
     [Temp] = HalfSpaceCooling(obj,D,ind,A.Temp);
+elseif strcmp(Type,'Ridge')
+    [Temp] = ridge_oceanic(obj,D,A.Xpart,A.Ypart,ind,A.Temp);
 elseif strcmp(Type,'McKenzie')
     % McKenzie type require to run the temperature field of Halfspace
     % cooling model before. As the quick hack to have a smooth temperature

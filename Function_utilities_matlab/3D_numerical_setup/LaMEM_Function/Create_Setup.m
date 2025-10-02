@@ -65,7 +65,7 @@ else
     B_time = cputime; 
     disp(['Benchmark3D took',num2str(B_time-A_time,3) ,' s, to load']); 
 end
-[A] = displace_phase_isostasy(ph,A,Gr,TI,Terranes.Ocean_BG.Stratigraphy);
+%[A] = displace_phase_isostasy(ph,A,Gr,TI,Terranes.Ocean_BG.Stratigraphy);
 
 
 A.Phase(A.Phase==0) = 12;

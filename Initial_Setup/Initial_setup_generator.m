@@ -67,14 +67,14 @@ BG = BG.compute_coordinate_boundary_composite;
 
 %South Continent 
 C2 = BoundsT; 
-C2.c = [0.0,-500];
+C2.c = [0.0,-500.0];
 C2.W = 1000.0;
 C2.L = 1000.0;
 C2=C2.Create_arc_circumference_margin(10000,'B',1200);
 
 % = North Continent with composite D Boundary
 C1 = BoundsT;
-C1.c = [0.0, Wy/4];
+C1.c = [0.0, 400.0];
 C1.W = Wy/2;
 C1.L = Lx;
 C1=C1.compute_coordinate_boundary_composite;
@@ -93,7 +93,10 @@ Thermal_TypeTrench.Type = 'McKenzie';
 %
 Thermal_TypeOcean = Thermal_Type;
 Thermal_TypeOcean.Age = convert_Age_velocity(30,1); 
-Thermal_TypeOcean.Type = 'HalfSpace';
+Thermal_TypeOcean.Type = 'Ridge';
+Thermal_TypeOcean.v_spreading = convert_Age_velocity(4,2);
+Thermal_TypeOcean.Ridge_position = [nan,min(Gr.y_g)]; %Ridge is at the rear end of the model 
+
 % 
 Thermal_TypeContinent = Thermal_Type; 
 Thermal_TypeContinent.Type = 'ContinentalGeotherm'; 
