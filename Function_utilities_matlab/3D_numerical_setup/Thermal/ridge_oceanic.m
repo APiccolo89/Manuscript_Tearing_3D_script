@@ -22,11 +22,16 @@ kappa  = obj.Thermal_information.kappa; %Thermal conductivity of the object
 if isa(obj,'Passive_Margin')
     T_Age = obj.Thermal_type_O.Age; 
 else 
-    vel_spreading = obj.Thermal_type.v_spreading;   % Age of the object in [s]
+    vel_spreading = obj.Thermal_type.v_spreading; % Age of the object in [m/s]
+    if vel_spreading < 0.0
+        vel_spreading = abs(vel_spreading);
+        y = - y(:);
+    else 
+        y = y(:);
+    end
 end
 T_P   = obj.Thermal_information.TP; % Mantle potential temperature in C
 T_S   = obj.Thermal_information.TS; % Surface temperature in C
-y = y(:);
 ind_z = D(:) < T_tk(1) & D(:)>=T_tk(2) & ind(:)==1;
 ind_o = D(:) < T_tk(2) & ind(:)==1;
     

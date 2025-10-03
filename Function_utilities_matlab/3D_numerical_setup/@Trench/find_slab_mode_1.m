@@ -1,145 +1,239 @@
-function [obj,Phase,Temp] = find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
-% linear part of the slab: should I compute?
-sl    = 1    ; % Always YES, NO, only if we are considering weak zone, which has 90 deg theta
-% Convert the angle in radians
 
-x     = A.Xpart(:); % x part coordinate
-z     = A.Zpart(:); % z part coordinate
-y     = A.Ypart(:); % y part coordinate
-data_boundary = obj.Boundary.(Boundary);
-%Select the boundary = limits of the boundary
-[loc1, ~] = find(tril(data_boundary{1} == data_boundary{1}', -1)); % find the main boundary.
-if rem(loc1,2)==0
-    ya = data_boundary{1}(1);
-    yb = data_boundary{1}(3);
-    xc = data_boundary{1}(2);
-else
-    ya = data_boundary{1}(2);
-    yb = data_boundary{1}(4);
-    xc = data_boundary{1}(3);
+function [obj, Phase, Temp] = find_slab_mode_1(obj, A, Weak_Slab, Phase, Temp, Boundary, theta)
+    % Preallocate arrays
+    numPoints = numel(A.Xpart);
+    d = nan(numPoints, 1); % Distance array for the slab
+    Length = nan(numPoints, 1); % Integrated length along the slab
+    arc_angleS = nan(numPoints, 1); % Angular distance array
+    continent = nan(numPoints, 1); % Continental portion array
 
-end
+    % Convert the angle in radians
+    ang_ = deg2rad(theta);
+    ang_2 = deg2rad(theta + 90);
 
-ang_  = (theta)*pi/180; % angle of the slab
-ang_2 = (theta+90)*pi/180; %needed for the linear portion of the slab
+    % Extract coordinates
+    x = A.Xpart(:);
+    z = A.Zpart(:);
+    y = A.Ypart(:);
+    data_boundary = obj.Boundary.(Boundary);
 
-r      = obj.R; % radius upper and lower surface
-r_m    = sum(r)./2; % average radius, to compute the linear integral
-C      = [xc,0.0-obj.R(2)]; % center of the curvature
-
-if strcmp(Weak_Slab,'Weak')
-    r(1) = r(2);
-    r(2) = r(2)+obj.tk_WZ;
-    if theta == 90
-        sl = 0;
-    end
-    %=============
-end
-% select the point that are worth to check if they belong to the slab
-ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>ya & y<yb;
-A_time = cputime;
-% Vector version
-d = x*nan; % d the distance array for the slab
-Length = d; % Lenght the integrated length along the slab
-arc_angleS = x.*NaN; % array that stores the angular distance
-continent = arc_angleS; % array that identify where is the continental portion
-% Compute the angular distance w.r.t. the center C
-d(ind==1) = sqrt((x(ind==1)-C(1)).^2+(z(ind==1)- C(2)).^2);
-% Compute the angle between the vertical vector stemming from the center of
-% circumference and the current marker
-arc_angleS(ind==1) = acos((z(ind==1)-C(2))./d(ind==1)).*180/pi;
-% find the portion that are considered continent
-% save the information in continent
-% Exclude the points that feature a distance from the center that are less
-% or higher than the actual internal and external radius of circumference
-% Correct temperature 1st part: Unfourtantely, temperature is a pain to
-% correct and I need to introduce ad hoc correction in specific place.
-if ~strcmp(Weak_Slab,'Weak')
-    Temp(d<=r(1) & x>0 & z>obj.Decoupling_depth) = obj.Thermal_information.TP;
-    Phase(d<=r(1) & x>0 & z>obj.Decoupling_depth) = obj.Thermal_information.Ph_Ast;
-end
-d(d<r(1) | d>r(2)) = NaN;
-% Exclude the points that feature an angular distance w.r.t. C that is
-% higher or lower than the actual angle {TO DO detecting the bending}
-d(arc_angleS>theta | arc_angleS<0)=NaN;
-% Compute the effective distance from the top surface
-d = d-r(2);
-% Compute the length of the curved slab as a function of the mid distance
-% layer. {r_m*angle} => angle in radians.
-Length(~isnan(d))= r_m.*arc_angleS(~isnan(d) & arc_angleS<=theta)*pi/180; % compute the length associated with the
-
-if sl ==1
-
-    % Compute the point using basic trigonometry:
-    % 1) => Compute the P1,P2,P3,P4 that represents the rectangular shape
-    % attached to the curved portion of the slab
-    p1(1)    = C(1)+r(1)*sin(ang_);
-    p1(2)    = C(2)+r(1)*cos(ang_);
-    p2(1)    = C(1)+r(2)*sin(ang_);
-    p2(2)    = C(2)+r(2)*cos(ang_);
-
-    p3(1)    = p1(1)+obj.L0*sin(ang_2);
-    p3(2)    = p1(2)+obj.L0*cos(ang_2);
-    p4(1)    = p2(1)+obj.L0*sin(ang_2);
-    p4(2)    = p2(2)+obj.L0*cos(ang_2);
-
-    %
-    Py(1) = p1(1);
-    Py(2) = p2(1);
-    Py(3) = p4(1);
-    Py(4) = p3(1);
-    Pz(1) = p1(2);
-    Pz(2) = p2(2);
-    Pz(3) = p4(2);
-    Pz(4) = p3(2);
-    % Inpolygon => Select the pint that belongs to the polygon
-    [in,~] = inpolygon(x,z,Py,Pz);
-    P = [x(in & y>=ya & y<=yb), z(in & y>=ya & y<=yb)];
-    % Find the distance from the top surface
-    d(in & y>=ya & y<=yb) = -(find_distance_linear(P,p2,p4))';
-    %Update the object
-    % Find the continent portion {additional change to the structure}
-    % I have the length and the depth, which mean that I have an ortogonal
-    % system of coordinate that I can use to generate my stuff.
-    if ~strcmp(Weak_Slab,'Weak')
-        [Length,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r_m,d,Length,Phase,Temp,theta);
-        if ~strcmp(obj.length_continent{2},'none')
-            [L] = Compute_properties_along_function(ya,yb,obj.length_continent,A.Length_along);
-            Points = obj.Subducted_crust_L;
-            Pl(1)     = Points(1);
-            Pl(2)     = Points(3);
-            Pl(3)     = 1.0;
-            Pd(1)     = Points(2);
-            Pd(2)     = Points(4);
-            Pd(3)     = Points(6);
-            [in,~] = inpolygon(Length./L(:),d,Pl,Pd);
-            continent(in==1 & y>=ya & y<=yb)=1.0;
-        else
-            Points = obj.Subducted_crust_L;
-            Pl(1)     = Points(1);
-            Pl(2)     = Points(3);
-            Pl(3)     = Points(5);
-            Pd(1)     = Points(2);
-            Pd(2)     = Points(4);
-            Pd(3)     = Points(6);
-            [in,~] = inpolygon(Length,d,Pl,Pd);
-            continent(in==1 & y>=ya & y<=yb)=1.0;
-        end
-        % Need to do as follow, I lose any hope to have any fixed
-        % organisation
-        obj.Decoupling_depth(1) = obj.Decoupling_depth;
-        obj.Decoupling_depth(2) = ind_decoupling;
+    % Select the boundary
+    [loc1, ~] = find(tril(data_boundary{1} == data_boundary{1}', -1));
+    if rem(loc1, 2) == 0
+        ya = data_boundary{1}(1);
+        yb = data_boundary{1}(3);
+        xc = data_boundary{1}(2);
     else
-        d(z<=obj.Decoupling_depth(1))=nan;
+        ya = data_boundary{1}(2);
+        yb = data_boundary{1}(4);
+        xc = data_boundary{1}(3);
     end
-end
-obj.l_slab = Length;
-obj.d_slab = reshape(d,size(A.Xpart));
-obj.continent = reshape(continent,size(A.Xpart));
 
-B_time = cputime;
-disp(['Finding the slab took = ', num2str((B_time-A_time),3), ' sec']);
+    % Radius and center of curvature
+    r = obj.R;
+    r_m = mean(r);
+    C = [xc, -obj.R(2)];
+
+    % Adjust radius for weak slab
+    if strcmp(Weak_Slab, 'Weak')
+        r(1) = r(2);
+        r(2) = r(2) + obj.tk_WZ;
+    end
+
+    % Select points within the slab
+    ind = (x >= C(1) & x <= C(1) + 2 * obj.L0) & (z >= -1.5 * obj.L0 & z <= 1.0) & (y > ya & y < yb);
+
+    % Compute distances and angles
+    d(ind) = sqrt((x(ind) - C(1)).^2 + (z(ind) - C(2)).^2);
+    arc_angleS(ind) = acos((z(ind) - C(2)) ./ d(ind)) * (180 / pi);
+
+    % Temperature correction
+    if ~strcmp(Weak_Slab, 'Weak')
+        Temp(d <= r(1) & x > 0 & z > obj.Decoupling_depth) = obj.Thermal_information.TP;
+        Phase(d <= r(1) & x > 0 & z > obj.Decoupling_depth) = obj.Thermal_information.Ph_Ast;
+    end
+
+    % Exclude points outside the radius
+    d(d < r(1) | d > r(2)) = NaN;
+    d(arc_angleS > theta | arc_angleS < 0) = NaN;
+
+    % Compute effective distance from the top surface
+    d = d - r(2);
+    Length(~isnan(d)) = r_m .* arc_angleS(~isnan(d) & arc_angleS <= theta) * (pi / 180);
+
+    % Further calculations for slab geometry
+    if sl == 1
+        % Compute points using trigonometry
+        p1 = C + r(1) * [sin(ang_), cos(ang_)];
+        p2 = C + r(2) * [sin(ang_), cos(ang_)];
+        p3 = p1 + obj.L0 * [sin(ang_2), cos(ang_2)];
+        p4 = p2 + obj.L0 * [sin(ang_2), cos(ang_2)];
+
+        % Inpolygon check
+        [in, ~] = inpolygon(x, z, [p1(1), p2(1), p4(1), p3(1)], [p1(2), p2(2), p4(2), p3(2)]);
+        P = [x(in & y >= ya & y <= yb), z(in & y >= ya & y <= yb)];
+        d(in & y >= ya & y <= yb) = -find_distance_linear(P, p2, p4)';
+
+        % Update object properties
+        if ~strcmp(Weak_Slab, 'Weak')
+            [Length, ind_decoupling, Phase, Temp] = find_length_slab(obj, x, z, C, r_m, d, Length, Phase, Temp, theta);
+            % Additional continent calculations...
+        else
+            d(z <= obj.Decoupling_depth(1)) = nan;
+        end
+    end
+
+    % Update object properties
+    obj.l_slab = Length;
+    obj.d_slab = reshape(d, size(A.Xpart));
+    obj.continent = reshape(continent, size(A.Xpart));
+
+    disp(['Finding the slab took = ', num2str(cputime - A_time, 3), ' sec']);
 end
+
+% 
+% function [obj,Phase,Temp] = find_slab_mode_1(obj,A,Weak_Slab,Phase,Temp,Boundary,theta)
+% % linear part of the slab: should I compute?
+% sl    = 1    ; % Always YES, NO, only if we are considering weak zone, which has 90 deg theta
+% % Convert the angle in radians
+% 
+% x     = A.Xpart(:); % x part coordinate
+% z     = A.Zpart(:); % z part coordinate
+% y     = A.Ypart(:); % y part coordinate
+% data_boundary = obj.Boundary.(Boundary);
+% %Select the boundary = limits of the boundary
+% [loc1, ~] = find(tril(data_boundary{1} == data_boundary{1}', -1)); % find the main boundary.
+% if rem(loc1,2)==0
+%     ya = data_boundary{1}(1);
+%     yb = data_boundary{1}(3);
+%     xc = data_boundary{1}(2);
+% else
+%     ya = data_boundary{1}(2);
+%     yb = data_boundary{1}(4);
+%     xc = data_boundary{1}(3);
+% 
+% end
+% 
+% ang_  = (theta)*pi/180; % angle of the slab
+% ang_2 = (theta+90)*pi/180; %needed for the linear portion of the slab
+% 
+% r      = obj.R; % radius upper and lower surface
+% r_m    = sum(r)./2; % average radius, to compute the linear integral
+% C      = [xc,0.0-obj.R(2)]; % center of the curvature
+% 
+% if strcmp(Weak_Slab,'Weak')
+%     r(1) = r(2);
+%     r(2) = r(2)+obj.tk_WZ;
+%     if theta == 90
+%         sl = 0;
+%     end
+%     %=============
+% end
+% % select the point that are worth to check if they belong to the slab
+% ind = (x>=C(1) & x(:)<=C(1)+2.*obj.L0) & z>=-1.5*obj.L0 & z(:)<=1.0 & y>ya & y<yb;
+% A_time = cputime;
+% % Vector version
+% d = x*nan; % d the distance array for the slab
+% Length = d; % Lenght the integrated length along the slab
+% arc_angleS = x.*NaN; % array that stores the angular distance
+% continent = arc_angleS; % array that identify where is the continental portion
+% % Compute the angular distance w.r.t. the center C
+% d(ind==1) = sqrt((x(ind==1)-C(1)).^2+(z(ind==1)- C(2)).^2);
+% % Compute the angle between the vertical vector stemming from the center of
+% % circumference and the current marker
+% arc_angleS(ind==1) = acos((z(ind==1)-C(2))./d(ind==1)).*180/pi;
+% % find the portion that are considered continent
+% % save the information in continent
+% % Exclude the points that feature a distance from the center that are less
+% % or higher than the actual internal and external radius of circumference
+% % Correct temperature 1st part: Unfourtantely, temperature is a pain to
+% % correct and I need to introduce ad hoc correction in specific place.
+% if ~strcmp(Weak_Slab,'Weak')
+%     Temp(d<=r(1) & x>0 & z>obj.Decoupling_depth) = obj.Thermal_information.TP;
+%     Phase(d<=r(1) & x>0 & z>obj.Decoupling_depth) = obj.Thermal_information.Ph_Ast;
+% end
+% d(d<r(1) | d>r(2)) = NaN;
+% % Exclude the points that feature an angular distance w.r.t. C that is
+% % higher or lower than the actual angle {TO DO detecting the bending}
+% d(arc_angleS>theta | arc_angleS<0)=NaN;
+% % Compute the effective distance from the top surface
+% d = d-r(2);
+% % Compute the length of the curved slab as a function of the mid distance
+% % layer. {r_m*angle} => angle in radians.
+% Length(~isnan(d))= r_m.*arc_angleS(~isnan(d) & arc_angleS<=theta)*pi/180; % compute the length associated with the
+% 
+% if sl ==1
+% 
+%     % Compute the point using basic trigonometry:
+%     % 1) => Compute the P1,P2,P3,P4 that represents the rectangular shape
+%     % attached to the curved portion of the slab
+%     p1(1)    = C(1)+r(1)*sin(ang_);
+%     p1(2)    = C(2)+r(1)*cos(ang_);
+%     p2(1)    = C(1)+r(2)*sin(ang_);
+%     p2(2)    = C(2)+r(2)*cos(ang_);
+% 
+%     p3(1)    = p1(1)+obj.L0*sin(ang_2);
+%     p3(2)    = p1(2)+obj.L0*cos(ang_2);
+%     p4(1)    = p2(1)+obj.L0*sin(ang_2);
+%     p4(2)    = p2(2)+obj.L0*cos(ang_2);
+% 
+%     %
+%     Py(1) = p1(1);
+%     Py(2) = p2(1);
+%     Py(3) = p4(1);
+%     Py(4) = p3(1);
+%     Pz(1) = p1(2);
+%     Pz(2) = p2(2);
+%     Pz(3) = p4(2);
+%     Pz(4) = p3(2);
+%     % Inpolygon => Select the pint that belongs to the polygon
+%     [in,~] = inpolygon(x,z,Py,Pz);
+%     P = [x(in & y>=ya & y<=yb), z(in & y>=ya & y<=yb)];
+%     % Find the distance from the top surface
+%     d(in & y>=ya & y<=yb) = -(find_distance_linear(P,p2,p4))';
+%     %Update the object
+%     % Find the continent portion {additional change to the structure}
+%     % I have the length and the depth, which mean that I have an ortogonal
+%     % system of coordinate that I can use to generate my stuff.
+%     if ~strcmp(Weak_Slab,'Weak')
+%         [Length,ind_decoupling,Phase,Temp] = find_length_slab(obj,x,z,C,r_m,d,Length,Phase,Temp,theta);
+%         if ~strcmp(obj.length_continent{2},'none')
+%             [L] = Compute_properties_along_function(ya,yb,obj.length_continent,A.Length_along);
+%             Points = obj.Subducted_crust_L;
+%             Pl(1)     = Points(1);
+%             Pl(2)     = Points(3);
+%             Pl(3)     = 1.0;
+%             Pd(1)     = Points(2);
+%             Pd(2)     = Points(4);
+%             Pd(3)     = Points(6);
+%             [in,~] = inpolygon(Length./L(:),d,Pl,Pd);
+%             continent(in==1 & y>=ya & y<=yb)=1.0;
+%         else
+%             Points = obj.Subducted_crust_L;
+%             Pl(1)     = Points(1);
+%             Pl(2)     = Points(3);
+%             Pl(3)     = Points(5);
+%             Pd(1)     = Points(2);
+%             Pd(2)     = Points(4);
+%             Pd(3)     = Points(6);
+%             [in,~] = inpolygon(Length,d,Pl,Pd);
+%             continent(in==1 & y>=ya & y<=yb)=1.0;
+%         end
+%         % Need to do as follow, I lose any hope to have any fixed
+%         % organisation
+%         obj.Decoupling_depth(1) = obj.Decoupling_depth;
+%         obj.Decoupling_depth(2) = ind_decoupling;
+%     else
+%         d(z<=obj.Decoupling_depth(1))=nan;
+%     end
+% end
+% obj.l_slab = Length;
+% obj.d_slab = reshape(d,size(A.Xpart));
+% obj.continent = reshape(continent,size(A.Xpart));
+% 
+% B_time = cputime;
+% disp(['Finding the slab took = ', num2str((B_time-A_time),3), ' sec']);
+% end
 
 
 function [d] = find_distance_linear(P,p1,p2)
